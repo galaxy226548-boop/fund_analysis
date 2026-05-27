@@ -7,5 +7,6 @@
   "window_weeks": 52,
   "step_weeks": 4,
   "min_fund_weeks": 104,
-  "min_r2": 0.7
+  "min_r2": 0.7,
+  "benchmark_cost_rate": 0.001
 }

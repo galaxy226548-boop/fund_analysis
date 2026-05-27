@@ -24,6 +24,7 @@ WINDOW_WEEKS = 52
 STEP_WEEKS = 4
 MIN_FUND_WEEKS = 104
 MIN_R2 = 0.7
+BENCHMARK_COST_RATE = 0.001
 
 
 @dataclass(frozen=True)
@@ -90,7 +91,7 @@ def parse_args() -> RBSAConfig:
     )
 
 
-def read_index_weekly_return(path: Path, name: str) -> pd.Series:
+def read_index_close(path: Path, name: str) -> pd.Series:
     df = pd.read_excel(path, usecols=["date", "close"])
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
     close = (
@@ -101,6 +102,12 @@ def read_index_weekly_return(path: Path, name: str) -> pd.Series:
         .sort_values("date")
         .set_index("date")["close"]
     )
+    close.name = name
+    return close
+
+
+def read_index_weekly_return(path: Path, name: str) -> pd.Series:
+    close = read_index_close(path, name)
     weekly_close = close.resample("W-FRI").last().dropna()
     weekly_return = weekly_close.pct_change()
     weekly_return.name = name
@@ -186,20 +193,63 @@ def rebalance_dates(index: pd.DatetimeIndex) -> set[pd.Timestamp]:
     return dates
 
 
-def compute_static_5050(factors: pd.DataFrame) -> pd.Series:
-    weights = np.array([0.5, 0.5], dtype=float)
-    resets = rebalance_dates(factors.index)
-    returns = []
-    for date, row in factors[["growth", "value"]].iterrows():
-        if date in resets:
-            weights = np.array([0.5, 0.5], dtype=float)
-        asset_returns = row.to_numpy(dtype=float)
-        portfolio_return = float(np.dot(weights, asset_returns))
-        returns.append(portfolio_return)
-        values = weights * (1.0 + asset_returns)
-        total = values.sum()
-        weights = values / total if total != 0 else np.array([0.5, 0.5], dtype=float)
-    return pd.Series(returns, index=factors.index, name="benchmark_5050")
+def compute_static_5050(
+    growth_close: pd.Series,
+    value_close: pd.Series,
+    weekly_index: pd.DatetimeIndex,
+    cost_rate: float = BENCHMARK_COST_RATE,
+) -> tuple[pd.Series, pd.DataFrame]:
+    close = pd.concat([growth_close.rename("growth"), value_close.rename("value")], axis=1).dropna()
+    close = close.sort_index()
+    target_weights = np.array([0.5, 0.5], dtype=float)
+    rebalance_set = rebalance_dates(close.index)
+
+    asset_values = target_weights.copy()
+    previous_close = None
+    rows: list[dict[str, object]] = []
+
+    for date, row in close.iterrows():
+        if previous_close is not None:
+            daily_return = row.to_numpy(dtype=float) / previous_close.to_numpy(dtype=float) - 1.0
+            asset_values = asset_values * (1.0 + daily_return)
+
+        nav_before_cost = float(asset_values.sum())
+        turnover = 0.0
+        cost = 0.0
+        do_rebalance = previous_close is not None and date in rebalance_set
+        if do_rebalance:
+            current_weights = asset_values / nav_before_cost
+            turnover = float(np.abs(current_weights - target_weights).sum())
+            cost = nav_before_cost * turnover * cost_rate
+            nav_after_cost = nav_before_cost - cost
+            asset_values = nav_after_cost * target_weights
+        else:
+            nav_after_cost = nav_before_cost
+            current_weights = asset_values / nav_before_cost
+
+        rows.append(
+            {
+                "date": date,
+                "benchmark_5050_nav": nav_after_cost,
+                "growth_weight": asset_values[0] / nav_after_cost,
+                "value_weight": asset_values[1] / nav_after_cost,
+                "pre_rebalance_growth_weight": current_weights[0],
+                "pre_rebalance_value_weight": current_weights[1],
+                "is_rebalance": do_rebalance,
+                "turnover": turnover,
+                "cost": cost,
+            }
+        )
+        previous_close = row
+
+    daily_nav = pd.DataFrame(rows).set_index("date")
+    weekly_nav = daily_nav["benchmark_5050_nav"].resample("W-FRI").last().dropna()
+    weekly_nav = weekly_nav.reindex(weekly_index).ffill()
+    weekly_returns = weekly_nav.pct_change()
+    weekly_returns.name = "benchmark_5050"
+
+    daily_nav.index.name = "date"
+    return weekly_returns, daily_nav
 
 
 def solve_rbsa(y: np.ndarray, x: np.ndarray) -> tuple[np.ndarray, float]:
@@ -439,11 +489,13 @@ def build_annual_stats(period_returns: pd.DataFrame, step_weeks: int) -> pd.Data
 
 def build_stable_fund_stats(
     fund_period_returns: pd.DataFrame,
-    min_selected_count: int = 10,
+    exposures: pd.DataFrame,
+    min_selected_count: int = 25,
+    min_outperform_selected_count: int = 10,
     min_correct_rate: float = 0.6,
-) -> tuple[pd.DataFrame, set[str]]:
+) -> tuple[pd.DataFrame, set[str], set[str], set[str]]:
     if fund_period_returns.empty:
-        return pd.DataFrame(), set()
+        return pd.DataFrame(), set(), set(), set()
 
     stats = (
         fund_period_returns.groupby("fund_code")
@@ -458,17 +510,67 @@ def build_stable_fund_stats(
         .reset_index()
     )
     stats["correct_rate"] = stats["correct_count"] / stats["selected_count"]
+    exposure_metrics = build_exposure_dynamics(exposures)
+    stats = stats.merge(exposure_metrics, on="fund_code", how="left")
     stats = stats.sort_values(
         ["correct_count", "correct_rate", "avg_excess_vs_5050"],
         ascending=[False, False, False],
     )
-    stable = stats[
-        (stats["selected_count"] >= min_selected_count)
+    stable_selected = stats[stats["selected_count"] >= min_selected_count]
+    stable_outperform = stats[
+        (stats["selected_count"] >= min_outperform_selected_count)
         & (stats["correct_rate"] >= min_correct_rate)
         & (stats["avg_excess_vs_5050"] > 0)
     ]
-    stats["is_stable"] = stats["fund_code"].astype(str).isin(set(stable["fund_code"].astype(str)))
-    return stats, set(stable["fund_code"].astype(str))
+    selected_funds = set(stable_selected["fund_code"].astype(str))
+    outperform_funds = set(stable_outperform["fund_code"].astype(str))
+    stats["is_stable_selected"] = stats["fund_code"].astype(str).isin(selected_funds)
+    stats["is_stable_outperform"] = stats["fund_code"].astype(str).isin(outperform_funds)
+    stats["is_stable"] = stats["is_stable_selected"]
+
+    stable_metrics = stats[stats["is_stable_selected"]].copy()
+    if stable_metrics.empty:
+        stats["is_dynamic_style"] = False
+        return stats, selected_funds, outperform_funds, set()
+    mean_abs_threshold = stable_metrics["mean_abs_net_exposure"].quantile(0.60)
+    range_threshold = stable_metrics["exposure_range_p90_p10"].quantile(0.75)
+    stats["is_dynamic_style"] = (
+        stats["is_stable_selected"]
+        & (stats["mean_abs_net_exposure"] >= mean_abs_threshold)
+        & (stats["exposure_range_p90_p10"] >= range_threshold)
+    )
+    dynamic_funds = set(stats.loc[stats["is_dynamic_style"], "fund_code"].astype(str))
+    return stats, selected_funds, outperform_funds, dynamic_funds
+
+
+def build_exposure_dynamics(exposures: pd.DataFrame) -> pd.DataFrame:
+    if exposures.empty:
+        return pd.DataFrame(
+            columns=[
+                "fund_code",
+                "mean_net_exposure",
+                "mean_abs_net_exposure",
+                "exposure_vol",
+                "exposure_p10",
+                "exposure_p90",
+                "exposure_range_p90_p10",
+            ]
+        )
+
+    valid = exposures[exposures["valid"]].copy()
+    valid["fund_code"] = valid["fund_code"].astype(str)
+    grouped = valid.groupby("fund_code")["net_growth_exposure"]
+    metrics = grouped.agg(
+        mean_net_exposure="mean",
+        exposure_vol="std",
+    ).reset_index()
+    mean_abs = grouped.apply(lambda x: x.abs().mean()).rename("mean_abs_net_exposure").reset_index()
+    metrics = metrics.merge(mean_abs, on="fund_code", how="left")
+    quantiles = grouped.quantile([0.1, 0.9]).unstack()
+    quantiles.columns = ["exposure_p10", "exposure_p90"]
+    metrics = metrics.merge(quantiles.reset_index(), on="fund_code", how="left")
+    metrics["exposure_range_p90_p10"] = metrics["exposure_p90"] - metrics["exposure_p10"]
+    return metrics
 
 
 def build_summary(
@@ -529,14 +631,6 @@ def plot_annual_return_diff(annual: pd.DataFrame, output_path: Path) -> None:
     fig, ax = plt.subplots(figsize=(11, 6), dpi=160)
     x = np.arange(len(annual))
     ax.bar(x, annual["return_diff"] * 100, width=0.62, label="方向正确组 - 方向错误组", color="#2F7D6D")
-    ax.plot(
-        x,
-        annual["benchmark_minus_wrong"] * 100,
-        marker="o",
-        linewidth=2,
-        color="#B45F3C",
-        label="50/50静态组合 - 方向错误组",
-    )
     ax.axhline(0, color="#333333", linewidth=0.9)
     ax.set_xticks(x)
     ax.set_xticklabels(annual["year"].astype(str))
@@ -553,34 +647,33 @@ def plot_annual_return_diff(annual: pd.DataFrame, output_path: Path) -> None:
 def plot_cumulative_comparison(
     period_returns: pd.DataFrame,
     output_path: Path,
-    stable_period_returns: pd.Series | None = None,
+    stable_selected_returns: pd.Series | None = None,
+    dynamic_style_returns: pd.Series | None = None,
 ) -> None:
     configure_chinese_font()
     curves = period_returns.set_index("forward_end")[
-        ["correct_group_return", "wrong_group_return", "benchmark_5050_return"]
+        ["correct_group_return", "wrong_group_return"]
     ].sort_index()
-    if stable_period_returns is not None and not stable_period_returns.dropna().empty:
-        curves["stable_correct_fund_return"] = stable_period_returns.reindex(curves.index).fillna(0.0)
+    if stable_selected_returns is not None and not stable_selected_returns.dropna().empty:
+        curves["stable_selected_return"] = stable_selected_returns.reindex(curves.index).fillna(0.0)
+    if dynamic_style_returns is not None and not dynamic_style_returns.dropna().empty:
+        curves["dynamic_style_return"] = dynamic_style_returns.reindex(curves.index).fillna(0.0)
     nav = (1.0 + curves).cumprod()
     nav.columns = [
         "方向正确组",
         "方向错误组",
-        "50/50静态组合",
-        *(
-            ["稳定上榜基金"]
-            if "stable_correct_fund_return" in curves.columns
-            else []
-        ),
+        *(["稳定上榜基金"] if "stable_selected_return" in curves.columns else []),
+        *(["动态风格基金"] if "dynamic_style_return" in curves.columns else []),
     ]
 
     fig, ax = plt.subplots(figsize=(12, 6.5), dpi=160)
-    colors = ["#2F7D6D", "#8C4A64", "#3C6E9F", "#C08A2A"]
+    colors = ["#2F7D6D", "#8C4A64", "#C08A2A", "#6F5AA7"]
     for col, color in zip(nav.columns, colors, strict=False):
         ax.plot(nav.index, nav[col], linewidth=2, label=col, color=color)
     ax.axhline(1, color="#333333", linewidth=0.8, alpha=0.6)
     ax.set_ylabel("累计净值")
     ax.set_xlabel("日期")
-    ax.set_title("方向正确组、方向错误组、50/50静态组合与稳定上榜基金累计收益对比")
+    ax.set_title("方向正确组、方向错误组与稳定基金累计收益对比")
     ax.grid(axis="both", linestyle="--", alpha=0.3)
     ax.legend()
     fig.autofmt_xdate()
@@ -596,7 +689,6 @@ def plot_annual_return_lines(annual: pd.DataFrame, output_path: Path) -> None:
     series = [
         ("correct_group_annual_return", "方向正确组", "#2F7D6D"),
         ("wrong_group_annual_return", "方向错误组", "#8C4A64"),
-        ("benchmark_5050_annual_return", "50/50静态组合", "#3C6E9F"),
     ]
     for col, label, color in series:
         ax.plot(x, annual[col] * 100, marker="o", linewidth=2.2, label=label, color=color)
@@ -614,9 +706,62 @@ def plot_annual_return_lines(annual: pd.DataFrame, output_path: Path) -> None:
     plt.close(fig)
 
 
+def plot_cumulative_comparison_from_start(
+    period_returns: pd.DataFrame,
+    output_path: Path,
+    start_date: str,
+    stable_selected_returns: pd.Series | None = None,
+    dynamic_style_returns: pd.Series | None = None,
+) -> None:
+    configure_chinese_font()
+    start_ts = pd.Timestamp(start_date)
+    curves = period_returns.copy()
+    curves["forward_end"] = pd.to_datetime(curves["forward_end"])
+    curves = curves.set_index("forward_end")[
+        ["correct_group_return", "wrong_group_return"]
+    ].sort_index()
+    curves = curves.loc[curves.index >= start_ts]
+    if curves.empty:
+        return
+
+    if stable_selected_returns is not None and not stable_selected_returns.dropna().empty:
+        curves["stable_selected_return"] = stable_selected_returns.reindex(curves.index).fillna(0.0)
+    if dynamic_style_returns is not None and not dynamic_style_returns.dropna().empty:
+        curves["dynamic_style_return"] = dynamic_style_returns.reindex(curves.index).fillna(0.0)
+    nav = (1.0 + curves).cumprod()
+    base = pd.DataFrame(
+        [[1.0] * nav.shape[1]],
+        index=[start_ts],
+        columns=nav.columns,
+    )
+    nav = pd.concat([base, nav])
+    nav.columns = [
+        "方向正确组",
+        "方向错误组",
+        *(["稳定上榜基金"] if "stable_selected_return" in curves.columns else []),
+        *(["动态风格基金"] if "dynamic_style_return" in curves.columns else []),
+    ]
+
+    fig, ax = plt.subplots(figsize=(12, 6.5), dpi=160)
+    colors = ["#2F7D6D", "#8C4A64", "#C08A2A", "#6F5AA7"]
+    for col, color in zip(nav.columns, colors, strict=False):
+        ax.plot(nav.index, nav[col], linewidth=2, label=col, color=color)
+    ax.axhline(1, color="#333333", linewidth=0.8, alpha=0.6)
+    ax.set_ylabel("累计净值")
+    ax.set_xlabel("日期")
+    ax.set_title("2018年以来方向正确组、方向错误组与稳定基金累计收益对比")
+    ax.grid(axis="both", linestyle="--", alpha=0.3)
+    ax.legend()
+    fig.autofmt_xdate()
+    fig.tight_layout()
+    fig.savefig(output_path)
+    plt.close(fig)
+
+
 def build_stable_period_returns(
     fund_period_returns: pd.DataFrame,
     stable_funds: set[str],
+    name: str = "stable_return",
 ) -> pd.Series:
     if not stable_funds or fund_period_returns.empty:
         return pd.Series(dtype=float)
@@ -630,7 +775,7 @@ def build_stable_period_returns(
         .sort_index()
     )
     stable_period_returns.index = pd.to_datetime(stable_period_returns.index)
-    stable_period_returns.name = "stable_outperform_return"
+    stable_period_returns.name = name
     return stable_period_returns
 
 
@@ -649,24 +794,38 @@ def annual_compounded_returns(period_returns: pd.DataFrame, columns: list[str]) 
 
 def plot_annual_stable_return_lines(
     period_returns: pd.DataFrame,
-    stable_period_returns: pd.Series,
+    stable_selected_returns: pd.Series,
+    dynamic_style_returns: pd.Series,
     output_path: Path,
 ) -> None:
-    if stable_period_returns.dropna().empty:
+    if stable_selected_returns.dropna().empty or dynamic_style_returns.dropna().empty:
         return
-    stable_annual = (
-        stable_period_returns.dropna()
-        .groupby(stable_period_returns.dropna().index.year)
+
+    stable_selected_annual = (
+        stable_selected_returns.dropna()
+        .groupby(stable_selected_returns.dropna().index.year)
         .agg(lambda x: (1.0 + x).prod() - 1.0)
-        .rename("stable_outperform_return")
+        .rename("stable_selected_return")
         .reset_index()
     )
-    stable_annual.columns = ["year", "stable_outperform_return"]
+    stable_selected_annual.columns = ["year", "stable_selected_return"]
+    dynamic_style_annual = (
+        dynamic_style_returns.dropna()
+        .groupby(dynamic_style_returns.dropna().index.year)
+        .agg(lambda x: (1.0 + x).prod() - 1.0)
+        .rename("dynamic_style_return")
+        .reset_index()
+    )
+    dynamic_style_annual.columns = ["year", "dynamic_style_return"]
     annual_base = annual_compounded_returns(
         period_returns,
-        ["wrong_group_return", "benchmark_5050_return"],
+        ["wrong_group_return"],
     )
-    annual_compare = stable_annual.merge(annual_base, on="year", how="left").sort_values("year")
+    annual_compare = (
+        stable_selected_annual.merge(dynamic_style_annual, on="year", how="inner")
+        .merge(annual_base, on="year", how="left")
+        .sort_values("year")
+    )
     if annual_compare.empty:
         return
 
@@ -674,9 +833,9 @@ def plot_annual_stable_return_lines(
     fig, ax = plt.subplots(figsize=(12, 6.5), dpi=160)
     x = annual_compare["year"].astype(int)
     series = [
-        ("stable_outperform_return", "稳定跑赢组", "#C08A2A"),
+        ("stable_selected_return", "稳定上榜基金", "#C08A2A"),
+        ("dynamic_style_return", "动态风格基金", "#6F5AA7"),
         ("wrong_group_return", "方向错误组", "#8C4A64"),
-        ("benchmark_5050_return", "50/50静态组合", "#3C6E9F"),
     ]
     for col, label, color in series:
         ax.plot(x, annual_compare[col] * 100, marker="o", linewidth=2.2, label=label, color=color)
@@ -686,7 +845,7 @@ def plot_annual_stable_return_lines(
     ax.set_xticklabels(x.astype(str), rotation=0)
     ax.set_ylabel("年度收益率（%）")
     ax.set_xlabel("年份")
-    ax.set_title("稳定跑赢组、方向错误组与50/50静态组合分年度收益率对比")
+    ax.set_title("稳定上榜基金、动态风格基金与方向错误组分年度收益率对比")
     ax.grid(axis="y", linestyle="--", alpha=0.35)
     ax.legend()
     fig.tight_layout()
@@ -696,32 +855,103 @@ def plot_annual_stable_return_lines(
 
 def plot_cumulative_stable_vs_wrong_5050(
     period_returns: pd.DataFrame,
-    stable_period_returns: pd.Series,
+    stable_selected_returns: pd.Series,
+    dynamic_style_returns: pd.Series,
     output_path: Path,
 ) -> None:
-    if stable_period_returns.dropna().empty:
+    if stable_selected_returns.dropna().empty or dynamic_style_returns.dropna().empty:
         return
     curves = period_returns.copy()
     curves["forward_end"] = pd.to_datetime(curves["forward_end"])
-    curves = curves.set_index("forward_end")[["wrong_group_return", "benchmark_5050_return"]].sort_index()
-    first_stable_date = stable_period_returns.dropna().index.min()
+    curves = curves.set_index("forward_end")[["wrong_group_return"]].sort_index()
+    first_stable_date = max(
+        stable_selected_returns.dropna().index.min(),
+        dynamic_style_returns.dropna().index.min(),
+    )
     curves = curves.loc[curves.index >= first_stable_date]
-    curves["stable_outperform_return"] = stable_period_returns.reindex(curves.index).fillna(0.0)
+    curves["stable_selected_return"] = stable_selected_returns.reindex(curves.index).fillna(0.0)
+    curves["dynamic_style_return"] = dynamic_style_returns.reindex(curves.index).fillna(0.0)
     nav = (1.0 + curves).cumprod()
-    nav.columns = ["方向错误组", "50/50静态组合", "稳定上榜基金组"]
+    nav.columns = ["方向错误组", "稳定上榜基金", "动态风格基金"]
 
     configure_chinese_font()
     fig, ax = plt.subplots(figsize=(12, 6.5), dpi=160)
-    colors = ["#8C4A64", "#3C6E9F", "#C08A2A"]
+    colors = ["#8C4A64", "#C08A2A", "#6F5AA7"]
     for col, color in zip(nav.columns, colors, strict=False):
         ax.plot(nav.index, nav[col], linewidth=2.2, label=col, color=color)
     ax.axhline(1, color="#333333", linewidth=0.8, alpha=0.6)
     ax.set_ylabel("累计净值")
     ax.set_xlabel("日期")
-    ax.set_title("方向错误组、50/50静态组合与稳定上榜基金组累计收益对比")
+    ax.set_title("方向错误组与稳定基金累计收益对比")
     ax.grid(axis="both", linestyle="--", alpha=0.3)
     ax.legend()
     fig.autofmt_xdate()
+    fig.tight_layout()
+    fig.savefig(output_path)
+    plt.close(fig)
+
+
+def plot_style_exposure_dynamics_scatter(stable_fund_stats: pd.DataFrame, output_path: Path) -> None:
+    plot_data = stable_fund_stats[stable_fund_stats["is_stable_selected"]].dropna(
+        subset=["mean_abs_net_exposure", "exposure_range_p90_p10"]
+    )
+    if plot_data.empty:
+        return
+    mean_abs_threshold = plot_data["mean_abs_net_exposure"].quantile(0.60)
+    range_threshold = plot_data["exposure_range_p90_p10"].quantile(0.75)
+    normal = plot_data[~plot_data["is_dynamic_style"]]
+    dynamic = plot_data[plot_data["is_dynamic_style"]]
+
+    configure_chinese_font()
+    fig, ax = plt.subplots(figsize=(11.5, 7), dpi=160)
+    if not normal.empty:
+        ax.scatter(
+            normal["mean_abs_net_exposure"],
+            normal["exposure_range_p90_p10"],
+            s=normal["selected_count"].clip(lower=20, upper=130),
+            color="#C08A2A",
+            alpha=0.55,
+            edgecolor="white",
+            linewidth=0.5,
+            label="稳定上榜基金",
+        )
+    if not dynamic.empty:
+        ax.scatter(
+            dynamic["mean_abs_net_exposure"],
+            dynamic["exposure_range_p90_p10"],
+            s=dynamic["selected_count"].clip(lower=35, upper=160),
+            color="#6F5AA7",
+            alpha=0.85,
+            edgecolor="white",
+            linewidth=0.7,
+            label="动态风格基金",
+        )
+
+    ax.axvline(mean_abs_threshold, color="#333333", linestyle="--", linewidth=1.1, alpha=0.7)
+    ax.axhline(range_threshold, color="#333333", linestyle="--", linewidth=1.1, alpha=0.7)
+    ax.set_xlabel("平均绝对净成长暴露")
+    ax.set_ylabel("净成长暴露变化幅度（P90 - P10）")
+    ax.set_title("稳定上榜基金的风格暴露动态性")
+    ax.grid(axis="both", linestyle="--", alpha=0.25)
+    ax.legend()
+    ax.text(
+        mean_abs_threshold,
+        ax.get_ylim()[1],
+        " 60%分位",
+        ha="left",
+        va="top",
+        fontsize=9,
+        color="#333333",
+    )
+    ax.text(
+        ax.get_xlim()[1],
+        range_threshold,
+        "75%分位 ",
+        ha="right",
+        va="bottom",
+        fontsize=9,
+        color="#333333",
+    )
     fig.tight_layout()
     fig.savefig(output_path)
     plt.close(fig)
@@ -733,7 +963,10 @@ def save_outputs(
     period_returns: pd.DataFrame,
     fund_period_returns: pd.DataFrame,
     stable_fund_stats: pd.DataFrame,
-    stable_funds: set[str],
+    benchmark_nav: pd.DataFrame,
+    stable_selected_funds: set[str],
+    stable_outperform_funds: set[str],
+    dynamic_style_funds: set[str],
     annual: pd.DataFrame,
     summary: pd.DataFrame,
 ) -> None:
@@ -743,6 +976,7 @@ def save_outputs(
     period_returns.to_csv(cfg.output_dir / "period_group_returns.csv", index=False, encoding="utf-8-sig")
     fund_period_returns.to_csv(cfg.output_dir / "fund_period_returns.csv", index=False, encoding="utf-8-sig")
     stable_fund_stats.to_csv(cfg.output_dir / "stable_fund_stats.csv", index=False, encoding="utf-8-sig")
+    benchmark_nav.to_csv(cfg.output_dir / "benchmark_5050_nav.csv", encoding="utf-8-sig")
     annual.to_csv(cfg.output_dir / "annual_return_diff.csv", index=False, encoding="utf-8-sig")
     summary.to_csv(cfg.output_dir / "summary_stats.csv", index=False, encoding="utf-8-sig")
 
@@ -750,23 +984,51 @@ def save_outputs(
         plot_annual_return_diff(annual, cfg.output_dir / "annual_return_diff.png")
         plot_annual_return_lines(annual, cfg.output_dir / "annual_return_lines.png")
     if not period_returns.empty:
-        stable_period_returns = build_stable_period_returns(fund_period_returns, stable_funds)
+        stable_selected_returns = build_stable_period_returns(
+            fund_period_returns,
+            stable_selected_funds,
+            name="stable_selected_return",
+        )
+        stable_outperform_returns = build_stable_period_returns(
+            fund_period_returns,
+            stable_outperform_funds,
+            name="stable_outperform_return",
+        )
+        dynamic_style_returns = build_stable_period_returns(
+            fund_period_returns,
+            dynamic_style_funds,
+            name="dynamic_style_return",
+        )
         plot_cumulative_comparison(
             period_returns,
             cfg.output_dir / "cumulative_return_comparison.png",
-            stable_period_returns=stable_period_returns,
+            stable_selected_returns=stable_selected_returns,
+            dynamic_style_returns=dynamic_style_returns,
         )
-        if not stable_period_returns.empty:
+        plot_cumulative_comparison_from_start(
+            period_returns,
+            cfg.output_dir / "cumulative_return_comparison_from_2018.png",
+            start_date="2018-01-01",
+            stable_selected_returns=stable_selected_returns,
+            dynamic_style_returns=dynamic_style_returns,
+        )
+        if not stable_selected_returns.empty and not dynamic_style_returns.empty:
             plot_annual_stable_return_lines(
                 period_returns,
-                stable_period_returns,
+                stable_selected_returns,
+                dynamic_style_returns,
                 cfg.output_dir / "annual_return_lines_stable.png",
             )
             plot_cumulative_stable_vs_wrong_5050(
                 period_returns,
-                stable_period_returns,
+                stable_selected_returns,
+                dynamic_style_returns,
                 cfg.output_dir / "cumulative_stable_vs_wrong_5050.png",
             )
+        plot_style_exposure_dynamics_scatter(
+            stable_fund_stats,
+            cfg.output_dir / "style_exposure_dynamics_scatter.png",
+        )
 
     metadata = {
         "growth_path": str(cfg.growth_path),
@@ -778,6 +1040,7 @@ def save_outputs(
         "step_weeks": cfg.step_weeks,
         "min_fund_weeks": cfg.min_fund_weeks,
         "min_r2": cfg.min_r2,
+        "benchmark_cost_rate": BENCHMARK_COST_RATE,
     }
     (cfg.output_dir / "run_metadata.json").write_text(
         json.dumps(metadata, ensure_ascii=False, indent=2),
@@ -792,6 +1055,8 @@ def main() -> None:
     print("Reading index and cash data...")
     growth = read_index_weekly_return(cfg.growth_path, "growth")
     value = read_index_weekly_return(cfg.value_path, "value")
+    growth_close = read_index_close(cfg.growth_path, "growth")
+    value_close = read_index_close(cfg.value_path, "value")
     cash = read_gc007_weekly_cash(cfg.gc007_path)
 
     print("Reading fund NAV data...")
@@ -801,7 +1066,12 @@ def main() -> None:
         raise ValueError("No overlapping weekly observations after data alignment.")
 
     print(f"Aligned weeks: {len(factors)}, funds after filter: {fund_returns.shape[1]}")
-    benchmark_returns = compute_static_5050(factors)
+    benchmark_returns, benchmark_nav = compute_static_5050(
+        growth_close,
+        value_close,
+        factors.index,
+        cost_rate=BENCHMARK_COST_RATE,
+    )
 
     print("Running rolling RBSA...")
     exposures = run_rolling_rbsa(factors, fund_returns, cfg.window_weeks, cfg.step_weeks)
@@ -819,7 +1089,15 @@ def main() -> None:
         step_weeks=cfg.step_weeks,
     )
     annual = build_annual_stats(period_returns, cfg.step_weeks)
-    stable_fund_stats, stable_funds = build_stable_fund_stats(fund_period_returns)
+    (
+        stable_fund_stats,
+        stable_selected_funds,
+        stable_outperform_funds,
+        dynamic_style_funds,
+    ) = build_stable_fund_stats(
+        fund_period_returns,
+        exposures,
+    )
     summary = build_summary(exposures, period_returns, factors, fund_returns, cfg.min_r2)
 
     print("Saving outputs...")
@@ -829,7 +1107,10 @@ def main() -> None:
         period_returns,
         fund_period_returns,
         stable_fund_stats,
-        stable_funds,
+        benchmark_nav,
+        stable_selected_funds,
+        stable_outperform_funds,
+        dynamic_style_funds,
         annual,
         summary,
     )
