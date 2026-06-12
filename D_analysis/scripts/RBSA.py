@@ -81,7 +81,7 @@ def parse_args() -> RBSAConfig:
         gc007_path=(args.gc007_path or root / "A_data" / "input" / "GC007_加权平均.xlsx").resolve(),
         fund_nav_path=(
             args.fund_nav_path
-            or root / "A_data" / "prepared_data" / "主动权益型基金净值变化.xlsx"
+            or root / "A_data" / "data" / "主动权益型基金净值变化.xlsx"
         ).resolve(),
         output_dir=(args.output_dir or root / "D_analysis" / "output" / "RBSA").resolve(),
         window_weeks=args.window_weeks,
@@ -147,7 +147,34 @@ def first_non_null(values: pd.Series) -> float:
     return valid.iloc[0] if len(valid) else np.nan
 
 
+def fund_weekly_returns_cache_path(path: Path, min_fund_weeks: int) -> Path:
+    return path.with_name(f"{path.stem}_weekly_returns_min{min_fund_weeks}.parquet")
+
+
+def read_cached_fund_weekly_returns(path: Path, min_fund_weeks: int) -> pd.DataFrame | None:
+    cache_path = fund_weekly_returns_cache_path(path, min_fund_weeks)
+    if not cache_path.exists() or cache_path.stat().st_mtime < path.stat().st_mtime:
+        return None
+    returns = pd.read_parquet(cache_path)
+    returns.index = pd.to_datetime(returns.index)
+    returns.index.name = "date"
+    returns.columns = returns.columns.astype(str)
+    return returns
+
+
+def write_fund_weekly_returns_cache(
+    returns: pd.DataFrame, path: Path, min_fund_weeks: int
+) -> None:
+    cache_path = fund_weekly_returns_cache_path(path, min_fund_weeks)
+    returns.to_parquet(cache_path)
+
+
 def read_fund_weekly_returns(path: Path, min_fund_weeks: int) -> pd.DataFrame:
+    cached = read_cached_fund_weekly_returns(path, min_fund_weeks)
+    if cached is not None:
+        print(f"Using cached fund weekly returns: {fund_weekly_returns_cache_path(path, min_fund_weeks)}")
+        return cached
+
     raw = pd.read_excel(path, sheet_name=0)
     if raw.empty:
         raise ValueError(f"Fund NAV file is empty: {path}")
@@ -166,6 +193,7 @@ def read_fund_weekly_returns(path: Path, min_fund_weeks: int) -> pd.DataFrame:
     returns = nav.pct_change(fill_method=None)
     valid_counts = returns.notna().sum(axis=0)
     returns = returns.loc[:, valid_counts >= min_fund_weeks]
+    write_fund_weekly_returns_cache(returns, path, min_fund_weeks)
     return returns
 
 
@@ -532,7 +560,7 @@ def build_stable_fund_stats(
     if stable_metrics.empty:
         stats["is_dynamic_style"] = False
         return stats, selected_funds, outperform_funds, set()
-    mean_abs_threshold = stable_metrics["mean_abs_net_exposure"].quantile(0.60)
+    mean_abs_threshold = 0.5
     range_threshold = stable_metrics["exposure_range_p90_p10"].quantile(0.75)
     stats["is_dynamic_style"] = (
         stats["is_stable_selected"]
@@ -759,21 +787,42 @@ def plot_cumulative_comparison_from_start(
 
 
 def build_stable_period_returns(
-    fund_period_returns: pd.DataFrame,
+    period_returns: pd.DataFrame,
+    fund_returns: pd.DataFrame,
     stable_funds: set[str],
+    step_weeks: int,
     name: str = "stable_return",
 ) -> pd.Series:
-    if not stable_funds or fund_period_returns.empty:
+    if not stable_funds or period_returns.empty or fund_returns.empty:
         return pd.Series(dtype=float)
-    stable_period_returns = (
-        fund_period_returns[
-            (fund_period_returns["bucket"] == "correct")
-            & (fund_period_returns["fund_code"].astype(str).isin(stable_funds))
-        ]
-        .groupby("forward_end")["fund_forward_return"]
-        .mean()
-        .sort_index()
-    )
+
+    available_funds = [fund for fund in stable_funds if fund in fund_returns.columns]
+    if not available_funds:
+        return pd.Series(dtype=float)
+
+    rows: list[tuple[pd.Timestamp, float]] = []
+    for period in period_returns.itertuples(index=False):
+        period_index = pd.date_range(
+            start=pd.Timestamp(period.forward_start),
+            end=pd.Timestamp(period.forward_end),
+            freq="W-FRI",
+        )
+        period_index = period_index.intersection(fund_returns.index)
+        if len(period_index) != step_weeks:
+            continue
+        fund_period_return = cumulative_return(
+            fund_returns.loc[period_index, available_funds],
+            min_count=step_weeks,
+        )
+        rows.append((pd.Timestamp(period.forward_end), fund_period_return.mean()))
+
+    if not rows:
+        return pd.Series(dtype=float)
+    stable_period_returns = pd.Series(
+        data=[value for _, value in rows],
+        index=[date for date, _ in rows],
+        name=name,
+    ).sort_index()
     stable_period_returns.index = pd.to_datetime(stable_period_returns.index)
     stable_period_returns.name = name
     return stable_period_returns
@@ -897,7 +946,7 @@ def plot_style_exposure_dynamics_scatter(stable_fund_stats: pd.DataFrame, output
     )
     if plot_data.empty:
         return
-    mean_abs_threshold = plot_data["mean_abs_net_exposure"].quantile(0.60)
+    mean_abs_threshold = 0.5
     range_threshold = plot_data["exposure_range_p90_p10"].quantile(0.75)
     normal = plot_data[~plot_data["is_dynamic_style"]]
     dynamic = plot_data[plot_data["is_dynamic_style"]]
@@ -937,7 +986,7 @@ def plot_style_exposure_dynamics_scatter(stable_fund_stats: pd.DataFrame, output
     ax.text(
         mean_abs_threshold,
         ax.get_ylim()[1],
-        " 60%分位",
+        " 0.5阈值",
         ha="left",
         va="top",
         fontsize=9,
@@ -962,6 +1011,7 @@ def save_outputs(
     exposures: pd.DataFrame,
     period_returns: pd.DataFrame,
     fund_period_returns: pd.DataFrame,
+    fund_returns: pd.DataFrame,
     stable_fund_stats: pd.DataFrame,
     benchmark_nav: pd.DataFrame,
     stable_selected_funds: set[str],
@@ -985,18 +1035,24 @@ def save_outputs(
         plot_annual_return_lines(annual, cfg.output_dir / "annual_return_lines.png")
     if not period_returns.empty:
         stable_selected_returns = build_stable_period_returns(
-            fund_period_returns,
+            period_returns,
+            fund_returns,
             stable_selected_funds,
+            cfg.step_weeks,
             name="stable_selected_return",
         )
         stable_outperform_returns = build_stable_period_returns(
-            fund_period_returns,
+            period_returns,
+            fund_returns,
             stable_outperform_funds,
+            cfg.step_weeks,
             name="stable_outperform_return",
         )
         dynamic_style_returns = build_stable_period_returns(
-            fund_period_returns,
+            period_returns,
+            fund_returns,
             dynamic_style_funds,
+            cfg.step_weeks,
             name="dynamic_style_return",
         )
         plot_cumulative_comparison(
@@ -1059,7 +1115,7 @@ def main() -> None:
     value_close = read_index_close(cfg.value_path, "value")
     cash = read_gc007_weekly_cash(cfg.gc007_path)
 
-    print("Reading fund NAV data...")
+    print(f"Reading fund NAV data: {cfg.fund_nav_path}")
     fund_returns = read_fund_weekly_returns(cfg.fund_nav_path, cfg.min_fund_weeks)
     factors, fund_returns = align_returns(growth, value, cash, fund_returns)
     if factors.empty or fund_returns.empty:
@@ -1106,6 +1162,7 @@ def main() -> None:
         exposures,
         period_returns,
         fund_period_returns,
+        fund_returns,
         stable_fund_stats,
         benchmark_nav,
         stable_selected_funds,
