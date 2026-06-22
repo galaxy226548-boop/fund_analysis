@@ -4,3 +4,4 @@ __pycache__/
 .env
 .DS_Store
 A_data/
+B_factors/input/panel_base.parquet
