@@ -1,0 +1,176 @@
+{
+  "paper_meta": {
+    "paper_id": "20121116-安信证券-中国基金业绩及其持续性分析",
+    "paper_title": "中国基金业绩及其持续性分析",
+    "source_file": "20121116-安信证券-中国基金业绩及其持续性分析.md",
+    "report_date": "2012-11-16",
+    "authors_or_institution": "柴宗泽"
+  },
+  "methodology": {
+    "sample_scope": {
+      "mentioned": true,
+      "summary": "样本为2005年7月1日之前成立的89只基金，包括普通股票型、偏股混合型、偏债混合型和平衡混合型基金，数据期间2005年7月至2012年9月。",
+      "details": [
+        "选取2005年7月1日之前成立的所有基金，共89只",
+        "包括15只普通股票型、43只偏股混合型、14只偏债混合型、17只平衡混合型基金",
+        "数据期间为2005年7月至2012年9月，共87个月",
+        "基金净值收益率数据来自Wind数据库"
+      ],
+      "evidence": [
+        {
+          "quote": "本报告选取了2005年7月1日之前成立的所有基金，其中包括15只普通股票型基金、43只偏股混合型基金、14只偏债混合型基金和17只平衡混合型基金",
+          "location": "2.1. 数据"
+        },
+        {
+          "quote": "本报告所使用的数据从2005年7月到2012年9月，共存在87个月",
+          "location": "2.3. 业绩持续性检验结果"
+        }
+      ]
+    },
+    "consistency_metric_window": {
+      "mentioned": true,
+      "summary": "使用Spearman秩相关系数和输赢列联表检验业绩持续性，采用月度、季度、年度收益率，考虑相邻期间和间隔1月/1季/1年的情况。",
+      "details": [
+        "采用Spearman秩相关系数检验和输赢列联表方法",
+        "使用月度、季度、年度收益率数据",
+        "考虑相邻期间和具有一定时间间隔（月度间隔1月、季度间隔1季、年度间隔1年）",
+        "Spearman秩相关系数衡量不同时期基金业绩排名的单调相关性",
+        "输赢列联表将基金业绩分为赢（高于中位数）和输（低于中位数）"
+      ],
+      "evidence": [
+        {
+          "quote": "评价基金业绩持续性的方法包括：Spearman秩相关检验和输赢列联表",
+          "location": "1.4.1. Spearman秩相关检验"
+        },
+        {
+          "quote": "在本报告中，首先考虑相邻收益率的业绩持续性，其次，考虑具有一定间隔时（月度数据间隔1月、季度数据间隔1季、年度数据间隔1年）的业绩持续性",
+          "location": "2.3. 业绩持续性检验结果"
+        }
+      ]
+    },
+    "prediction_horizon": {
+      "mentioned": true,
+      "summary": "使用t期收益率预测t+1期收益率，形成期与持有期均为1个月、1个季度或1年，相邻或间隔1期。",
+      "details": [
+        "使用t期收益率预测t+1期收益率",
+        "形成期与持有期长度相同：月度、季度或年度",
+        "考虑相邻期间和间隔1期（月度间隔1月、季度间隔1季、年度间隔1年）"
+      ],
+      "evidence": [
+        {
+          "quote": "图1给出了2009年和2010年的基金收益率之间的关系，其中横轴表示基金当年的收益率，而纵轴表示基金下一年的收益率",
+          "location": "1.4. 基金业绩的持续性"
+        },
+        {
+          "quote": "如果月度数据相隔1月、季度数据相隔1季、年度数据相隔1年，则基金业绩存在业绩持续性",
+          "location": "报告摘要"
+        }
+      ]
+    }
+  },
+  "robustness_identification": {
+    "endogeneity_treatment": {
+      "mentioned": false,
+      "summary": null,
+      "details": [],
+      "evidence": []
+    },
+    "performance_benchmark": {
+      "mentioned": true,
+      "summary": "使用CAPM、Fama-French三因子模型，并考虑市场择时因子，以市场超额收益率、SMB、HML为基准。",
+      "details": [
+        "使用Jensen模型（CAPM）",
+        "使用Fama-French三因子模型（市场超额收益率、SMB、HML）",
+        "考虑市场择时因子（TM、HM、CL模型）",
+        "回归方程式包括四种：仅选股、选股+择时、三因子选股、三因子选股+择时"
+      ],
+      "evidence": [
+        {
+          "quote": "基于CAPM的基金业绩评估方法最早由Jensen（1968）提出",
+          "location": "1.2. 基于收益率的方法"
+        },
+        {
+          "quote": "当考虑规模因子（SMB）和价值因子（HML）之后，回归方程式就变为...",
+          "location": "1.2.5. Fama和French因子"
+        },
+        {
+          "quote": "模型主要采用了前面所讨论的四种回归方程式",
+          "location": "2.2. 回归检测结果"
+        }
+      ]
+    },
+    "quantile_analysis": {
+      "mentioned": true,
+      "summary": "使用输赢列联表方法，以中位数为界将基金分为赢和输两组，并计算WW、WL、LW、LL计数。",
+      "details": [
+        "将基金业绩按中位数分为赢（W）和输（L）两组",
+        "统计WW、WL、LW、LL的数目",
+        "使用赢赢方法、比值比（OR）和卡方检验",
+        "还进行了前30%和前50%的稳定性检验"
+      ],
+      "evidence": [
+        {
+          "quote": "列联表方法把基金在不同期间的业绩分为赢（Winner）和输（Loser）两种情况，当基金的回报率高于中位数，则标记为赢（W）；当基金的回报率低于中位数，则标记为输（L）",
+          "location": "1.4.2. 输赢列联表"
+        },
+        {
+          "quote": "本报告以6个月为一个时间单位，考察能够稳定保持在前30%的基金比例",
+          "location": "2.4. 基金业绩稳定性检验"
+        }
+      ]
+    }
+  },
+  "literature_positioning": {
+    "claimed_contribution": {
+      "mentioned": false,
+      "summary": null,
+      "details": [],
+      "evidence": []
+    },
+    "conclusion_direction": {
+      "mentioned": true,
+      "summary": "基金业绩存在一定的持续性，且从月度到季度到年度逐步增强；但长期稳定性较差。",
+      "details": [
+        "Spearman秩相关检验显示基金业绩存在一定的持续性",
+        "从月度数据到季度数据到年度数据，业绩持续性逐步增强",
+        "输赢列联表检验也显示业绩持续性，但显著比率低于Spearman检验",
+        "长期稳定性检验显示能够连续多年保持在前30%或前50%的基金极少"
+      ],
+      "evidence": [
+        {
+          "quote": "当使用Spearman秩相关系数时，无论是否存在时间间隔，当使用月度数据、季度数据、年度数据，基金业绩都存在一定的持续性，并且从月度数据到季度数据到年度数据，业绩持续性逐步增强",
+          "location": "2.3.1. Spearman秩相关系数检验"
+        },
+        {
+          "quote": "从使用月度数据、季度数据和年度数据的检验结果来看，月度数据的检验结果不如季度数据显著，季度数据的检验结果不如年度数据显著",
+          "location": "3. 总结"
+        },
+        {
+          "quote": "能够连续四年业绩保持在前30%或者前50%的仍然只有华夏大盘精选1只",
+          "location": "2.4. 基金业绩稳定性检验"
+        }
+      ]
+    },
+    "applicability_conditions": {
+      "mentioned": false,
+      "summary": null,
+      "details": [],
+      "evidence": []
+    }
+  },
+  "quality_control": {
+    "missing_fields": [
+      "methodology.sample_scope: 未提及规模门槛和存续偏差处理",
+      "methodology.consistency_metric_window: 未明确说明formation period是固定还是滚动窗口",
+      "methodology.prediction_horizon: 未明确说明formation period与holding period的具体长度关系（除间隔期外）",
+      "robustness_identification.endogeneity_treatment: 未提及内生性处理",
+      "literature_positioning.claimed_contribution: 未明确声称贡献",
+      "literature_positioning.applicability_conditions: 未提及适用条件",
+      "robustness_identification.endogeneity_treatment",
+      "literature_positioning.claimed_contribution",
+      "literature_positioning.applicability_conditions"
+    ],
+    "ambiguities": [],
+    "conflicts": []
+  }
+}

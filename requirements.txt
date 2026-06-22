@@ -7,6 +7,7 @@ scipy==1.16.3
 matplotlib==3.10.8
 openpyxl==3.1.5
 pyarrow==24.0.0
+python-calamine
 python-dateutil==2.9.0.post0
 python-dotenv==1.2.2
 requests==2.34.2

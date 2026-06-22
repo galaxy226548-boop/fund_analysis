@@ -1,0 +1,145 @@
+{
+  "paper_meta": {
+    "paper_id": "20150203-华泰证券-一种识别基金业绩持续性的方法：基于扫描统计量的基金业绩持续性分析",
+    "paper_title": "基于扫描统计量的基金业绩持续性分析 一种识别基金业绩持续性的方法",
+    "source_file": "20150203-华泰证券-一种识别基金业绩持续性的方法：基于扫描统计量的基金业绩持续性分析.md",
+    "report_date": "2015年02月03日",
+    "authors_or_institution": "胡新辉"
+  },
+  "methodology": {
+    "sample_scope": {
+      "mentioned": true,
+      "summary": "样本为2012年2月至2015年1月期间的普通股票型基金，共348只，包括2012年之前成立及之后成立的基金。",
+      "details": [
+        "分析区间为2012年2月至2015年1月，共计36个月",
+        "包括2012年之前成立的普通股票型基金",
+        "2012年2月之后成立的基金以实际月数作为分析区间",
+        "纳入统计的基金共计348只"
+      ],
+      "evidence": [
+        {
+          "quote": "利用最长链的扫描统计量技术，选定扫描区间为12个月，选择的分析区间为2012年2月至2015年1月，共计36个月，包括2012年之前成立的普通股票型基金，在2012年2月之后成立的基金，以实际的月数作为分析区间。",
+          "location": "股票型基金最长链分析"
+        },
+        {
+          "quote": "纳入统计的基金共计348只。",
+          "location": "股票型基金最长链分析"
+        }
+      ]
+    },
+    "consistency_metric_window": {
+      "mentioned": true,
+      "summary": "使用最长链扫描统计量，扫描区间为12个月，分析区间36个月，以月度收益排名前50%定义为赢事件。",
+      "details": [
+        "扫描区间为12个月",
+        "分析区间为36个月（2012年2月至2015年1月）",
+        "对每月收益进行排名，排名前50%记为赢事件（1），否则为0",
+        "最长链定义为以不同大小时间窗口m扫描序列，取各窗口连续发生数量的最大值"
+      ],
+      "evidence": [
+        {
+          "quote": "利用最长链的扫描统计量技术，选定扫描区间为12个月，选择的分析区间为2012年2月至2015年1月，共计36个月",
+          "location": "股票型基金最长链分析"
+        },
+        {
+          "quote": "股票型基金中，对每月的收益进行排名，排名50%以内的称为赢事件发生，记为1, 否则记为0",
+          "location": "股票型基金最长链分析"
+        },
+        {
+          "quote": "最长链定义为以不同大小的时间窗口m扫描X，计算每一时间窗口某事件连续发生数量，取各窗口连续发生数量最大值即为序列X的某事件的最长链，记为k。",
+          "location": "最长链扫描统计量方法"
+        }
+      ]
+    },
+    "prediction_horizon": {
+      "mentioned": false,
+      "summary": null,
+      "details": [],
+      "evidence": []
+    }
+  },
+  "robustness_identification": {
+    "endogeneity_treatment": {
+      "mentioned": false,
+      "summary": null,
+      "details": [],
+      "evidence": []
+    },
+    "performance_benchmark": {
+      "mentioned": false,
+      "summary": null,
+      "details": [],
+      "evidence": []
+    },
+    "quantile_analysis": {
+      "mentioned": false,
+      "summary": null,
+      "details": [],
+      "evidence": []
+    }
+  },
+  "literature_positioning": {
+    "claimed_contribution": {
+      "mentioned": true,
+      "summary": "引入扫描统计量方法用于基金业绩持续性检验，构建了分析和评价单个基金业绩持续性的体系。",
+      "details": [
+        "引入扫描统计量检验方法，该方法在流行病统计中广泛应用",
+        "应用该方法对股票型基金和混合型基金业绩持续性作了实证分析",
+        "构造了分析和评价单个基金业绩持续性的体系"
+      ],
+      "evidence": [
+        {
+          "quote": "对于单个基金业绩持续性检验方法，目前还没有公认的广泛应用的方法，因此首先引入了一个检验方法，即扫描统计量检验方法。",
+          "location": "结论"
+        },
+        {
+          "quote": "基于科学的统计方法，应用严格的检验手段，构造了分析和评价单个基金业绩持续性的体系，为投资者基金投资决策提供了重要的依据。",
+          "location": "结论"
+        }
+      ]
+    },
+    "conclusion_direction": {
+      "mentioned": true,
+      "summary": "股票型基金有一定比例的单个基金存在业绩持续性，但持续性不完全代表业绩高低。",
+      "details": [
+        "股票型基金有一定比例的单个基金存在业绩持续性",
+        "业绩的持续性并不完全代表业绩的高低",
+        "存在过去持续性好但近期表现差，或过去持续性差但近期表现好的现象"
+      ],
+      "evidence": [
+        {
+          "quote": "分析发现，股票型基金有一定比例的单个基金存在业绩持续性。",
+          "location": "结论"
+        },
+        {
+          "quote": "需要提醒的是，业绩的持续性并不完全代表业绩的高低，存在有些基金过去业绩持续性好，但近期表现不行，以及过去持续性不佳，近期表现好的现象。",
+          "location": "结论"
+        }
+      ]
+    },
+    "applicability_conditions": {
+      "mentioned": true,
+      "summary": "基金经理变换和市场风格大幅改变会影响业绩持续性分析的结论。",
+      "details": [
+        "基金经理的变换会影响业绩持续性分析的结论",
+        "市场风格的大幅改变也会影响业绩持续性分析的结论"
+      ],
+      "evidence": [
+        {
+          "quote": "其次，基金经理的变换，以及市场风格的大幅改变，也会影响业绩持续性分析的结论。",
+          "location": "结论"
+        }
+      ]
+    }
+  },
+  "quality_control": {
+    "missing_fields": [
+      "methodology.prediction_horizon",
+      "robustness_identification.endogeneity_treatment",
+      "robustness_identification.performance_benchmark",
+      "robustness_identification.quantile_analysis"
+    ],
+    "ambiguities": [],
+    "conflicts": []
+  }
+}

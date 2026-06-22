@@ -274,8 +274,98 @@ def find_cleaned_path(file_row, cleaned_map) -> Path | None:
     return cleaned_map.get(name)
 
 # ── 根据后缀选择读取方式 ──────────────────────────────────────────────────────
-PREVIEW_N  = 50    # 前/后各显示行数
-SAMPLE_N   = 5000  # profile 用样本行数
+PREVIEW_N         = 50              # 前/后各显示行数
+SAMPLE_N          = 5000            # profile 用样本行数
+LARGE_FILE_BYTES  = 10 * 1024 * 1024  # 10 MB：超过此大小的 xlsx 自动转 parquet
+
+# ── 大文件自动转 Parquet ──────────────────────────────────────────────────────
+
+def _parquet_sibling(xlsx_path: Path) -> Path:
+    """返回与 xlsx 同目录、同 stem 的 .parquet 路径。"""
+    return xlsx_path.parent / f"{xlsx_path.stem}.parquet"
+
+def _clean_column_name(col) -> str:
+    if pd.isna(col):
+        return "unnamed_column"
+    col_name = str(col).strip()
+    return col_name if col_name else "unnamed_column"
+
+def _make_unique_columns(columns) -> list[str]:
+    seen: dict[str, int] = {}
+    result = []
+    for col in columns:
+        if col not in seen:
+            seen[col] = 1
+            result.append(col)
+        else:
+            seen[col] += 1
+            result.append(f"{col}__{seen[col]}")
+    return result
+
+def _do_convert_to_parquet(xlsx_path: Path, parquet_path: Path) -> str | None:
+    """
+    读取 xlsx 第一个 sheet，清洗列名后写入 parquet。
+    返回错误信息字符串，成功则返回 None。
+    """
+    try:
+        df = pd.read_excel(xlsx_path, sheet_name=0, dtype=object, engine=None)
+        df = df.dropna(axis=0, how="all").dropna(axis=1, how="all")
+        df.columns = _make_unique_columns(
+            [_clean_column_name(c) for c in df.columns]
+        )
+        df.to_parquet(parquet_path, engine="pyarrow", index=False)
+        return None
+    except Exception as exc:
+        return str(exc)
+
+def resolve_large_xlsx(path: Path) -> tuple[Path, str]:
+    """
+    对 xlsx 文件执行大文件检测：
+    - 若文件 ≥ 10 MB 且同目录已有 .parquet 同名文件 → 直接返回 parquet 路径
+    - 若文件 ≥ 10 MB 且 parquet 尚不存在            → 原地转换后返回 parquet 路径
+    - 其余情况                                       → 原样返回
+    返回 (effective_path, notice)，notice 为空字符串表示无需提示。
+    """
+    if path.suffix != ".xlsx":
+        return path, ""
+    parquet_path = _parquet_sibling(path)
+    if parquet_path.exists():
+        return parquet_path, f"已有同名 Parquet，直接读取（原始 xlsx 仍保留）"
+    try:
+        size_mb = path.stat().st_size / 1024 / 1024
+    except OSError:
+        return path, ""
+    if size_mb < 10:
+        return path, ""
+    # 需要转换
+    return path, f"__CONVERT__{size_mb:.1f}"   # 哨兵值，由调用方触发转换
+
+def _resolve_with_ui(path: Path) -> Path:
+    """
+    在 Streamlit 上下文中解析大 xlsx → parquet。
+    若需要转换，显示 spinner + 完成提示，返回最终有效路径。
+    """
+    if path.suffix != ".xlsx":
+        return path
+    effective, notice = resolve_large_xlsx(path)
+    if notice.startswith("已有"):
+        st.info(f"读取速度优化：{notice}")
+        return effective
+    if notice.startswith("__CONVERT__"):
+        size_mb = notice.split("__CONVERT__")[1]
+        parquet_path = _parquet_sibling(path)
+        with st.spinner(
+            f"文件较大（{size_mb} MB），正在后台转换为 Parquet，请稍候…"
+        ):
+            err = _do_convert_to_parquet(path, parquet_path)
+        if err:
+            st.warning(f"Parquet 转换失败，回退到直接读取 xlsx：{err}")
+            return path
+        st.success(
+            f"已生成 Parquet（{parquet_path.name}），本次及后续选择该文件将直接读取 Parquet，加载更快。"
+        )
+        return parquet_path
+    return path
 
 def _xlsx_row_count(path: Path) -> int:
     """用 openpyxl read-only 模式快速获取行数（不解析单元格值）。"""
@@ -355,6 +445,7 @@ def filter_cols_by_shared(df: pd.DataFrame, ref_cols) -> pd.DataFrame:
 
 # ── 数据预览辅助（懒读取：前50行 + 后50行）───────────────────────────────────
 def show_lazy_preview(path: Path, col_filter=None):
+    path = _resolve_with_ui(path)
     path_str = str(path)
     with st.spinner("读取前 50 行…"):
         head_df, head_err = read_head(path_str)
@@ -380,6 +471,7 @@ def show_lazy_preview(path: Path, col_filter=None):
         st.dataframe(tail_df, use_container_width=True)
 
 def show_lazy_profile(path: Path, label: str):
+    path = _resolve_with_ui(path)
     path_str = str(path)
     with st.spinner(f"读取 {label} 样本…"):
         sample_df, total, err = read_sample(path_str)
@@ -431,14 +523,16 @@ if has_clean:
 
 if has_raw and has_clean:
     with tabs[idx]:
-        raw_cols, raw_col_err = read_columns(str(raw_path))
-        cln_cols, cln_col_err = read_columns(str(cleaned_path))
+        _eff_raw  = _resolve_with_ui(raw_path)
+        _eff_cln  = _resolve_with_ui(cleaned_path)
+        raw_cols, raw_col_err = read_columns(str(_eff_raw))
+        cln_cols, cln_col_err = read_columns(str(_eff_cln))
         if raw_col_err or cln_col_err:
             if raw_col_err: st.error(f"raw 列名读取失败：{raw_col_err}")
             if cln_col_err: st.error(f"cleaned 列名读取失败：{cln_col_err}")
         else:
-            raw_df, raw_total, raw_err2 = read_sample(str(raw_path))
-            cln_df, cln_total, cln_err2 = read_sample(str(cleaned_path))
+            raw_df, raw_total, raw_err2 = read_sample(str(_eff_raw))
+            cln_df, cln_total, cln_err2 = read_sample(str(_eff_cln))
             if raw_err2 or cln_err2:
                 if raw_err2: st.error(f"raw 读取失败：{raw_err2}")
                 if cln_err2: st.error(f"cleaned 读取失败：{cln_err2}")

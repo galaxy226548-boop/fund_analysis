@@ -45,8 +45,8 @@ def load_mapping(mapping_json_path: str) -> tuple[dict | None, str | None]:
         if not isinstance(records, list):
             continue
         for rec in records:
-            clean_name = rec.get("clean_data", "").strip()
-            raw_name   = rec.get("file_name",  "").strip()
+            clean_name = Path((rec.get("clean_data") or "").strip()).name
+            raw_name   = Path((rec.get("file_name")  or "").strip()).name
             # 跳过无效记录：clean_data 为空、'none'、'nan' 等占位符，或 raw 文件名为空
             if clean_name.lower() in INVALID_CLEAN or not raw_name:
                 continue
