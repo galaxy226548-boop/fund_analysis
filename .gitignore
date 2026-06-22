@@ -5,3 +5,4 @@ __pycache__/
 .DS_Store
 A_data/
 B_factors/input/panel_base.parquet
+B_factors/input/panel_base.parquet
