@@ -3,6 +3,8 @@ __pycache__/
 *.pyc
 .env
 .DS_Store
-A_data/
+A_data/*
+!A_data/scripts/
+A_data/scripts/__pycache__/
 B_factors/input/panel_base.parquet
 B_factors/input/panel_base.parquet
