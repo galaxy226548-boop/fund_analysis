@@ -1,0 +1,16 @@
+﻿factor,month_date,n_obs,reason
+FAC_rank_vol_m6_n6_pairwise1,2012-09-28,80,设计矩阵秩不足，可能存在变量共线
+FAC_rank_vol_m6_n12_pairwise1,2012-09-28,51,设计矩阵秩不足，可能存在变量共线
+FAC_rank_vol_m6_n12_pairwise1,2012-10-31,57,设计矩阵秩不足，可能存在变量共线
+FAC_rank_vol_m6_n12_pairwise1,2012-11-30,61,设计矩阵秩不足，可能存在变量共线
+FAC_rank_vol_m6_n12_pairwise1,2012-12-31,62,设计矩阵秩不足，可能存在变量共线
+FAC_rank_vol_m6_n12_pairwise1,2013-01-31,66,设计矩阵秩不足，可能存在变量共线
+FAC_rank_vol_m6_n12_pairwise1,2013-02-28,68,设计矩阵秩不足，可能存在变量共线
+FAC_rank_vol_m6_n12_pairwise1,2013-03-29,69,设计矩阵秩不足，可能存在变量共线
+FAC_rank_vol_m12_n6_pairwise1,2012-09-28,51,设计矩阵秩不足，可能存在变量共线
+FAC_rank_vol_m12_n6_pairwise1,2012-10-31,57,设计矩阵秩不足，可能存在变量共线
+FAC_rank_vol_m12_n6_pairwise1,2012-11-30,61,设计矩阵秩不足，可能存在变量共线
+FAC_rank_vol_m12_n6_pairwise1,2012-12-31,62,设计矩阵秩不足，可能存在变量共线
+FAC_rank_vol_m12_n6_pairwise1,2013-01-31,66,设计矩阵秩不足，可能存在变量共线
+FAC_rank_vol_m12_n6_pairwise1,2013-02-28,68,设计矩阵秩不足，可能存在变量共线
+FAC_rank_vol_m12_n6_pairwise1,2013-03-29,69,设计矩阵秩不足，可能存在变量共线
