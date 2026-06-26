@@ -1,0 +1,90 @@
+{
+  "_note": "這是一個合法 JSON 文件，所以不能使用 // 或 # 註解；以下用 _field_notes 保存說明文字，runner 會忽略這些說明欄位。",
+  "_field_notes": {
+    "name": "模型/流程名稱。當前 runner 先只支持 fm_baseline。",
+    "description": "給人看的簡短描述，不參與數據處理。",
+    "input_path": "原始輸入 parquet。這裡讀取 B_factors/input/panel_base.parquet。",
+    "output_path": "最終清洗後 parquet 的輸出位置。",
+    "preview_path": "預覽 Excel 的輸出位置，通常只保存前若干行方便人工查看。",
+    "summary_path": "處理摘要 JSON 的輸出位置，記錄行數、篩選條件、winsorize 口徑等。",
+    "date_col": "月份/日期列名。按月 winsorize 和按月分組都依賴這一列。",
+    "id_columns": "識別一條基金月份觀測值的基礎列，會保留到最終輸出。",
+    "sample_filters": "樣本篩選條件。key 是列名，value 是要保留的取值。",
+    "sample_flag_columns": "樣本標記列，會保留到最終輸出，方便之後知道這批數據用的是哪個樣本口徑。",
+    "y_columns": "因變量列。目前是 future_ret_6m，即未來 6 個月收益。",
+    "factor_columns": "核心 Consistency 因子列，後面會做 winsorize 並生成 q5/q10 分組標籤。",
+    "control_columns": "控制變量列，會進入最終輸出；其中部分連續變量也會做 winsorize。",
+    "winsorize": "極端值處理配置。按 group_column 分組後，對 columns 裡的列裁剪到 lower_quantile 和 upper_quantile 分位點之間。",
+    "factor_group_suffixes": "q5/q10 分組標籤的命名映射。key 是原始因子列名，value 是輸出標籤名裡使用的短後綴。",
+    "steps": "runner 的執行順序。當前順序是選列、篩樣本、轉數值、winsorize、生成分組、導出文件。"
+  },
+  "name": "fm_baseline",
+  "description": "Fama-MacBeth 基础模型：一致性主效应 + 控制变量",
+  "input_path": "B_factors/input/panel_base.parquet",
+  "output_path": "B_factors/output/panel_base.parquet",
+  "preview_path": "B_factors/output/panel_base_preview.xlsx",
+  "summary_path": "B_factors/output/panel_base_summary.json",
+  "date_col": "month_date",
+  "id_columns": [
+    "ifind_code",
+    "month_date",
+    "investment_type"
+  ],
+  "sample_filters": {
+    "is_insample_future_ret_6m": 1
+  },
+  "sample_flag_columns": [
+    "is_insample_future_ret_6m"
+  ],
+  "y_columns": [
+    "future_ret_6m"
+  ],
+  "factor_columns": [
+    "FAC_rank_vol_m3_n6_pairwise1",
+    "FAC_rank_vol_m6_n3_pairwise1",
+    "FAC_rank_vol_m6_n6_pairwise1",
+    "FAC_rank_vol_m6_n12_pairwise1",
+    "FAC_rank_vol_m12_n6_pairwise1"
+  ],
+  "control_columns": [
+    "CtrlRetSTR",
+    "CtrlRetLTM",
+    "CtrlVol",
+    "as_偏股混合型基金",
+    "Ctrl_log_fund_size",
+    "Ctrl_fund_age"
+  ],
+  "winsorize": {
+    "group_column": "month_date",
+    "lower_quantile": 0.01,
+    "upper_quantile": 0.99,
+    "columns": [
+      "future_ret_6m",
+      "FAC_rank_vol_m3_n6_pairwise1",
+      "FAC_rank_vol_m6_n3_pairwise1",
+      "FAC_rank_vol_m6_n6_pairwise1",
+      "FAC_rank_vol_m6_n12_pairwise1",
+      "FAC_rank_vol_m12_n6_pairwise1",
+      "CtrlRetSTR",
+      "CtrlRetLTM",
+      "CtrlVol",
+      "Ctrl_log_fund_size",
+      "Ctrl_fund_age"
+    ]
+  },
+  "factor_group_suffixes": {
+    "FAC_rank_vol_m3_n6_pairwise1": "consistency_m3_n6_pairwise1",
+    "FAC_rank_vol_m6_n3_pairwise1": "consistency_m6_n3_pairwise1",
+    "FAC_rank_vol_m6_n6_pairwise1": "consistency_m6_n6_pairwise1",
+    "FAC_rank_vol_m6_n12_pairwise1": "consistency_m6_n12_pairwise1",
+    "FAC_rank_vol_m12_n6_pairwise1": "consistency_m12_n6_pairwise1"
+  },
+  "steps": [
+    "select_columns",
+    "sample_filter",
+    "coerce_numeric",
+    "winsorize",
+    "quantile_group",
+    "export_summary_preview"
+  ]
+}

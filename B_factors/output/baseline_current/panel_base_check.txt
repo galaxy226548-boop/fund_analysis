@@ -1,0 +1,174 @@
+检查文件：/Users/chloezh/Projects/Fund_Analysis/B_factors/output/panel_base.parquet
+行数：140029
+列数：26
+
+列名列表：
+- ifind_code
+- month_date
+- investment_type
+- is_insample_future_ret_6m
+- future_ret_6m
+- FAC_rank_vol_m3_n6_pairwise1
+- FAC_rank_vol_m6_n3_pairwise1
+- FAC_rank_vol_m6_n6_pairwise1
+- FAC_rank_vol_m6_n12_pairwise1
+- FAC_rank_vol_m12_n6_pairwise1
+- CtrlRetSTR
+- CtrlRetLTM
+- CtrlVol
+- as_偏股混合型基金
+- Ctrl_log_fund_size
+- Ctrl_fund_age
+- q5_consistency_m3_n6_pairwise1
+- q10_consistency_m3_n6_pairwise1
+- q5_consistency_m6_n3_pairwise1
+- q10_consistency_m6_n3_pairwise1
+- q5_consistency_m6_n6_pairwise1
+- q10_consistency_m6_n6_pairwise1
+- q5_consistency_m6_n12_pairwise1
+- q10_consistency_m6_n12_pairwise1
+- q5_consistency_m12_n6_pairwise1
+- q10_consistency_m12_n6_pairwise1
+
+每列缺失值数量：
+ifind_code: 0
+month_date: 0
+investment_type: 0
+is_insample_future_ret_6m: 0
+future_ret_6m: 0
+FAC_rank_vol_m3_n6_pairwise1: 106061
+FAC_rank_vol_m6_n3_pairwise1: 106061
+FAC_rank_vol_m6_n6_pairwise1: 110913
+FAC_rank_vol_m6_n12_pairwise1: 118208
+FAC_rank_vol_m12_n6_pairwise1: 118208
+CtrlRetSTR: 3667
+CtrlRetLTM: 38178
+CtrlVol: 40673
+as_偏股混合型基金: 0
+Ctrl_log_fund_size: 0
+Ctrl_fund_age: 0
+q5_consistency_m3_n6_pairwise1: 106089
+q10_consistency_m3_n6_pairwise1: 106196
+q5_consistency_m6_n3_pairwise1: 106089
+q10_consistency_m6_n3_pairwise1: 106196
+q5_consistency_m6_n6_pairwise1: 110940
+q10_consistency_m6_n6_pairwise1: 111013
+q5_consistency_m6_n12_pairwise1: 118275
+q10_consistency_m6_n12_pairwise1: 118321
+q5_consistency_m12_n6_pairwise1: 118275
+q10_consistency_m12_n6_pairwise1: 118321
+
+数值列 count/mean/std/min/max：
+       is_insample_future_ret_6m  future_ret_6m  FAC_rank_vol_m3_n6_pairwise1  FAC_rank_vol_m6_n3_pairwise1  FAC_rank_vol_m6_n6_pairwise1  FAC_rank_vol_m6_n12_pairwise1  FAC_rank_vol_m12_n6_pairwise1     CtrlRetSTR     CtrlRetLTM       CtrlVol     as_偏股混合型基金  Ctrl_log_fund_size  Ctrl_fund_age  q5_consistency_m3_n6_pairwise1  q10_consistency_m3_n6_pairwise1  q5_consistency_m6_n3_pairwise1  q10_consistency_m6_n3_pairwise1  q5_consistency_m6_n6_pairwise1  q10_consistency_m6_n6_pairwise1  q5_consistency_m6_n12_pairwise1  q10_consistency_m6_n12_pairwise1  q5_consistency_m12_n6_pairwise1  q10_consistency_m12_n6_pairwise1
+count                   140029.0  140029.000000                  33968.000000                  33968.000000                  29116.000000                   21821.000000                   21821.000000  136362.000000  101851.000000  99356.000000  140029.000000       140029.000000  140029.000000                         33940.0                          33833.0                         33940.0                          33833.0                         29089.0                          29016.0                          21754.0                           21708.0                          21754.0                           21708.0
+mean                         1.0       0.045103                      0.890497                      0.781313                      0.843194                       0.891521                       0.789226       0.010385       0.172417      0.064591       0.775568            0.473937      46.824783                        2.997643                          5.49564                        2.997643                          5.49564                        2.997662                         5.495003                         2.997058                          5.493597                         2.997058                          5.493597
+std                          0.0       0.197925                      0.083447                      0.093307                      0.086422                       0.067649                       0.084221       0.071541       0.340542      0.028377       0.417209            0.578736      46.394413                        1.418165                         2.883208                        1.418165                         2.883208                        1.418774                         2.884683                         1.419726                          2.887377                         1.419726                          2.887377
+min                          1.0      -0.561625                      0.479271                      0.508657                      0.524344                       0.583311                       0.532073      -0.334897      -0.674229      0.004269       0.000000           -0.867943       0.000000                             1.0                              1.0                             1.0                              1.0                             1.0                              1.0                              1.0                               1.0                              1.0                               1.0
+max                          1.0       1.514303                      1.000000                      1.000000                      1.000000                       1.000000                       0.976194       0.400314       3.051787      0.225598       1.000000            2.524799     199.000000                             5.0                             10.0                             5.0                             10.0                             5.0                             10.0                              5.0                              10.0                              5.0                              10.0
+
+q5/q10 标签列取值分布：
+
+[q5_consistency_m3_n6_pairwise1]
+1: 6866
+2: 6745
+3: 6758
+4: 6745
+5: 6826
+<NA>: 106089
+
+[q10_consistency_m3_n6_pairwise1]
+1: 3463
+2: 3373
+3: 3360
+4: 3368
+5: 3398
+6: 3340
+7: 3353
+8: 3375
+9: 3358
+10: 3445
+<NA>: 106196
+
+[q5_consistency_m6_n3_pairwise1]
+1: 6866
+2: 6745
+3: 6758
+4: 6745
+5: 6826
+<NA>: 106089
+
+[q10_consistency_m6_n3_pairwise1]
+1: 3463
+2: 3373
+3: 3360
+4: 3368
+5: 3398
+6: 3340
+7: 3353
+8: 3375
+9: 3358
+10: 3445
+<NA>: 106196
+
+[q5_consistency_m6_n6_pairwise1]
+1: 5891
+2: 5780
+3: 5781
+4: 5780
+5: 5857
+<NA>: 110940
+
+[q10_consistency_m6_n6_pairwise1]
+1: 2980
+2: 2894
+3: 2870
+4: 2897
+5: 2908
+6: 2859
+7: 2883
+8: 2884
+9: 2880
+10: 2961
+<NA>: 111013
+
+[q5_consistency_m6_n12_pairwise1]
+1: 4416
+2: 4323
+3: 4308
+4: 4323
+5: 4384
+<NA>: 118275
+
+[q10_consistency_m6_n12_pairwise1]
+1: 2240
+2: 2165
+3: 2146
+4: 2170
+5: 2176
+6: 2122
+7: 2154
+8: 2162
+9: 2149
+10: 2224
+<NA>: 118321
+
+[q5_consistency_m12_n6_pairwise1]
+1: 4416
+2: 4323
+3: 4308
+4: 4323
+5: 4384
+<NA>: 118275
+
+[q10_consistency_m12_n6_pairwise1]
+1: 2240
+2: 2165
+3: 2146
+4: 2170
+5: 2176
+6: 2122
+7: 2154
+8: 2162
+9: 2149
+10: 2224
+<NA>: 118321

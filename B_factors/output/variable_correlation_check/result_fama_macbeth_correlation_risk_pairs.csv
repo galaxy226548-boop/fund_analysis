@@ -1,0 +1,6 @@
+﻿factor,variable_1,variable_2,mean_corr,abs_mean_corr,p_value,stars,n_months,risk_level,review_note
+FAC_rank_vol_m3_n6_pairwise1,Ctrl_fund_age,Ctrl_log_fund_size,0.7459480195196045,0.7459480195196045,1.5389091501677322e-175,***,153,重点关注相关性风险,abs(mean_corr) >= 0.50，且显著性星号不为空；建议重点检查变量含义是否重叠。
+FAC_rank_vol_m6_n3_pairwise1,Ctrl_fund_age,Ctrl_log_fund_size,0.7459480195196045,0.7459480195196045,1.5389091501677322e-175,***,153,重点关注相关性风险,abs(mean_corr) >= 0.50，且显著性星号不为空；建议重点检查变量含义是否重叠。
+FAC_rank_vol_m6_n6_pairwise1,Ctrl_fund_age,Ctrl_log_fund_size,0.7450640491356048,0.7450640491356048,9.137007052595877e-167,***,145,重点关注相关性风险,abs(mean_corr) >= 0.50，且显著性星号不为空；建议重点检查变量含义是否重叠。
+FAC_rank_vol_m6_n12_pairwise1,Ctrl_fund_age,Ctrl_log_fund_size,0.7481125084892218,0.7481125084892218,7.066957729077053e-140,***,115,重点关注相关性风险,abs(mean_corr) >= 0.50，且显著性星号不为空；建议重点检查变量含义是否重叠。
+FAC_rank_vol_m12_n6_pairwise1,Ctrl_fund_age,Ctrl_log_fund_size,0.7481125084892218,0.7481125084892218,7.066957729077053e-140,***,115,重点关注相关性风险,abs(mean_corr) >= 0.50，且显著性星号不为空；建议重点检查变量含义是否重叠。
