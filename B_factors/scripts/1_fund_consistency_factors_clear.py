@@ -11,7 +11,7 @@
     B_factors/output/panel_base_summary.json
 
 这个脚本的定位是“回归前处理层”：先按照样本标记筛选行，再只保留本次
-回归需要的变量，最后对连续变量按月 winsorize，并生成 5 组/10 组分组标签。
+回归需要的变量，最后对连续变量按月 winsorize。
 """
 
 from __future__ import annotations
@@ -24,7 +24,6 @@ from pathlib import Path
 import pandas as pd
 
 from tools.factor_pipeline_tools import (
-    add_quantile_groups,
     apply_sample_filters,
     build_summary,
     coerce_numeric_columns,
@@ -104,7 +103,6 @@ Y_COL = str(REGRESSION_CONFIG["y"])
 DEPENDENT_COLUMNS = [Y_COL]
 
 # 输入文件里的原始 Consistency 因子列名仍然是 FAC_rank_vol_...。
-# 后续 q5/q10 分组标签会按 consistency_... 的短名称输出，便于画图和回归复用。
 CONSISTENCY_COLUMNS = list(REGRESSION_CONFIG["factors"])
 
 CONTROL_COLUMNS = list(REGRESSION_CONFIG["controls"])
@@ -155,10 +153,6 @@ WINSOR_GROUP_COLUMN = str(winsorize_config["group_column"])
 WINSOR_LOWER_QUANTILE = float(winsorize_config["lower_quantile"])
 WINSOR_UPPER_QUANTILE = float(winsorize_config["upper_quantile"])
 WINSORIZE_COLUMNS = list(winsorize_config["columns"])
-
-# q5/q10 分组标签的输出后缀。key 是输入因子列，value 是输出标签里的短名称。
-CONSISTENCY_GROUP_SUFFIXES = dict(REGRESSION_CONFIG["factor_group_suffixes"])
-
 
 def parse_args() -> argparse.Namespace:
     """读取命令行参数，让默认流程和调试流程都能复用同一份代码。"""
@@ -299,17 +293,6 @@ def main() -> None:
         filename="04_winsorized.parquet",
     )
 
-    data = add_quantile_groups(
-        data=data,
-        group_column=WINSOR_GROUP_COLUMN,
-        factor_group_suffixes=CONSISTENCY_GROUP_SUFFIXES,
-    )
-    write_debug_intermediate(
-        data=data,
-        debug_dir=args.debug_intermediate_dir,
-        filename="05_grouped.parquet",
-    )
-
     preview_path = None if args.no_preview else args.preview
     summary = build_summary(
         input_path=args.input,
@@ -326,6 +309,8 @@ def main() -> None:
         winsor_upper_quantile=WINSOR_UPPER_QUANTILE,
         winsorize_columns=WINSORIZE_COLUMNS,
         keep_columns=KEEP_COLUMNS,
+        factor_specs=[str(factor) for factor in CONSISTENCY_COLUMNS],
+        factor_columns=CONSISTENCY_COLUMNS,
     )
     write_outputs(
         data=data,

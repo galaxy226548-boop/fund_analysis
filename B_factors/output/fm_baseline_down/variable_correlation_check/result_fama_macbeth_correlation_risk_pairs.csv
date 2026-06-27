@@ -1,8 +1,3 @@
 ﻿factor,variable_1,variable_2,mean_corr,abs_mean_corr,p_value,stars,n_months,risk_level,review_note
-FAC_rank_vol_m3_n6_pairwise1,Ctrl_fund_age,Ctrl_log_fund_size,0.7671210352246254,0.7671210352246254,4.480503484409556e-116,***,105,重点关注相关性风险,abs(mean_corr) >= 0.50，且显著性星号不为空；建议重点检查变量含义是否重叠。
-FAC_rank_vol_m6_n3_pairwise1,Ctrl_fund_age,Ctrl_log_fund_size,0.7668638222087447,0.7668638222087447,9.426140056719112e-116,***,105,重点关注相关性风险,abs(mean_corr) >= 0.50，且显著性星号不为空；建议重点检查变量含义是否重叠。
-FAC_rank_vol_m6_n6_pairwise1,Ctrl_fund_age,Ctrl_log_fund_size,0.7754181005738955,0.7754181005738955,7.78093397621645e-118,***,91,重点关注相关性风险,abs(mean_corr) >= 0.50，且显著性星号不为空；建议重点检查变量含义是否重叠。
-FAC_rank_vol_m6_n12_pairwise1,Ctrl_fund_age,Ctrl_log_fund_size,0.7735391329445949,0.7735391329445949,1.9329031628964338e-80,***,60,重点关注相关性风险,abs(mean_corr) >= 0.50，且显著性星号不为空；建议重点检查变量含义是否重叠。
-FAC_rank_vol_m6_n12_pairwise1,Ctrl_fund_age,as_偏股混合型基金,0.5791082939150912,0.5791082939150912,5.585553035415695e-49,***,60,重点关注相关性风险,abs(mean_corr) >= 0.50，且显著性星号不为空；建议重点检查变量含义是否重叠。
-FAC_rank_vol_m12_n6_pairwise1,Ctrl_fund_age,Ctrl_log_fund_size,0.770103472371866,0.770103472371866,1.7294145765984302e-79,***,60,重点关注相关性风险,abs(mean_corr) >= 0.50，且显著性星号不为空；建议重点检查变量含义是否重叠。
-FAC_rank_vol_m12_n6_pairwise1,Ctrl_fund_age,as_偏股混合型基金,0.5769494451047978,0.5769494451047978,3.577665088134137e-49,***,60,重点关注相关性风险,abs(mean_corr) >= 0.50，且显著性星号不为空；建议重点检查变量含义是否重叠。
+FAC_rank_vol_m6_n12_pairwise1,Ctrl_fund_age,as_偏股混合型基金,0.5780678807785734,0.5780678807785734,3.4303143444194286e-48,***,60,重点关注相关性风险,abs(mean_corr) >= 0.50，且显著性星号不为空；建议重点检查变量含义是否重叠。
+FAC_rank_vol_m12_n6_pairwise1,Ctrl_fund_age,as_偏股混合型基金,0.5759741847949579,0.5759741847949579,1.9451709440874683e-48,***,60,重点关注相关性风险,abs(mean_corr) >= 0.50，且显著性星号不为空；建议重点检查变量含义是否重叠。

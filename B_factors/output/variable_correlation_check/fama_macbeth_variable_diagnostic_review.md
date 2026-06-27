@@ -1,6 +1,6 @@
 # Fama-MacBeth 变量相关性与 VIF 审核报告
 
-生成时间：2026-06-24T22:39:31
+生成时间：2026-06-26T20:58:57
 
 ## 一、审核口径
 
@@ -14,15 +14,7 @@
 
 ## 二、相关性风险变量对
 
-按 `abs(mean_corr) >= 0.50` 口径，本次发现 5 组相关性风险变量对：
-
-| variable_1 | variable_2 | mean_corr | abs_mean_corr | stars | n_months | risk_level |
-| --- | --- | --- | --- | --- | --- | --- |
-| Ctrl_fund_age | Ctrl_log_fund_size | 0.746 | 0.746 | *** | 153 | 重点关注相关性风险 |
-| Ctrl_fund_age | Ctrl_log_fund_size | 0.746 | 0.746 | *** | 153 | 重点关注相关性风险 |
-| Ctrl_fund_age | Ctrl_log_fund_size | 0.745 | 0.745 | *** | 145 | 重点关注相关性风险 |
-| Ctrl_fund_age | Ctrl_log_fund_size | 0.748 | 0.748 | *** | 115 | 重点关注相关性风险 |
-| Ctrl_fund_age | Ctrl_log_fund_size | 0.748 | 0.748 | *** | 115 | 重点关注相关性风险 |
+按 `abs(mean_corr) >= 0.50` 口径，本次未发现相关性风险变量对。
 
 ## 三、VIF 风险变量
 

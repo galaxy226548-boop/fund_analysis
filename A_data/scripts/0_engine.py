@@ -177,6 +177,25 @@ def refresh_script_record(
         )
 
 
+def refresh_upstream_shared_inputs(
+    record: OrderedDict[str, OrderedDict[str, str]], script_name: str
+) -> None:
+    """刷新排在当前脚本之前的所有脚本中共享输入文件的 mtime。
+
+    多个脚本链式覆盖同一文件（如 panel_base.parquet）时，下游脚本
+    写出的新 mtime 会让上游脚本在下一轮检查时误判为"输入已更新"，
+    导致无限循环。这里在下游脚本运行后，把上游脚本中同名输入文件的
+    记录也刷新到当前值，防止回头重跑上游。
+    """
+    for upstream_name in record:
+        if upstream_name == script_name:
+            break
+        for input_path_text in record[upstream_name]:
+            current_mtime = format_mtime(resolve_project_path(input_path_text))
+            if current_mtime is not None:
+                record[upstream_name][input_path_text] = current_mtime
+
+
 def print_mismatches(
     script_name: str, mismatches: list[tuple[str, str | None, str]]
 ) -> None:
@@ -227,6 +246,7 @@ def main() -> None:
 
         run_script(script_name, python_executable)
         refresh_script_record(record, script_name)
+        refresh_upstream_shared_inputs(record, script_name)
         save_record(record_path, record)
         run_count += 1
         print(f"已更新 {script_name} 在 {record_path} 中的输入更新时间记录。")

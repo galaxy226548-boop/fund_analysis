@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import importlib.util
+import math
 import os
 import re
 from pathlib import Path
@@ -336,16 +337,41 @@ def calculate_time_stability_table(
     return grouped
 
 
-def plot_frequency(
+def make_subplot_grid(
+    item_count: int,
+    *,
+    cols: int = 3,
+    subplot_width: float = 6.2,
+    subplot_height: float = 4.8,
+) -> tuple[plt.Figure, np.ndarray]:
+    """创建“每行 cols 张图”的大画布，并把 axes 拉平成一维数组。
+
+    matplotlib 在只有一行或一列时会返回不同形状的 axes。这里统一整理成一维，
+    后面循环绘图时就不用反复判断 axes 到底是一张、一个列表还是二维矩阵。
+    """
+    rows = math.ceil(item_count / cols)
+    fig, axes = plt.subplots(
+        rows,
+        cols,
+        figsize=(cols * subplot_width, rows * subplot_height),
+        squeeze=False,
+    )
+    return fig, axes.ravel()
+
+
+def hide_unused_axes(axes: np.ndarray, used_count: int) -> None:
+    """隐藏大画布最后一行没有用上的空白子图。"""
+    for ax in axes[used_count:]:
+        ax.axis("off")
+
+
+def draw_frequency_on_ax(
+    ax: plt.Axes,
     table: pd.DataFrame,
     hit_labels: list[str],
     title_suffix: str,
-    output_path: Path,
 ) -> None:
-    """输出 dummy 频次柱状图。"""
-    # 图宽根据 dummy 数量动态调整，避免标签拥挤。
-    fig_width = max(8, len(hit_labels) * 0.9)
-    fig, ax = plt.subplots(figsize=(fig_width, 5.2))
+    """把 dummy 频次柱状图画到指定子图上，供单图和汇总图复用。"""
     bars = ax.bar(hit_labels, table["count_1"], color="#4C78A8", edgecolor="white")
 
     # 在每个柱顶标注该 dummy=1 的占比百分数。
@@ -357,16 +383,58 @@ def plot_frequency(
             label,
             ha="center",
             va="bottom",
-            fontsize=9,
+            fontsize=8,
         )
 
-    ax.set_title(f"{title_suffix} dummy=1 样本量与占比")
+    ax.set_title(f"{title_suffix} dummy=1 样本量与占比", fontsize=10)
     ax.set_xlabel("dummy")
     ax.set_ylabel("样本量")
     ax.grid(axis="y", linestyle="--", alpha=0.3)
+    ax.tick_params(axis="x", rotation=30)
+
+
+def plot_frequency(
+    table: pd.DataFrame,
+    hit_labels: list[str],
+    title_suffix: str,
+    output_path: Path,
+) -> None:
+    """输出 dummy 频次柱状图。"""
+    # 图宽根据 dummy 数量动态调整，避免标签拥挤。
+    fig_width = max(8, len(hit_labels) * 0.9)
+    fig, ax = plt.subplots(figsize=(fig_width, 5.2))
+    draw_frequency_on_ax(ax, table, hit_labels, title_suffix)
     fig.tight_layout()
     fig.savefig(output_path, dpi=200, bbox_inches="tight")
     plt.close(fig)
+
+
+def draw_overlap_heatmap_on_ax(
+    ax: plt.Axes,
+    table: pd.DataFrame,
+    title_suffix: str,
+) -> Any:
+    """把跨 dummy 条件概率热力图画到指定子图上。"""
+    values = table.to_numpy(dtype="float64")
+    # 条件概率范围固定 [0, 1]，颜色越深概率越高。
+    image = ax.imshow(values, cmap="YlGnBu", vmin=0, vmax=1)
+
+    ax.set_xticks(np.arange(len(table.columns)), labels=table.columns)
+    ax.set_yticks(np.arange(len(table.index)), labels=table.index)
+    ax.set_title(f"{title_suffix} 跨 dummy 重叠度", fontsize=10)
+    ax.set_xlabel("条件结果：hit_j=1")
+    ax.set_ylabel("条件样本：hit_i=1")
+    ax.tick_params(axis="x", rotation=45, labelsize=8)
+    ax.tick_params(axis="y", labelsize=8)
+
+    # 在每个格子里标注百分比数字，方便直接读数。
+    for row_idx in range(values.shape[0]):
+        for col_idx in range(values.shape[1]):
+            value = values[row_idx, col_idx]
+            text = "NA" if pd.isna(value) else f"{value:.0%}"
+            ax.text(col_idx, row_idx, text, ha="center", va="center", fontsize=7)
+
+    return image
 
 
 def plot_overlap_heatmap(
@@ -375,43 +443,23 @@ def plot_overlap_heatmap(
     output_path: Path,
 ) -> None:
     """输出跨 dummy 条件概率热力图。"""
-    values = table.to_numpy(dtype="float64")
     # 热力图用正方形，大小随 dummy 数量伸缩。
     fig_size = max(6, len(table.columns) * 0.75)
     fig, ax = plt.subplots(figsize=(fig_size, fig_size))
-    # 条件概率范围固定 [0, 1]，颜色越深概率越高。
-    image = ax.imshow(values, cmap="YlGnBu", vmin=0, vmax=1)
-
-    ax.set_xticks(np.arange(len(table.columns)), labels=table.columns)
-    ax.set_yticks(np.arange(len(table.index)), labels=table.index)
-    ax.set_title(f"{title_suffix} 跨 dummy 重叠度")
-    ax.set_xlabel("条件结果：hit_j=1")
-    ax.set_ylabel("条件样本：hit_i=1")
-    ax.tick_params(axis="x", rotation=45)
-
-    # 在每个格子里标注百分比数字，方便直接读数。
-    for row_idx in range(values.shape[0]):
-        for col_idx in range(values.shape[1]):
-            value = values[row_idx, col_idx]
-            text = "NA" if pd.isna(value) else f"{value:.0%}"
-            ax.text(col_idx, row_idx, text, ha="center", va="center", fontsize=8)
-
+    image = draw_overlap_heatmap_on_ax(ax, table, title_suffix)
     fig.colorbar(image, ax=ax, fraction=0.046, pad=0.04, label="条件概率")
     fig.tight_layout()
     fig.savefig(output_path, dpi=200, bbox_inches="tight")
     plt.close(fig)
 
 
-def plot_y_distribution(
+def draw_y_distribution_on_ax(
+    ax: plt.Axes,
     table: pd.DataFrame,
     y_column: str,
     title_suffix: str,
-    output_path: Path,
 ) -> None:
-    """输出因变量均值和标准差柱状图。"""
-    fig_width = max(8, len(table) * 0.9)
-    fig, ax = plt.subplots(figsize=(fig_width, 5.2))
-
+    """把因变量均值和标准差柱状图画到指定子图上。"""
     yerr = table["std"].fillna(0)
     ax.bar(
         table["group"],
@@ -423,14 +471,48 @@ def plot_y_distribution(
         alpha=0.9,
     )
     ax.axhline(0, color="#333333", linewidth=0.8)
-    ax.set_title(f"{title_suffix} {y_column} 均值与标准差")
+    ax.set_title(f"{title_suffix} {y_column} 均值与标准差", fontsize=10)
     ax.set_xlabel("样本组")
     ax.set_ylabel("均值")
     ax.grid(axis="y", linestyle="--", alpha=0.3)
-    ax.tick_params(axis="x", rotation=30)
+    ax.tick_params(axis="x", rotation=30, labelsize=8)
+
+
+def plot_y_distribution(
+    table: pd.DataFrame,
+    y_column: str,
+    title_suffix: str,
+    output_path: Path,
+) -> None:
+    """输出因变量均值和标准差柱状图。"""
+    fig_width = max(8, len(table) * 0.9)
+    fig, ax = plt.subplots(figsize=(fig_width, 5.2))
+    draw_y_distribution_on_ax(ax, table, y_column, title_suffix)
     fig.tight_layout()
     fig.savefig(output_path, dpi=200, bbox_inches="tight")
     plt.close(fig)
+
+
+def draw_time_stability_on_ax(
+    ax: plt.Axes,
+    table: pd.DataFrame,
+    title_suffix: str,
+) -> None:
+    """把每月 dummy=1 样本量折线图画到指定子图上。"""
+    # 用整数序列作为 x 轴位置，避免日期间距不均匀。
+    x_values = np.arange(len(table.index))
+    # 每条折线代表一个 dummy，方便观察哪个 dummy 在特定月份样本量骤降。
+    for column in table.columns:
+        ax.plot(x_values, table[column], marker="o", linewidth=1.3, markersize=2.5, label=column)
+
+    # x 轴标签太密时按固定间隔显示，保持可读性。
+    tick_step = max(1, len(table.index) // 12)
+    ax.set_xticks(x_values[::tick_step], table.index[::tick_step], rotation=45, ha="right")
+    ax.set_title(f"{title_suffix} dummy=1 样本量时序稳定性", fontsize=10)
+    ax.set_xlabel("月份")
+    ax.set_ylabel("样本量")
+    ax.grid(axis="y", linestyle="--", alpha=0.3)
+    ax.legend(ncol=min(4, len(table.columns)), fontsize=7)
 
 
 def plot_time_stability(
@@ -442,24 +524,96 @@ def plot_time_stability(
     # 图宽根据月份数量伸缩，但限制在 [10, 18] 范围内避免过宽。
     fig_width = max(10, min(18, len(table.index) * 0.22))
     fig, ax = plt.subplots(figsize=(fig_width, 5.8))
-
-    # 用整数序列作为 x 轴位置，避免日期间距不均匀。
-    x_values = np.arange(len(table.index))
-    # 每条折线代表一个 dummy，方便观察哪个 dummy 在特定月份样本量骤降。
-    for column in table.columns:
-        ax.plot(x_values, table[column], marker="o", linewidth=1.5, markersize=3, label=column)
-
-    # x 轴标签太密时按固定间隔显示，保持可读性。
-    tick_step = max(1, len(table.index) // 12)
-    ax.set_xticks(x_values[::tick_step], table.index[::tick_step], rotation=45, ha="right")
-    ax.set_title(f"{title_suffix} dummy=1 样本量时序稳定性")
-    ax.set_xlabel("月份")
-    ax.set_ylabel("样本量")
-    ax.grid(axis="y", linestyle="--", alpha=0.3)
-    ax.legend(ncol=min(4, len(table.columns)), fontsize=8)
+    draw_time_stability_on_ax(ax, table, title_suffix)
     fig.tight_layout()
     fig.savefig(output_path, dpi=200, bbox_inches="tight")
     plt.close(fig)
+
+
+def plot_all_dummy_grids(
+    plot_items: list[dict[str, Any]],
+    y_column: str,
+    model_key: str,
+    output_dir: Path,
+    *,
+    cols: int = 3,
+) -> list[Path]:
+    """把所有 dummy 组合按每行三张小图汇总到四张大画布里。"""
+    output_paths: list[Path] = []
+
+    # 频次汇总图：每个子图对应一个 dummy 变量组合。
+    fig, axes = make_subplot_grid(len(plot_items), cols=cols)
+    for ax, item in zip(axes, plot_items):
+        draw_frequency_on_ax(
+            ax,
+            item["frequency_table"],
+            item["hit_labels"],
+            item["group_suffix"],
+        )
+    hide_unused_axes(axes, len(plot_items))
+    fig.suptitle(f"{model_key} dummy=1 样本量与占比汇总", fontsize=14)
+    fig.tight_layout()
+    output_path = output_dir / f"{model_key}_频次_汇总.png"
+    fig.savefig(output_path, dpi=200, bbox_inches="tight")
+    plt.close(fig)
+    output_paths.append(output_path)
+
+    # 重叠度汇总图：共用一个 colorbar，避免每个子图旁边都挤一条色带。
+    fig, axes = make_subplot_grid(len(plot_items), cols=cols, subplot_width=5.6, subplot_height=5.2)
+    image = None
+    used_axes = []
+    for ax, item in zip(axes, plot_items):
+        image = draw_overlap_heatmap_on_ax(
+            ax,
+            item["overlap_table"],
+            item["group_suffix"],
+        )
+        used_axes.append(ax)
+    hide_unused_axes(axes, len(plot_items))
+    if image is not None:
+        fig.colorbar(image, ax=used_axes, fraction=0.02, pad=0.02, label="条件概率")
+    fig.suptitle(f"{model_key} 跨 dummy 重叠度汇总", fontsize=14)
+    # 共享 colorbar 和 tight_layout 容易冲突；手动留出标题和色带空间更稳定。
+    fig.subplots_adjust(top=0.9, right=0.88, hspace=0.55, wspace=0.35)
+    output_path = output_dir / f"{model_key}_重叠度_汇总.png"
+    fig.savefig(output_path, dpi=200, bbox_inches="tight")
+    plt.close(fig)
+    output_paths.append(output_path)
+
+    # 因变量分布汇总图：保留每组“全样本 + 各 hit 子样本”的均值和标准差。
+    fig, axes = make_subplot_grid(len(plot_items), cols=cols)
+    for ax, item in zip(axes, plot_items):
+        draw_y_distribution_on_ax(
+            ax,
+            item["y_distribution_table"],
+            y_column,
+            item["group_suffix"],
+        )
+    hide_unused_axes(axes, len(plot_items))
+    fig.suptitle(f"{model_key} 因变量均值与标准差汇总", fontsize=14)
+    fig.tight_layout()
+    output_path = output_dir / f"{model_key}_因变量分布_汇总.png"
+    fig.savefig(output_path, dpi=200, bbox_inches="tight")
+    plt.close(fig)
+    output_paths.append(output_path)
+
+    # 时序稳定性汇总图：每张小图显示一组 dummy 在各月份的样本量变化。
+    fig, axes = make_subplot_grid(len(plot_items), cols=cols, subplot_width=6.8, subplot_height=5.0)
+    for ax, item in zip(axes, plot_items):
+        draw_time_stability_on_ax(
+            ax,
+            item["time_stability_table"],
+            item["group_suffix"],
+        )
+    hide_unused_axes(axes, len(plot_items))
+    fig.suptitle(f"{model_key} dummy=1 样本量时序稳定性汇总", fontsize=14)
+    fig.tight_layout()
+    output_path = output_dir / f"{model_key}_时序稳定性_汇总.png"
+    fig.savefig(output_path, dpi=200, bbox_inches="tight")
+    plt.close(fig)
+    output_paths.append(output_path)
+
+    return output_paths
 
 
 def save_excel(tables: dict[str, tuple[pd.DataFrame, bool]], output_path: Path) -> None:
@@ -493,7 +647,7 @@ def analyze_one_dummy_group(
     y_column: str,
     date_col: str,
     output_dir: Path,
-) -> dict[str, tuple[pd.DataFrame, bool]]:
+) -> dict[str, Any]:
     """对单个窗口配置的 dummy 变量组完成四项分析。"""
     # 提前检查所需列是否都在 DataFrame 里，避免跑到一半才报错。
     validate_required_columns(df, [*dummy_cols, y_column, date_col])
@@ -509,35 +663,24 @@ def analyze_one_dummy_group(
     y_distribution_table = calculate_y_distribution_table(df, dummy_df, y_column, hit_labels)
     time_stability_table = calculate_time_stability_table(df, dummy_df, date_col, hit_labels)
 
-    plot_frequency(
-        frequency_table,
-        hit_labels,
-        group_suffix,
-        output_dir / f"{group_suffix}_频次.png",
-    )
-    plot_overlap_heatmap(
-        overlap_table,
-        group_suffix,
-        output_dir / f"{group_suffix}_重叠度.png",
-    )
-    plot_y_distribution(
-        y_distribution_table,
-        y_column,
-        group_suffix,
-        output_dir / f"{group_suffix}_因变量分布.png",
-    )
-    plot_time_stability(
-        time_stability_table,
-        group_suffix,
-        output_dir / f"{group_suffix}_时序稳定性.png",
-    )
-
-    return {
+    tables = {
         f"{group_suffix}_频次": (frequency_table, False),
         f"{group_suffix}_重叠度": (overlap_table, True),
         f"{group_suffix}_因变量分布": (y_distribution_table, False),
         f"{group_suffix}_时序稳定性": (time_stability_table, True),
     }
+    plot_item = {
+        "group_suffix": group_suffix,
+        "hit_labels": hit_labels,
+        "frequency_table": frequency_table,
+        "overlap_table": overlap_table,
+        "y_distribution_table": y_distribution_table,
+        "time_stability_table": time_stability_table,
+    }
+
+    # tables 用于写 Excel；plot_item 用于后续把所有组合拼到汇总大图里。
+    # 这里不再保存单个 dummy 组合的图片，避免输出目录里图片过多。
+    return {"tables": tables, "plot_item": plot_item}
 
 
 def main() -> None:
@@ -567,12 +710,13 @@ def main() -> None:
     raw_df = read_input_file(input_path)
     filtered_df = apply_sample_filters(raw_df, sample_filters)
 
-    # 对每组 dummy 变量分别跑四项分析，收集所有表格最后合并写入 Excel。
+    # 对每组 dummy 变量分别跑四项分析，收集表格写 Excel，同时收集绘图数据做汇总大图。
     all_tables: dict[str, tuple[pd.DataFrame, bool]] = {}
+    plot_items: list[dict[str, Any]] = []
     for dummy_cols in dummy_groups:
         group_suffix = get_group_suffix(dummy_cols, factor_group_suffixes)
         print(f"\n开始分析：{group_suffix}")
-        group_tables = analyze_one_dummy_group(
+        analysis_result = analyze_one_dummy_group(
             filtered_df,
             dummy_cols,
             group_suffix,
@@ -580,13 +724,26 @@ def main() -> None:
             date_col,
             output_dir,
         )
-        all_tables.update(group_tables)
+        all_tables.update(analysis_result["tables"])
+        plot_items.append(analysis_result["plot_item"])
+
+    # 输出四张汇总大图；每行固定放三张小图。
+    grid_paths = plot_all_dummy_grids(
+        plot_items,
+        y_column,
+        args.model,
+        output_dir,
+        cols=3,
+    )
 
     # 所有组的四项分析表格合并到一个 Excel 文件，按 sheet 区分。
     excel_path = output_dir / f"{args.model}_dummy_descriptive.xlsx"
     save_excel(all_tables, excel_path)
 
     print(f"\nExcel 表格：{excel_path}")
+    print("汇总图片：")
+    for grid_path in grid_paths:
+        print(f"- {grid_path}")
     print(f"图片输出目录：{output_dir}")
 
 

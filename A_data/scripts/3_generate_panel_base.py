@@ -63,12 +63,12 @@ FUTURE_RETURN_HORIZONS = Config.PANEL_FUTURE_RETURN_HORIZONS
 # 面板所需的源数据字段（基金代码、月份、净值、是否在样本内等）
 REQUIRED_COLUMNS = Config.PANEL_REQUIRED_COLUMNS
 
-# 过去收益率的 (m, n) 组合列表
-# 每个元素 (rank_count, return_horizon) 的含义：
-#   rank_count：回看多少个子期间（即需要多少个排名来计算波动率）
-#   return_horizon：每个子期间的长度（月）
-# 例如 (6, 3) 表示：回看 6 个子期间，每个子期间算 3 个月的收益率
+# 原有 pairwise=1 组合继续单独保留，主要用于兼容已有调用方。
 PAST_RETURN_COMBOS = Config.PANEL_PAST_RETURN_COMBOS
+
+# 多步长统一规格。每个元素依次为：排名期数 m、单期收益期限 n、实际步长。
+# 例如 (6, 3, 3) 表示回看 6 个互不重叠的 3 个月收益窗口。
+PAST_RETURN_SPECS = Config.PANEL_PAST_RETURN_SPECS
 
 
 def parse_args() -> argparse.Namespace:
@@ -192,40 +192,64 @@ def calculate_return(
     return np.log(nav_ratio)
 
 
-def get_pairwise_past_return_windows() -> dict[int, int]:
-    """根据 PAST_RETURN_COMBOS 配置，计算每种 return_horizon 需要生成的最大窗口数。
-
-    例如 PAST_RETURN_COMBOS = [(6, 3), (6, 6), (12, 6)] 时：
-        return_horizon=3 最多需要 6 个窗口
-        return_horizon=6 最多需要 max(6, 12) = 12 个窗口
-    返回 {3: 6, 6: 12}
-
-    这样在生成 past return 列时，对每种 return_horizon 只需生成到最大窗口数，
-    不同 (m, n) 组合可以共享同一组 past return 列。
-
-    PANEL_PAIRWISE 是步长参数，控制相邻子期间之间的偏移量（月数）。
-    例如 PANEL_PAIRWISE=1 表示每个子期间之间只偏移 1 个月（滚动窗口），
-    PANEL_PAIRWISE 等于 return_horizon 则表示子期间完全不重叠。
-    """
-    if (
-        not isinstance(Config.PANEL_PAIRWISE, int)
-        or isinstance(Config.PANEL_PAIRWISE, bool)
-        or Config.PANEL_PAIRWISE <= 0
-    ):
-        raise ValueError(
-            f"PANEL_PAIRWISE 必须为正整数步长，当前为 {Config.PANEL_PAIRWISE!r}。"
-        )
-
-    windows: dict[int, int] = {}
-    for rank_count, return_horizon in PAST_RETURN_COMBOS:
-        if rank_count <= 0 or return_horizon <= 0:
+def validate_past_return_specs() -> None:
+    """检查多步长规格，尽早拦截重复、非正数或伪非重叠配置。"""
+    seen: set[tuple[int, int, int]] = set()
+    for spec in PAST_RETURN_SPECS:
+        if len(spec) != 3:
+            raise ValueError(f"过去收益率规格必须为三元组，当前为 {spec!r}。")
+        rank_count, return_horizon, pairwise = spec
+        values = (rank_count, return_horizon, pairwise)
+        if any(
+            not isinstance(value, int) or isinstance(value, bool) or value <= 0
+            for value in values
+        ):
+            raise ValueError(f"过去收益率规格必须全部为正整数，当前为 {spec!r}。")
+        if pairwise not in {1, return_horizon}:
             raise ValueError(
-                f"过去收益率组合必须为正整数，当前为 {(rank_count, return_horizon)}。"
+                "当前只支持 pairwise=1 或完全非重叠的 "
+                f"pairwise=return_horizon，当前为 {spec!r}。"
             )
-        # 同一 return_horizon 可能对应多个 rank_count，取最大值
-        windows[return_horizon] = max(windows.get(return_horizon, 0), rank_count)
-    # 按 return_horizon 排序后返回
+        if spec in seen:
+            raise ValueError(f"过去收益率规格重复：{spec!r}。")
+        seen.add(spec)
+
+
+def get_pairwise_past_return_windows() -> dict[tuple[int, int], int]:
+    """返回每个 ``(return_horizon, pairwise)`` 所需的最大窗口数。
+
+    同一收益期限和步长可能服务多个 rank_count，因此只生成到最大期数即可。
+    把 pairwise 放进字典键，是为了让滚动与非重叠窗口在同一面板中并存。
+    """
+    validate_past_return_specs()
+    windows: dict[tuple[int, int], int] = {}
+    for rank_count, return_horizon, pairwise in PAST_RETURN_SPECS:
+        key = (return_horizon, pairwise)
+        windows[key] = max(windows.get(key, 0), rank_count)
     return dict(sorted(windows.items()))
+
+
+def get_past_return_column(
+    return_horizon: int, window_index: int, pairwise: int
+) -> str:
+    """生成过去收益率列名；pairwise1 保留历史名称以兼容旧模型。"""
+    base = f"past_ret_{return_horizon}m_{window_index}"
+    return base if pairwise == 1 else f"{base}_pairwise{pairwise}"
+
+
+def get_past_match_column(
+    return_horizon: int, window_index: int, pairwise: int
+) -> str:
+    """生成窗口匹配标签列名。"""
+    return f"match_is_sample_{get_past_return_column(return_horizon, window_index, pairwise)}"
+
+
+def get_past_rank_column(
+    return_horizon: int, window_index: int, pairwise: int
+) -> str:
+    """生成截面排名列名；新增步长必须显式写进名称。"""
+    base = f"past_ret_{return_horizon}m_rank_{window_index}"
+    return base if pairwise == 1 else f"{base}_pairwise{pairwise}"
 
 
 def get_pairwise_past_return_columns() -> list[str]:
@@ -238,9 +262,11 @@ def get_pairwise_past_return_columns() -> list[str]:
     以此类推。
     """
     columns: list[str] = []
-    for return_horizon, rank_count in get_pairwise_past_return_windows().items():
+    for (return_horizon, pairwise), rank_count in get_pairwise_past_return_windows().items():
         for window_index in range(1, rank_count + 1):
-            columns.append(f"past_ret_{return_horizon}m_{window_index}")
+            columns.append(
+                get_past_return_column(return_horizon, window_index, pairwise)
+            )
     return columns
 
 
@@ -253,11 +279,9 @@ def get_pairwise_past_match_columns() -> list[str]:
     列名格式：match_is_sample_past_ret_{return_horizon}m_{window_index}
     """
     columns: list[str] = []
-    for return_horizon, rank_count in get_pairwise_past_return_windows().items():
+    for (return_horizon, pairwise), rank_count in get_pairwise_past_return_windows().items():
         for window_index in range(1, rank_count + 1):
-            columns.append(
-                f"match_is_sample_past_ret_{return_horizon}m_{window_index}"
-            )
+            columns.append(get_past_match_column(return_horizon, window_index, pairwise))
     return columns
 
 
@@ -270,13 +294,15 @@ def get_pairwise_past_rank_columns() -> list[str]:
     列名格式：past_ret_{return_horizon}m_rank_{window_index}
     """
     columns: list[str] = []
-    for return_horizon, rank_count in get_pairwise_past_return_windows().items():
+    for (return_horizon, pairwise), rank_count in get_pairwise_past_return_windows().items():
         for window_index in range(1, rank_count + 1):
-            columns.append(f"past_ret_{return_horizon}m_rank_{window_index}")
+            columns.append(get_past_rank_column(return_horizon, window_index, pairwise))
     return columns
 
 
-def get_rank_volatility_column(rank_count: int, return_horizon: int) -> str:
+def get_rank_volatility_column(
+    rank_count: int, return_horizon: int, pairwise: int = Config.PANEL_PAIRWISE
+) -> str:
     """返回指定 (m, n) 组合的排名波动率列名。
 
     排名波动率 = 多个子期间排名的标准差。
@@ -286,32 +312,34 @@ def get_rank_volatility_column(rank_count: int, return_horizon: int) -> str:
     """
     return (
         f"rank_vol_m{rank_count}_n{return_horizon}_"
-        f"pairwise{Config.PANEL_PAIRWISE}"
+        f"pairwise{pairwise}"
     )
 
 
 def get_rank_volatility_columns() -> list[str]:
     """列出所有排名波动率列名（rank_vol_*）。"""
     return [
-        get_rank_volatility_column(rank_count, return_horizon)
-        for rank_count, return_horizon in PAST_RETURN_COMBOS
+        get_rank_volatility_column(rank_count, return_horizon, pairwise)
+        for rank_count, return_horizon, pairwise in PAST_RETURN_SPECS
     ]
 
 
-def get_fac_rank_volatility_column(rank_count: int, return_horizon: int) -> str:
+def get_fac_rank_volatility_column(
+    rank_count: int, return_horizon: int, pairwise: int = Config.PANEL_PAIRWISE
+) -> str:
     """返回排名波动率反向指标的列名。
 
     FAC = 1 - rank_vol，方向反转后，FAC 越大 = 排名越稳定 = 一致性越好。
     列名在原变量前加 "FAC_" 前缀。
     """
-    return f"FAC_{get_rank_volatility_column(rank_count, return_horizon)}"
+    return f"FAC_{get_rank_volatility_column(rank_count, return_horizon, pairwise)}"
 
 
 def get_fac_rank_volatility_columns() -> list[str]:
     """列出所有排名波动率反向指标列名（FAC_rank_vol_*）。"""
     return [
-        get_fac_rank_volatility_column(rank_count, return_horizon)
-        for rank_count, return_horizon in PAST_RETURN_COMBOS
+        get_fac_rank_volatility_column(rank_count, return_horizon, pairwise)
+        for rank_count, return_horizon, pairwise in PAST_RETURN_SPECS
     ]
 
 
@@ -438,9 +466,10 @@ def add_pairwise_past_return_columns(
     2. match_is_sample_past_ret_{horizon}m_{index} —— 窗口内所有月份是否都满足
        is_sample=True 且 is_size_eligible=True 且日期连续
     """
-    # step 是子期间之间的偏移步长（月数）
-    step = Config.PANEL_PAIRWISE
-    for return_horizon, rank_count in get_pairwise_past_return_windows().items():
+    # 多步长会新增较多列，先用字典收集，最后一次性拼接。这样可避免 pandas
+    # 因逐列插入产生高度碎片化的 DataFrame，正式大面板运行会稳定很多。
+    new_columns: dict[str, pd.Series] = {}
+    for (return_horizon, step), rank_count in get_pairwise_past_return_windows().items():
         for window_index in range(1, rank_count + 1):
             # --- 计算当前窗口的起止偏移量 ---
             # end_offset: 窗口终点距当前月份的偏移（月数），0 表示当前月
@@ -470,15 +499,18 @@ def add_pairwise_past_return_columns(
             )
 
             # --- 计算过去收益率 ---
-            return_column = f"past_ret_{return_horizon}m_{window_index}"
-            result[return_column] = calculate_return(start_nav, end_nav, return_type)
+            return_column = get_past_return_column(
+                return_horizon, window_index, step
+            )
+            return_values = calculate_return(start_nav, end_nav, return_type)
             # 日期不连续的行，收益率设为 NaN
-            result.loc[~has_endpoints, return_column] = np.nan
+            return_values.loc[~has_endpoints] = np.nan
+            new_columns[return_column] = return_values
 
             # --- 生成 match 标签 ---
             # 窗口内每个月都必须满足 is_sample=True 且 is_size_eligible=True 且日期正确
-            match_column = (
-                f"match_is_sample_past_ret_{return_horizon}m_{window_index}"
+            match_column = get_past_match_column(
+                return_horizon, window_index, step
             )
             window_match = pd.Series(True, index=result.index)
             for offset in range(end_offset, start_offset + 1):
@@ -499,9 +531,9 @@ def add_pairwise_past_return_columns(
                 window_match &= (
                     shifted_sample & shifted_size_eligible & is_expected_month
                 )
-            result[match_column] = window_match
+            new_columns[match_column] = window_match
 
-    return result
+    return pd.concat([result, pd.DataFrame(new_columns, index=result.index)], axis=1)
 
 
 def add_pairwise_past_rank_columns(result: pd.DataFrame) -> pd.DataFrame:
@@ -516,13 +548,18 @@ def add_pairwise_past_rank_columns(result: pd.DataFrame) -> pd.DataFrame:
     这些排名是后续计算排名波动率 (rank_vol) 的原料。
     """
     group_columns = [Config.COLUMN_MONTH_DATE, Config.COLUMN_INVESTMENT_TYPE]
-    for return_horizon, rank_count in get_pairwise_past_return_windows().items():
+    new_columns: dict[str, pd.Series] = {}
+    for (return_horizon, pairwise), rank_count in get_pairwise_past_return_windows().items():
         for window_index in range(1, rank_count + 1):
-            return_column = f"past_ret_{return_horizon}m_{window_index}"
-            match_column = (
-                f"match_is_sample_past_ret_{return_horizon}m_{window_index}"
+            return_column = get_past_return_column(
+                return_horizon, window_index, pairwise
             )
-            rank_column = f"past_ret_{return_horizon}m_rank_{window_index}"
+            match_column = get_past_match_column(
+                return_horizon, window_index, pairwise
+            )
+            rank_column = get_past_rank_column(
+                return_horizon, window_index, pairwise
+            )
 
             # 只对满足所有条件的样本计算排名
             rank_sample = (
@@ -530,16 +567,17 @@ def add_pairwise_past_rank_columns(result: pd.DataFrame) -> pd.DataFrame:
                 & result[match_column]              # 窗口内所有月份都满足条件
                 & result[return_column].notna()     # 收益率非空
             )
-            # 先全部初始化为 NaN
-            result[rank_column] = np.nan
+            # 先全部初始化为 NaN，再只给允许进入排名截面的样本填值。
+            rank_values = pd.Series(np.nan, index=result.index, dtype="float64")
             # 只对满足条件的行计算截面百分位排名
-            result.loc[rank_sample, rank_column] = (
+            rank_values.loc[rank_sample] = (
                 result.loc[rank_sample]
                 .groupby(group_columns, sort=False)[return_column]
                 .rank(method=Config.PANEL_RANK_METHOD, pct=True)
             )
+            new_columns[rank_column] = rank_values
 
-    return result
+    return pd.concat([result, pd.DataFrame(new_columns, index=result.index)], axis=1)
 
 
 def add_rank_volatility_columns(result: pd.DataFrame) -> pd.DataFrame:
@@ -560,31 +598,35 @@ def add_rank_volatility_columns(result: pd.DataFrame) -> pd.DataFrame:
     注意：这里的"标准差"和散点图脚本中直接对 rank 列取 std 的效果完全相同，
     区别在于这里有更严格的缺失值处理和 match 标签过滤。
     """
-    for rank_count, return_horizon in PAST_RETURN_COMBOS:
+    new_columns: dict[str, pd.Series] = {}
+    for rank_count, return_horizon, pairwise in PAST_RETURN_SPECS:
         # 收集需要的排名列名（共 rank_count 列）
         rank_columns = [
-            f"past_ret_{return_horizon}m_rank_{window_index}"
+            get_past_rank_column(return_horizon, window_index, pairwise)
             for window_index in range(1, rank_count + 1)
         ]
-        volatility_column = get_rank_volatility_column(rank_count, return_horizon)
+        volatility_column = get_rank_volatility_column(
+            rank_count, return_horizon, pairwise
+        )
         ranks = result[rank_columns]
 
         if Config.RANK_VOL_REQUIRE_FULL_WINDOW:
             # 严格模式：必须所有子期间排名都非空才计算波动率
             full_window = ranks.notna().all(axis=1)
-            result[volatility_column] = np.nan
-            result.loc[full_window, volatility_column] = ranks.loc[full_window].std(
+            volatility = pd.Series(np.nan, index=result.index, dtype="float64")
+            volatility.loc[full_window] = ranks.loc[full_window].std(
                 axis=1, ddof=Config.RANK_VOL_DDOF
             )
         else:
             # 宽松模式：只要非空排名数 > ddof 就可以计算
             enough_observations = ranks.notna().sum(axis=1) > Config.RANK_VOL_DDOF
-            result[volatility_column] = ranks.std(
+            volatility = ranks.std(
                 axis=1, ddof=Config.RANK_VOL_DDOF, skipna=True
             )
-            result.loc[~enough_observations, volatility_column] = np.nan
+            volatility.loc[~enough_observations] = np.nan
+        new_columns[volatility_column] = volatility
 
-    return result
+    return pd.concat([result, pd.DataFrame(new_columns, index=result.index)], axis=1)
 
 
 def add_fac_rank_volatility_columns(result: pd.DataFrame) -> pd.DataFrame:
@@ -597,12 +639,17 @@ def add_fac_rank_volatility_columns(result: pd.DataFrame) -> pd.DataFrame:
 
     如果原始 rank_vol 缺失，1 - NaN = NaN，自然保留为缺失值。
     """
-    for rank_count, return_horizon in PAST_RETURN_COMBOS:
-        volatility_column = get_rank_volatility_column(rank_count, return_horizon)
-        fac_column = get_fac_rank_volatility_column(rank_count, return_horizon)
-        result[fac_column] = 1 - result[volatility_column]
+    new_columns: dict[str, pd.Series] = {}
+    for rank_count, return_horizon, pairwise in PAST_RETURN_SPECS:
+        volatility_column = get_rank_volatility_column(
+            rank_count, return_horizon, pairwise
+        )
+        fac_column = get_fac_rank_volatility_column(
+            rank_count, return_horizon, pairwise
+        )
+        new_columns[fac_column] = 1 - result[volatility_column]
 
-    return result
+    return pd.concat([result, pd.DataFrame(new_columns, index=result.index)], axis=1)
 
 
 def add_period_columns(data: pd.DataFrame, return_type: str) -> pd.DataFrame:
@@ -752,11 +799,13 @@ def validate_panel(panel: pd.DataFrame, source_row_count: int) -> None:
             raise AssertionError(f"{insample_column} 出现 0/1 之外的值。")
 
     # --- 校验 5-6：过去收益率排名的有效性 ---
-    for return_horizon, rank_count in get_pairwise_past_return_windows().items():
+    for (return_horizon, pairwise), rank_count in get_pairwise_past_return_windows().items():
         for window_index in range(1, rank_count + 1):
-            return_column = f"past_ret_{return_horizon}m_{window_index}"
-            match_column = (
-                f"match_is_sample_past_ret_{return_horizon}m_{window_index}"
+            return_column = get_past_return_column(
+                return_horizon, window_index, pairwise
+            )
+            match_column = get_past_match_column(
+                return_horizon, window_index, pairwise
             )
             # match 列必须是布尔类型
             if panel[match_column].dtype != bool:
@@ -767,7 +816,9 @@ def validate_panel(panel: pd.DataFrame, source_row_count: int) -> None:
                     f"{match_column}=True 时出现缺失的 {return_column}。"
                 )
             # 排名值必须在 [0, 1] 之间
-            rank_column = f"past_ret_{return_horizon}m_rank_{window_index}"
+            rank_column = get_past_rank_column(
+                return_horizon, window_index, pairwise
+            )
             rank_values = panel[rank_column].dropna()
             if not rank_values.between(0, 1).all():
                 raise AssertionError(f"{rank_column} 出现 0 到 1 之外的值。")
@@ -781,13 +832,17 @@ def validate_panel(panel: pd.DataFrame, source_row_count: int) -> None:
                 raise AssertionError(f"{rank_column} 在非排名样本中出现非缺失值。")
 
     # --- 校验 7-9：排名波动率和 FAC 指标 ---
-    for rank_count, return_horizon in PAST_RETURN_COMBOS:
+    for rank_count, return_horizon, pairwise in PAST_RETURN_SPECS:
         rank_columns = [
-            f"past_ret_{return_horizon}m_rank_{window_index}"
+            get_past_rank_column(return_horizon, window_index, pairwise)
             for window_index in range(1, rank_count + 1)
         ]
-        volatility_column = get_rank_volatility_column(rank_count, return_horizon)
-        fac_column = get_fac_rank_volatility_column(rank_count, return_horizon)
+        volatility_column = get_rank_volatility_column(
+            rank_count, return_horizon, pairwise
+        )
+        fac_column = get_fac_rank_volatility_column(
+            rank_count, return_horizon, pairwise
+        )
 
         # 排名波动率不能为负数（标准差 >= 0）
         volatility_values = panel[volatility_column].dropna()
@@ -860,17 +915,25 @@ def generate_panel(
     pairwise_match_counts = {}
     pairwise_rank_counts = {}
     rank_volatility_counts = {}
-    for return_horizon, rank_count in get_pairwise_past_return_windows().items():
+    for (return_horizon, pairwise), rank_count in get_pairwise_past_return_windows().items():
         for window_index in range(1, rank_count + 1):
-            key = f"past_ret_{return_horizon}m_{window_index}"
+            key = get_past_return_column(return_horizon, window_index, pairwise)
+            match_column = get_past_match_column(
+                return_horizon, window_index, pairwise
+            )
+            rank_column = get_past_rank_column(
+                return_horizon, window_index, pairwise
+            )
             pairwise_match_counts[key] = int(
-                panel[f"match_is_sample_past_ret_{return_horizon}m_{window_index}"].sum()
+                panel[match_column].sum()
             )
             pairwise_rank_counts[key] = int(
-                panel[f"past_ret_{return_horizon}m_rank_{window_index}"].notna().sum()
+                panel[rank_column].notna().sum()
             )
-    for rank_count, return_horizon in PAST_RETURN_COMBOS:
-        volatility_column = get_rank_volatility_column(rank_count, return_horizon)
+    for rank_count, return_horizon, pairwise in PAST_RETURN_SPECS:
+        volatility_column = get_rank_volatility_column(
+            rank_count, return_horizon, pairwise
+        )
         rank_volatility_counts[volatility_column] = int(
             panel[volatility_column].notna().sum()
         )
@@ -907,17 +970,19 @@ def print_panel_summary(summary: dict[str, object]) -> None:
     pairwise_match_counts = summary["pairwise_match_counts"]
     pairwise_rank_counts = summary["pairwise_rank_counts"]
     rank_volatility_counts = summary["rank_volatility_counts"]
-    for combo in PAST_RETURN_COMBOS:
-        rank_count, return_horizon = combo
-        print(f"过去收益率窗口组合 {combo}：")
+    for rank_count, return_horizon, pairwise in PAST_RETURN_SPECS:
+        spec = (rank_count, return_horizon, pairwise)
+        print(f"过去收益率窗口规格 {spec}：")
         for window_index in range(1, rank_count + 1):
-            key = f"past_ret_{return_horizon}m_{window_index}"
+            key = get_past_return_column(return_horizon, window_index, pairwise)
             print(
                 f"  {key} 匹配样本："
                 f"{pairwise_match_counts[key]:,}；排名样本："
                 f"{pairwise_rank_counts[key]:,}"
             )
-        volatility_column = get_rank_volatility_column(rank_count, return_horizon)
+        volatility_column = get_rank_volatility_column(
+            rank_count, return_horizon, pairwise
+        )
         print(
             f"  {volatility_column} 非缺失样本："
             f"{rank_volatility_counts[volatility_column]:,}"

@@ -18,6 +18,7 @@ ENGINE = "calamine"
 
 # 明确列出基金类型，避免通配符误读上一次生成的“基金基本信息汇总.xlsx”。
 FUND_TYPES = ("偏股混合型基金", "普通股票型基金")
+WIND_SORT_MARKS = "↑↓"
 
 
 def read_excel(path: Path, **kwargs) -> pd.DataFrame:
@@ -34,6 +35,90 @@ def read_excel(path: Path, **kwargs) -> pd.DataFrame:
         ) from exc
 
 
+def normalize_wind_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """去掉 Wind 导出列名里可能残留的排序箭头。"""
+    normalized = df.copy()
+    normalized.columns = [
+        str(column).strip().rstrip(WIND_SORT_MARKS) for column in normalized.columns
+    ]
+    return normalized
+
+
+def is_meaningless_tail_row(row: pd.Series) -> bool:
+    """判断 Wind 导出表末尾的单行是否只是空行或文件来源说明。"""
+    values = row.dropna()
+    if values.empty:
+        return True
+
+    # Wind 终端常在最后一行第一列写“数据来源：Wind”，这一行不是基金记录。
+    text_values = values.astype(str).str.strip()
+    return text_values.str.contains("数据来源", na=False).any()
+
+
+def drop_meaningless_tail_rows(df: pd.DataFrame, path: Path) -> pd.DataFrame:
+    """只检查并删除表格最下面两行中的无意义尾行。"""
+    cleaned = df.copy()
+    removed = 0
+
+    # 需求只要求检查最下面两行，因此最多循环两次；每删一行后继续看新的最后一行。
+    for _ in range(2):
+        if cleaned.empty:
+            break
+        if not is_meaningless_tail_row(cleaned.iloc[-1]):
+            break
+        cleaned = cleaned.iloc[:-1].copy()
+        removed += 1
+
+    if removed:
+        print(f"清理尾行：{path.name} 删除 {removed} 行")
+    return cleaned
+
+
+def merge_wind_existing_basic_info() -> None:
+    """先把 Wind 中不同存续状态的基本信息文件合并回对应基金类型主文件。"""
+    for fund_type in FUND_TYPES:
+        base_file = WIND_DIR / f"{fund_type}基本信息.xlsx"
+        extra_files = sorted(WIND_DIR.glob(f"Wind{fund_type}*基本信息.xlsx"))
+        if not extra_files:
+            continue
+
+        # 主文件决定最终列顺序；列名先去掉 Wind 排序箭头，避免“同一列”被误判为不同列。
+        base = normalize_wind_columns(
+            drop_meaningless_tail_rows(read_excel(base_file), base_file)
+        )
+        frames = [base]
+
+        for extra_file in extra_files:
+            extra = normalize_wind_columns(
+                drop_meaningless_tail_rows(read_excel(extra_file), extra_file)
+            )
+            missing_columns = [
+                column for column in base.columns if column not in extra.columns
+            ]
+            extra_only_columns = [
+                column for column in extra.columns if column not in base.columns
+            ]
+            if missing_columns or extra_only_columns:
+                raise ValueError(
+                    f"{extra_file.name} 与 {base_file.name} 列名不一致："
+                    f"缺少主文件列 {missing_columns}；额外列 {extra_only_columns}"
+                )
+
+            # 使用主文件列顺序对齐，保证后续读取 Wind 基本信息时得到稳定的列结构。
+            frames.append(extra.reindex(columns=base.columns))
+
+        merged = pd.concat(frames, ignore_index=True)
+        before_dedup = len(merged)
+        # 让脚本可以重复运行：如果主文件已经合并过同一批补充记录，重复行会在这里被去掉。
+        merged = merged.drop_duplicates(ignore_index=True)
+        merged.to_excel(base_file, index=False)
+        print(
+            f"Wind 存续状态基本信息合并：{fund_type} "
+            f"{len(base)} 行 + {sum(len(frame) for frame in frames[1:])} 行，"
+            f"去重 {before_dedup - len(merged)} 行 -> {base_file}"
+        )
+
+
 def normalize_fund_code(value):
     """将 Excel 中可能以数字或浮点数保存的基金主代码统一为六位字符串。"""
     if pd.isna(value) or str(value).strip().lower() in {"", "nan"}:
@@ -48,6 +133,9 @@ def normalize_fund_code(value):
 
 
 def main() -> None:
+    # 先把 Wind 终端按存续状态单独导出的基本信息补回主文件，再进入原有汇总流程。
+    merge_wind_existing_basic_info()
+
     # iFind 文件名带有 iFind 前缀，Wind 文件名没有此前缀。
     ifind_files = [IFIND_DIR / f"iFind{fund_type}基本信息.xlsx" for fund_type in FUND_TYPES]
     wind_files = [WIND_DIR / f"{fund_type}基本信息.xlsx" for fund_type in FUND_TYPES]

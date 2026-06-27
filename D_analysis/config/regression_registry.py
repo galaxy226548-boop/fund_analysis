@@ -633,10 +633,10 @@ REGISTRY = {
             },
             {
                 "name": "descriptive",
-                "script": "A_data/scripts/4_descriptive_dummy_analysis.py",
+                "script": "A_data/scripts/4_dummy_descriptive_analysis.py",
                 "args": ["--model", "{model}"],
                 "outputs": [
-                    "A_data/output/descriptive_analysis/fm_winrates_top50/fm_winrates_top50_y_future_ret_6m_descriptive.xlsx",
+                    "D_analysis/output/fund_consistency/fm_winrates_top50/descriptive_dummy/fm_winrates_top50_dummy_descriptive.xlsx",
                 ],
             },
             {

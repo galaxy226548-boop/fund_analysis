@@ -14,6 +14,7 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import re
 from datetime import datetime
 from pathlib import Path
 
@@ -96,8 +97,11 @@ INSAMPLE_COL = str(next(iter(SAMPLE_FILTERS)))
 INSAMPLE_EXPECTED_VALUE = SAMPLE_FILTERS[INSAMPLE_COL]
 Y_COL = str(REGRESSION_CONFIG["y"])
 
-# 提取 Consistency 因子列名列表和控制变量列名列表。
+# 提取 Consistency 因子配置和控制变量列名列表。
+# factors 中的元素可以是字符串，也可以是 tuple/list。字符串表示旧模型里的单个
+# factor；tuple/list 表示一组 dummy 变量要同时进入同一个回归。
 CONSISTENCY_COLS = list(REGRESSION_CONFIG["factors"])
+FACTOR_GROUP_SUFFIXES = dict(REGRESSION_CONFIG.get("factor_group_suffixes", {}))
 CONTROL_COLS = list(REGRESSION_CONFIG["controls"])
 # 提取每个 factor 各自的额外筛选条件；没有额外条件时默认为空字典。
 FACTOR_SAMPLE_FILTERS = {
@@ -128,6 +132,71 @@ STANDARDIZE_ALIASES = {
     "按回归截面标准化": STANDARDIZE_CROSS_SECTION,
     "按回歸截面標準化": STANDARDIZE_CROSS_SECTION,
 }
+
+
+def is_factor_group(factor_spec: object) -> bool:
+    """判断一个 factor 配置是否是一组同时入模的变量。"""
+    return isinstance(factor_spec, (tuple, list))
+
+
+def factor_columns_for_spec(factor_spec: object) -> list[str]:
+    """把单个 factor 配置转换成实际需要读取和入模的列名列表。"""
+    if is_factor_group(factor_spec):
+        columns = [str(column) for column in factor_spec]
+    else:
+        columns = [str(factor_spec)]
+
+    if not columns or any(not column for column in columns):
+        raise ValueError(f"factor 配置不能为空：{factor_spec!r}")
+    return columns
+
+
+def all_factor_columns(factor_specs: list[object]) -> list[str]:
+    """列出所有 factor 配置实际依赖的输入列，去重并保留顺序。"""
+    columns: list[str] = []
+    for factor_spec in factor_specs:
+        columns.extend(factor_columns_for_spec(factor_spec))
+    return list(dict.fromkeys(columns))
+
+
+def clean_factor_label(raw_label: str) -> str:
+    """把自动生成的 factor 名称整理成适合写入 CSV 的稳定文本。"""
+    label = re.sub(r'[\\/:*?"<>|\s]+', "_", raw_label.strip())
+    label = label.strip("._-")
+    return label or "factor_group"
+
+
+def infer_factor_group_label(factor_cols: list[str]) -> str:
+    """当 registry 没有 suffix 时，从 dummy 列名自动生成组名。"""
+    first_col = factor_cols[0]
+    match = re.search(r"(m\d+_n\d+).*?(pairwise\d+)", first_col)
+    if match:
+        return clean_factor_label(f"{match.group(1)}_{match.group(2)}")
+
+    match = re.search(r"m\d+_n\d+", first_col)
+    if match:
+        return clean_factor_label(match.group(0))
+
+    return clean_factor_label("_".join(factor_cols))
+
+
+def factor_label_for_spec(factor_spec: object) -> str:
+    """返回输出表中用于标记当前模型的 factor 名称。"""
+    if not is_factor_group(factor_spec):
+        return str(factor_spec)
+
+    factor_cols = tuple(factor_columns_for_spec(factor_spec))
+    suffix = FACTOR_GROUP_SUFFIXES.get(factor_cols)
+    if suffix is None:
+        suffix = infer_factor_group_label(list(factor_cols))
+    return clean_factor_label(str(suffix))
+
+
+def factor_sample_filter_key(factor_spec: object) -> object:
+    """返回 factor_sample_filters 中优先使用的 key。"""
+    if is_factor_group(factor_spec):
+        return tuple(factor_columns_for_spec(factor_spec))
+    return str(factor_spec)
 
 
 def parse_args() -> argparse.Namespace:
@@ -204,6 +273,16 @@ def resolve_interaction_variable(variable: str, factor_col: str) -> str:
         return factor_col.replace("FAC_rank_vol_", "rank_mean_", 1)
     # 非占位符变量直接原样返回。
     return variable
+
+
+def resolve_current_factor_placeholder(factor_cols: list[str], placeholder_name: str) -> str:
+    """把需要唯一当前 factor 的占位符解析成真实列名。"""
+    if len(factor_cols) != 1:
+        raise ValueError(
+            f"{placeholder_name} 占位符只能用于单 factor 模型；"
+            f"当前 factor 组包含多列：{factor_cols}"
+        )
+    return factor_cols[0]
 
 
 def parse_interaction_config(raw_interactions: list[object]) -> list[dict[str, str]]:
@@ -316,10 +395,13 @@ def get_interaction_source_columns() -> list[str]:
             if variable == CURRENT_FACTOR_PLACEHOLDER:
                 continue
             if variable == MATCHED_RANK_MEAN_PLACEHOLDER:
-                columns.extend(
-                    resolve_interaction_variable(variable, factor_col)
-                    for factor_col in CONSISTENCY_COLS
-                )
+                for factor_spec in CONSISTENCY_COLS:
+                    factor_cols = factor_columns_for_spec(factor_spec)
+                    factor_col = resolve_current_factor_placeholder(
+                        factor_cols,
+                        MATCHED_RANK_MEAN_PLACEHOLDER,
+                    )
+                    columns.append(resolve_interaction_variable(variable, factor_col))
                 continue
             columns.append(variable)
     # 用 dict.fromkeys 去重并保持首次出现的顺序。
@@ -356,7 +438,8 @@ def standardize_by_cross_section(
 
 def add_interaction_columns(
     data: pd.DataFrame,
-    factor_col: str,
+    factor_cols: list[str],
+    factor_label: str,
     standardization_mask: pd.Series | None = None,
 ) -> pd.DataFrame:
     """根据 registry 配置生成交互项列。
@@ -373,8 +456,19 @@ def add_interaction_columns(
     # 逐个交互项配置生成对应的新列。
     for interaction in INTERACTIONS:
         # 将占位符 FAC 替换为当前 factor 列名，确定实际参与乘积的两个变量。
-        var1 = resolve_interaction_variable(interaction["var1"], factor_col)
-        var2 = resolve_interaction_variable(interaction["var2"], factor_col)
+        var1_source = interaction["var1"]
+        var2_source = interaction["var2"]
+        if var1_source in {CURRENT_FACTOR_PLACEHOLDER, MATCHED_RANK_MEAN_PLACEHOLDER}:
+            factor_col = resolve_current_factor_placeholder(factor_cols, var1_source)
+            var1 = resolve_interaction_variable(var1_source, factor_col)
+        else:
+            var1 = resolve_interaction_variable(var1_source, factor_cols[0])
+
+        if var2_source in {CURRENT_FACTOR_PLACEHOLDER, MATCHED_RANK_MEAN_PLACEHOLDER}:
+            factor_col = resolve_current_factor_placeholder(factor_cols, var2_source)
+            var2 = resolve_interaction_variable(var2_source, factor_col)
+        else:
+            var2 = resolve_interaction_variable(var2_source, factor_cols[0])
         # 读取预先生成的交互项列名和标准化方式。
         interaction_name = interaction["name"]
         standardize = interaction["standardize"]
@@ -382,7 +476,7 @@ def add_interaction_columns(
         # 替换占位符后如果两个变量变成同一个，交互项没有意义，报错。
         if var1 == var2:
             raise ValueError(
-                f"交互项 {interaction_name} 在当前 factor={factor_col} 下变成了同一个变量，"
+                f"交互项 {interaction_name} 在当前 factor={factor_label} 下变成了同一个变量，"
                 "请检查 registry 中的交互项配置。"
             )
 
@@ -420,7 +514,7 @@ def get_interaction_columns() -> list[str]:
     return [interaction["name"] for interaction in INTERACTIONS]
 
 
-def get_filters_for_factor(factor_col: str) -> dict[str, object]:
+def get_filters_for_factor(factor_spec: object) -> dict[str, object]:
     """返回某个 factor 实际使用的筛选条件。
 
     sample_filters 是共同基础口径；factor_sample_filters 是当前 factor 额外叠加的条件。
@@ -429,13 +523,17 @@ def get_filters_for_factor(factor_col: str) -> dict[str, object]:
     # 以基础筛选条件为底，准备叠加当前 factor 的额外条件。
     combined_filters = dict(SAMPLE_FILTERS)
     # 获取当前 factor 特有的额外筛选条件；如果没有额外条件，返回空字典。
-    factor_filters = FACTOR_SAMPLE_FILTERS.get(factor_col, {})
+    factor_key = factor_sample_filter_key(factor_spec)
+    factor_filters = FACTOR_SAMPLE_FILTERS.get(factor_key, {})
+    if not factor_filters:
+        factor_filters = FACTOR_SAMPLE_FILTERS.get(str(factor_key), {})
+    factor_label = factor_label_for_spec(factor_spec)
     # 逐条合并额外筛选条件到基础筛选中。
     for column, expected_value in factor_filters.items():
         # 如果同一列在基础筛选和 factor 筛选中取值不同，说明配置矛盾，直接报错。
         if column in combined_filters and combined_filters[column] != expected_value:
             raise ValueError(
-                f"{factor_col} 的筛选条件与基础筛选冲突："
+                f"{factor_label} 的筛选条件与基础筛选冲突："
                 f"{column}={combined_filters[column]!r} vs {expected_value!r}"
             )
         # 把额外条件写入合并字典。
@@ -470,7 +568,7 @@ def check_required_columns(df: pd.DataFrame) -> None:
     # 把脚本运行必须用到的列集中列出来，后续检查只围绕这个清单进行。
     required_cols = (
         [DATE_COL, Y_COL]
-        + CONSISTENCY_COLS
+        + all_factor_columns(CONSISTENCY_COLS)
         + CONTROL_COLS
         + get_interaction_source_columns()
         + get_filter_columns()
@@ -586,7 +684,7 @@ def newey_west_mean_se(values: pd.Series, lag: int) -> float:
 
 def summarize_factor_sample(
     df: pd.DataFrame,
-    factor_col: str,
+    factor_label: str,
     required_cols: list[str],
 ) -> tuple[pd.DataFrame, dict[str, object]]:
     """
@@ -609,7 +707,7 @@ def summarize_factor_sample(
 
     # 汇总当前指标的样本覆盖情况，方便之后检查不同 Consistency 指标是否样本差异很大。
     sample_summary = {
-        "factor": factor_col,
+        "factor": factor_label,
         "valid_rows": int(valid_mask.sum()),
         "valid_months": int(monthly_n.shape[0]),
         "eligible_months": int(len(eligible_months)),
@@ -623,25 +721,27 @@ def summarize_factor_sample(
     return regression_df, sample_summary
 
 
-def run_factor_regression(df: pd.DataFrame, factor_col: str) -> tuple[pd.DataFrame, dict[str, object], list[dict[str, object]]]:
+def run_factor_regression(df: pd.DataFrame, factor_spec: object) -> tuple[pd.DataFrame, dict[str, object], list[dict[str, object]]]:
     """完成单个 Consistency 指标的月度横截面回归和样本统计。"""
+    factor_cols = factor_columns_for_spec(factor_spec)
+    factor_label = factor_label_for_spec(factor_spec)
     # 截面标准化应只使用当前模型实际可进入回归的候选样本。
     # 这里先用“原始变量”判断非缺失，随后再生成交互项并做最终 dropna。
-    raw_required_cols = [Y_COL, factor_col] + CONTROL_COLS + get_interaction_source_columns()
+    raw_required_cols = [Y_COL] + factor_cols + CONTROL_COLS + get_interaction_source_columns()
     standardization_mask = df[raw_required_cols].notna().all(axis=1)
     # 交互项要在当前 factor 的筛选样本内生成；如果选择截面标准化，标准化口径也跟着当前样本走。
-    df = add_interaction_columns(df, factor_col, standardization_mask)
-    # 当前模型的解释变量由一个 Consistency 指标、一组控制变量和 registry 登记的交互项组成。
-    x_cols = [factor_col] + CONTROL_COLS + get_interaction_columns()
+    df = add_interaction_columns(df, factor_cols, factor_label, standardization_mask)
+    # 当前模型的解释变量由一个或一组 Consistency 指标、一组控制变量和 registry 登记的交互项组成。
+    x_cols = factor_cols + CONTROL_COLS + get_interaction_columns()
     # 有效样本需要同时具备因变量、当前 Consistency 指标和所有控制变量。
     required_cols = [Y_COL] + x_cols
     # 当前 df 已经按基础筛选和该 factor 的额外筛选过滤，这里记录过滤后的行数，便于复查口径。
     filtered_rows = int(len(df))
     # 先为当前指标筛样本，并拿到样本数量摘要。
-    regression_df, sample_summary = summarize_factor_sample(df, factor_col, required_cols)
+    regression_df, sample_summary = summarize_factor_sample(df, factor_label, required_cols)
     # 把当前 factor 实际使用的筛选条件写入样本摘要，CSV 里用 JSON 字符串保存。
     sample_summary["sample_filters"] = json.dumps(
-        get_filters_for_factor(factor_col), ensure_ascii=False, sort_keys=True
+        get_filters_for_factor(factor_spec), ensure_ascii=False, sort_keys=True
     )
     sample_summary["filtered_rows_before_dropna"] = filtered_rows
 
@@ -659,7 +759,7 @@ def run_factor_regression(df: pd.DataFrame, factor_col: str) -> tuple[pd.DataFra
             # 如果本月回归失败，记录失败的指标、月份、样本数和原因，之后继续处理其他月份。
             skipped_months.append(
                 {
-                    "factor": factor_col,
+                    "factor": factor_label,
                     "month_date": str(pd.Timestamp(month).date()),
                     "n_obs": int(len(month_df)),
                     "reason": str(exc),
@@ -670,7 +770,7 @@ def run_factor_regression(df: pd.DataFrame, factor_col: str) -> tuple[pd.DataFra
         # 给当月系数行加上月份，方便后续按时间序列汇总。
         coef[DATE_COL] = month
         # 给当月系数行加上因子名，方便多个 Consistency 指标结果合并。
-        coef["factor"] = factor_col
+        coef["factor"] = factor_label
         # 记录当月实际回归样本数，后续可计算平均月度样本量。
         coef["n_obs"] = int(len(month_df))
         # 把本月结果放入列表，循环结束后统一拼成 DataFrame。
@@ -782,7 +882,7 @@ def significance_stars(p_value: float) -> str:
 
 def build_cross_section_correlation_table(
     df: pd.DataFrame,
-    factor_col: str,
+    factor_spec: object,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """构建单个 Consistency 指标对应的截面相关系数表。
 
@@ -790,12 +890,14 @@ def build_cross_section_correlation_table(
     再对每一对变量的月度相关系数取时间序列均值。这样不会把不同月份之间
     的整体水平变化混进当月基金横截面的变量关系里。
     """
+    factor_cols = factor_columns_for_spec(factor_spec)
+    factor_label = factor_label_for_spec(factor_spec)
     # 相关性表不使用因变量，因此这里用解释变量及交互项来源变量定义标准化口径。
-    raw_required_cols = [factor_col] + CONTROL_COLS + get_interaction_source_columns()
+    raw_required_cols = factor_cols + CONTROL_COLS + get_interaction_source_columns()
     standardization_mask = df[raw_required_cols].notna().all(axis=1)
     # 相关性表和回归使用同一组解释变量，便于检查交互项是否和主效应或控制变量高度相关。
-    df = add_interaction_columns(df, factor_col, standardization_mask)
-    variable_order = [factor_col] + CONTROL_COLS + get_interaction_columns()
+    df = add_interaction_columns(df, factor_cols, factor_label, standardization_mask)
+    variable_order = factor_cols + CONTROL_COLS + get_interaction_columns()
     valid_df = df[[DATE_COL] + variable_order].dropna().copy()
     monthly_n = valid_df.groupby(DATE_COL).size()
     eligible_months = monthly_n[monthly_n >= MIN_CROSS_SECTION_N].index
@@ -804,7 +906,7 @@ def build_cross_section_correlation_table(
     if valid_df.empty:
         numeric_table = pd.DataFrame(index=variable_order, columns=variable_order)
         numeric_table = numeric_table.reset_index(names="variable")
-        numeric_table.insert(0, "factor", factor_col)
+        numeric_table.insert(0, "factor", factor_label)
         display_table = numeric_table.copy()
         empty_summary = pd.DataFrame(
             columns=[
@@ -817,9 +919,22 @@ def build_cross_section_correlation_table(
                 "n_months",
             ]
         )
-        empty_control = pd.DataFrame(
-            columns=["factor", "control_variable", "mean_corr", "p_value", "stars", "n_months"]
-        )
+        if len(factor_cols) == 1 and factor_label == factor_cols[0]:
+            empty_control = pd.DataFrame(
+                columns=["factor", "control_variable", "mean_corr", "p_value", "stars", "n_months"]
+            )
+        else:
+            empty_control = pd.DataFrame(
+                columns=[
+                    "factor",
+                    "row_variable",
+                    "control_variable",
+                    "mean_corr",
+                    "p_value",
+                    "stars",
+                    "n_months",
+                ]
+            )
         return numeric_table, display_table, empty_summary, empty_control
 
     monthly_corrs: list[pd.DataFrame] = []
@@ -857,7 +972,7 @@ def build_cross_section_correlation_table(
 
             summary_rows.append(
                 {
-                    "factor": factor_col,
+                    "factor": factor_label,
                     "row_variable": row_var,
                     "col_variable": col_var,
                     "mean_corr": mean_corr,
@@ -890,17 +1005,22 @@ def build_cross_section_correlation_table(
 
     # 合并多个因子的相关矩阵时，需要 factor 列标记每张矩阵来自哪个指标。
     numeric_table = numeric_table.reset_index(names="variable")
-    numeric_table.insert(0, "factor", factor_col)
+    numeric_table.insert(0, "factor", factor_label)
     display_table = display_table.reset_index(names="variable")
-    display_table.insert(0, "factor", factor_col)
+    display_table.insert(0, "factor", factor_label)
 
     control_corr = corr_summary[
-        (corr_summary["row_variable"] == factor_col)
+        (corr_summary["row_variable"].isin(factor_cols))
         & (corr_summary["col_variable"].isin(CONTROL_COLS))
     ].copy()
-    control_corr = control_corr[
-        ["factor", "col_variable", "mean_corr", "p_value", "stars", "n_months"]
-    ].rename(columns={"col_variable": "control_variable"})
+    if len(factor_cols) == 1 and factor_label == factor_cols[0]:
+        control_corr = control_corr[
+            ["factor", "col_variable", "mean_corr", "p_value", "stars", "n_months"]
+        ].rename(columns={"col_variable": "control_variable"})
+    else:
+        control_corr = control_corr[
+            ["factor", "row_variable", "col_variable", "mean_corr", "p_value", "stars", "n_months"]
+        ].rename(columns={"col_variable": "control_variable"})
 
     return numeric_table, display_table, corr_summary, control_corr
 
@@ -932,19 +1052,20 @@ def main() -> None:
     # 收集 Consistency 与控制变量之间的重点相关性结果。
     consistency_control_corrs = []
 
-    # 对每一个 Consistency 指标分别跑一套回归和相关性分析。
-    for factor_col in CONSISTENCY_COLS:
+    # 对每一个 Consistency 指标或 dummy 变量组分别跑一套回归和相关性分析。
+    for factor_spec in CONSISTENCY_COLS:
+        factor_label = factor_label_for_spec(factor_spec)
         # 每个 factor 先应用共同基础筛选，再叠加自己的 top-half 筛选。
         # 即使 preprocess 已经做过基础筛选，这里再应用一次也能防止误读未清洗表。
-        factor_filters = get_filters_for_factor(factor_col)
+        factor_filters = get_filters_for_factor(factor_spec)
         factor_df = apply_sample_filters(df, factor_filters)
         # 跑当前指标的逐月横截面回归，并生成样本统计。
-        monthly_coef, sample_summary, skipped = run_factor_regression(factor_df, factor_col)
+        monthly_coef, sample_summary, skipped = run_factor_regression(factor_df, factor_spec)
         # 把月度系数序列汇总成最终 Fama-MacBeth 均值、标准误、t 值和 p 值。
-        result_table = build_result_table(monthly_coef, factor_col)
+        result_table = build_result_table(monthly_coef, factor_label)
         # 构建当前指标与控制变量之间的逐月横截面相关性汇总表。
         corr_table, corr_display_table, corr_summary, control_corr = build_cross_section_correlation_table(
-            factor_df, factor_col
+            factor_df, factor_spec
         )
 
         # 把当前指标的月度系数表加入总列表。
@@ -1034,14 +1155,18 @@ def main() -> None:
         "output_dir": str(OUTPUT_DIR),
         "date_col": DATE_COL,
         "y_col": Y_COL,
-        "consistency_cols": CONSISTENCY_COLS,
+        "consistency_cols": [str(factor_spec) for factor_spec in CONSISTENCY_COLS],
+        "consistency_input_cols": all_factor_columns(CONSISTENCY_COLS),
         "control_cols": CONTROL_COLS,
         "interactions": INTERACTIONS,
         "sample_filters": SAMPLE_FILTERS,
-        "factor_sample_filters": FACTOR_SAMPLE_FILTERS,
+        "factor_sample_filters": {
+            str(factor): dict(filters)
+            for factor, filters in FACTOR_SAMPLE_FILTERS.items()
+        },
         "filters_by_factor": {
-            factor_col: get_filters_for_factor(factor_col)
-            for factor_col in CONSISTENCY_COLS
+            factor_label_for_spec(factor_spec): get_filters_for_factor(factor_spec)
+            for factor_spec in CONSISTENCY_COLS
         },
         "newey_west_lag": NEWEY_WEST_LAG,
         "min_cross_section_n": MIN_CROSS_SECTION_N,

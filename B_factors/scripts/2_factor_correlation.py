@@ -104,6 +104,33 @@ def parse_comma_list(raw_value: str | None) -> list[str] | None:
     return [item.strip() for item in raw_value.split(",") if item.strip()]
 
 
+def factor_columns_for_spec(factor_spec: object) -> list[str]:
+    """把 registry 的 factor 声明转换成实际列名。
+
+    普通模型中 factor 是字符串；dummy 模型中一个 tuple/list 表示一组 dummy
+    会同时进入回归。相关性诊断按单列变量检查，所以这里把 tuple/list 拆成
+    每个 dummy 列，后面逐列与 controls 计算相关性和 VIF。
+    """
+
+    if isinstance(factor_spec, (tuple, list)):
+        columns = [str(column) for column in factor_spec]
+    else:
+        columns = [str(factor_spec)]
+
+    if not columns or any(not column for column in columns):
+        raise ValueError(f"factor 配置不能为空：{factor_spec!r}")
+    return columns
+
+
+def flatten_factor_columns(factor_specs: list[object]) -> list[str]:
+    """展开所有 factor 配置，去重并保留首次出现顺序。"""
+
+    columns: list[str] = []
+    for factor_spec in factor_specs:
+        columns.extend(factor_columns_for_spec(factor_spec))
+    return list(dict.fromkeys(columns))
+
+
 def parse_args() -> argparse.Namespace:
     """读取命令行参数，让默认检查和临时变量组合检查共用同一套逻辑。"""
     parser = argparse.ArgumentParser(
@@ -900,7 +927,7 @@ def main() -> None:
     output_dir = args.output_dir
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    default_consistency_columns = list(REGRESSION_CONFIG["factors"])
+    default_consistency_columns = flatten_factor_columns(list(REGRESSION_CONFIG["factors"]))
     default_control_columns = list(REGRESSION_CONFIG["controls"])
     variables, variable_source_info = choose_variables(
         args, default_consistency_columns, default_control_columns
@@ -1085,7 +1112,10 @@ def main() -> None:
         "source_config": str(REGISTRY_PATH),
         "variable_source_info": variable_source_info,
         "sample_filters": SAMPLE_FILTERS,
-        "factor_sample_filters": FACTOR_SAMPLE_FILTERS,
+        "factor_sample_filters": {
+            str(factor): dict(filters)
+            for factor, filters in FACTOR_SAMPLE_FILTERS.items()
+        },
         "filters_by_factor": factor_filter_metadata,
         "input_rows": int(len(data)),
         "input_months": int(pd.to_datetime(data[DATE_COL], errors="coerce").nunique()),

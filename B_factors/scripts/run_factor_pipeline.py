@@ -22,7 +22,6 @@ if str(SCRIPT_ROOT) not in sys.path:
     sys.path.insert(0, str(SCRIPT_ROOT))
 
 from tools.factor_pipeline_tools import (
-    add_quantile_groups,
     apply_sample_filters,
     build_summary,
     coerce_numeric_columns,
@@ -40,7 +39,6 @@ DEFAULT_STEPS = [
     "sample_filter",
     "coerce_numeric",
     "winsorize",
-    "quantile_group",
     "export_summary_preview",
 ]
 
@@ -113,9 +111,27 @@ def load_registry_entry(registry_key: str) -> dict[str, Any]:
     return module.get_regression_config(registry_key)
 
 
+def flatten_factor_columns(factors: list[Any]) -> list[str]:
+    """把 registry 中的 factor 声明展开成实际输入表列名。
+
+    普通模型里 factor 是单个字符串；dummy 模型里一个 tuple/list 表示一组
+    同时进入回归的 dummy。preprocess 只关心“需要保留哪些列”，所以这里把
+    tuple/list 内部列展开，同时保留首次出现顺序，避免输出列顺序不稳定。
+    """
+
+    columns: list[str] = []
+    for factor in factors:
+        if isinstance(factor, (tuple, list)):
+            columns.extend(str(column) for column in factor)
+        else:
+            columns.append(str(factor))
+    return list(dict.fromkeys(columns))
+
+
 def config_from_registry(registry_key: str, registry_config: dict[str, Any]) -> dict[str, Any]:
     """把 regression_registry.py 的字段转换成 runner 使用的配置结构。"""
 
+    raw_factors = list(registry_config["factors"])
     return {
         # name 记录当前模型 key，summary 和日志里可以直接看出这次跑的是哪个 registry 配置。
         "name": registry_key,
@@ -133,7 +149,8 @@ def config_from_registry(registry_key: str, registry_config: dict[str, Any]) -> 
         },
         "sample_flag_columns": list(registry_config["sample_flag_columns"]),
         "y_columns": [registry_config["y"]],
-        "factor_columns": list(registry_config["factors"]),
+        "factor_specs": raw_factors,
+        "factor_columns": flatten_factor_columns(raw_factors),
         "control_columns": list(registry_config["controls"]),
         "extra_columns": list(registry_config.get("extra_columns", [])),
         "winsorize": {
@@ -142,7 +159,6 @@ def config_from_registry(registry_key: str, registry_config: dict[str, Any]) -> 
             "upper_quantile": registry_config["winsorize"]["upper_quantile"],
             "columns": list(registry_config["winsorize"]["columns"]),
         },
-        "factor_group_suffixes": dict(registry_config["factor_group_suffixes"]),
         "steps": list(DEFAULT_STEPS),
     }
 
@@ -252,16 +268,6 @@ def step_winsorize(state: dict[str, Any], config: dict[str, Any]) -> None:
     )
 
 
-def step_quantile_group(state: dict[str, Any], config: dict[str, Any]) -> None:
-    """按月为 Consistency 因子生成 q5/q10 标签。"""
-
-    state["data"] = add_quantile_groups(
-        data=state["data"],
-        group_column=str(config["winsorize"]["group_column"]),
-        factor_group_suffixes=dict(config["factor_group_suffixes"]),
-    )
-
-
 def step_export_summary_preview(
     state: dict[str, Any],
     config: dict[str, Any],
@@ -292,6 +298,8 @@ def step_export_summary_preview(
             str(factor): dict(filters)
             for factor, filters in dict(config.get("factor_sample_filters", {})).items()
         },
+        factor_specs=[str(factor) for factor in list(config.get("factor_specs", []))],
+        factor_columns=list(config["factor_columns"]),
         winsor_group_column=str(winsorize_config["group_column"]),
         winsor_lower_quantile=float(winsorize_config["lower_quantile"]),
         winsor_upper_quantile=float(winsorize_config["upper_quantile"]),
@@ -317,7 +325,6 @@ STEP_FUNCTIONS: dict[str, Callable[[dict[str, Any], dict[str, Any]], None]] = {
     "sample_filter": step_sample_filter,
     "coerce_numeric": step_coerce_numeric,
     "winsorize": step_winsorize,
-    "quantile_group": step_quantile_group,
 }
 
 

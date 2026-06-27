@@ -84,48 +84,6 @@ def winsorize_by_month(
     return data
 
 
-def make_quantile_group(series: pd.Series, group_count: int) -> pd.Series:
-    """把单个月内的某个 Consistency 因子切成 q 组。
-
-    数值越大，分组标签越大。因此 q5=5 / q10=10 对应 Consistency 较高的多头组。
-    如果某个月非缺失样本少于组数，就无法可靠切分，返回缺失标签。
-    """
-
-    result = pd.Series(pd.NA, index=series.index, dtype="Int64")
-    valid = series.dropna()
-    if len(valid) < group_count:
-        return result
-
-    # rank(method="first") 会在相同数值之间按原始顺序打破并列。
-    # 这样 qcut 能稳定得到近似等数量分组，同时仍保持“因子值越大，组号越大”。
-    ranks = valid.rank(method="first", ascending=True)
-    labels = range(1, group_count + 1)
-    grouped = pd.qcut(ranks, q=group_count, labels=labels)
-    result.loc[valid.index] = grouped.astype("Int64")
-    return result
-
-
-def add_quantile_groups(
-    data: pd.DataFrame,
-    group_column: str,
-    factor_group_suffixes: dict[str, str],
-) -> pd.DataFrame:
-    """按月为每个 Consistency 因子生成 5 组和 10 组标签。"""
-
-    data = data.copy()
-    month_groups = data.groupby(group_column, observed=True, sort=False)
-
-    for factor_column, suffix in factor_group_suffixes.items():
-        for group_count in (5, 10):
-            output_column = f"q{group_count}_{suffix}"
-            data[output_column] = month_groups[factor_column].transform(
-                lambda series, q=group_count: make_quantile_group(series, q)
-            )
-            data[output_column] = data[output_column].astype("Int64")
-
-    return data
-
-
 def build_summary(
     *,
     input_path: Path,
@@ -142,6 +100,8 @@ def build_summary(
     winsor_upper_quantile: float,
     winsorize_columns: Iterable[str],
     keep_columns: Iterable[str],
+    factor_specs: Iterable[str] | None = None,
+    factor_columns: Iterable[str] | None = None,
 ) -> dict[str, object]:
     """整理处理元信息，方便之后复现实验口径。"""
 
@@ -155,22 +115,15 @@ def build_summary(
         "output_rows": output_rows,
         "sample_filters": sample_filters,
         "factor_sample_filters": factor_sample_filters or {},
+        "factor_specs": list(factor_specs or []),
+        "factor_columns": list(factor_columns or []),
         "winsorize": {
             "group_column": winsor_group_column,
             "lower_quantile": winsor_lower_quantile,
             "upper_quantile": winsor_upper_quantile,
             "columns": list(winsorize_columns),
         },
-        "consistency_group_rule": {
-            "group_counts": [5, 10],
-            "larger_label_means_higher_consistency": True,
-            "long_groups": {"q5": 5, "q10": 10},
-            "short_groups": {"q5": 1, "q10": 1},
-        },
+        # 保留旧字段名，避免已有 summary 对比脚本或外部 notebook 因字段改名失效。
         "kept_columns_before_group_labels": list(keep_columns),
         "output_columns": output_columns,
     }
-
-
-# 兼容旧函数名：主脚本后续可以逐步改为更通用的 add_quantile_groups。
-add_consistency_groups = add_quantile_groups

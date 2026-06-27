@@ -6,7 +6,8 @@
     A_data/output/panel_base_preview.xlsx
 
 本脚本不会重新生成收益率、排名或控制变量，而是在已有 panel_base 的基础上，
-对 Config.PANEL_PAST_RETURN_COMBOS 中每个 (m, n) 组合追加两类列：
+对 Config.PANEL_PAST_RETURN_SPECS 中每个 (m, n, pairwise) 规格追加分组列。
+项目统一约定 m 是排名期数，n 是单期收益期限。
 
 - rank_mean_m{m}_n{n}_pairwise1：
   对 past_ret_{n}m_rank_1 到 past_ret_{n}m_rank_{m} 逐行取算术平均；
@@ -35,7 +36,7 @@ import Config
 DEFAULT_INPUT_PATH = Config.PANEL_OUTPUT_PATH
 DEFAULT_OUTPUT_PATH = Config.PANEL_OUTPUT_PATH
 DEFAULT_PREVIEW_ROWS = 1000
-PAST_RETURN_COMBOS = Config.PANEL_PAST_RETURN_COMBOS
+PAST_RETURN_SPECS = Config.PANEL_PAST_RETURN_SPECS
 BOTTOM_GROUP_CUTOFF = 0.30
 TOP_GROUP_CUTOFF = 0.70
 
@@ -79,53 +80,74 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def get_rank_mean_column(rank_count: int, return_horizon: int) -> str:
+def get_rank_mean_column(
+    rank_count: int,
+    return_horizon: int,
+    pairwise: int = Config.PANEL_PAIRWISE,
+) -> str:
     """返回指定 (m, n) 组合的排名均值列名。"""
     # 所有新增变量都带上 m、n 和 pairwise 步长，避免不同参数组合的列名混在一起。
     return (
         f"rank_mean_m{rank_count}_n{return_horizon}_"
-        f"pairwise{Config.PANEL_PAIRWISE}"
+        f"pairwise{pairwise}"
     )
 
 
-def get_top_half_column(rank_count: int, return_horizon: int) -> str:
+def get_top_half_column(
+    rank_count: int,
+    return_horizon: int,
+    pairwise: int = Config.PANEL_PAIRWISE,
+) -> str:
     """返回指定 (m, n) 组合的高低组标记列名。"""
     # 保留历史列名，避免下游脚本因为字段改名而失效；实际取值已扩展为 -1/0/1 三档。
-    return f"is_top_half_{get_rank_mean_column(rank_count, return_horizon)}"
+    return f"is_top_half_{get_rank_mean_column(rank_count, return_horizon, pairwise)}"
 
 
-def get_median_split_column(rank_count: int, return_horizon: int) -> str:
+def get_median_split_column(
+    rank_count: int,
+    return_horizon: int,
+    pairwise: int = Config.PANEL_PAIRWISE,
+) -> str:
     """返回指定 (m, n) 组合的中位数二分列名，取值 -2/2。"""
-    return f"is_median_{get_rank_mean_column(rank_count, return_horizon)}"
+    return f"is_median_{get_rank_mean_column(rank_count, return_horizon, pairwise)}"
 
 
-def get_fac_rank_volatility_column(rank_count: int, return_horizon: int) -> str:
+def get_fac_rank_volatility_column(
+    rank_count: int,
+    return_horizon: int,
+    pairwise: int = Config.PANEL_PAIRWISE,
+) -> str:
     """返回已有 FAC_rank_vol 列名，用于定位新增字段应插入的位置。"""
     # 这里不重新计算 FAC_rank_vol，只用同样的命名规则找到已有列。
     return (
         f"FAC_rank_vol_m{rank_count}_n{return_horizon}_"
-        f"pairwise{Config.PANEL_PAIRWISE}"
+        f"pairwise{pairwise}"
     )
 
 
-def get_rank_columns(rank_count: int, return_horizon: int) -> list[str]:
+def get_rank_columns(
+    rank_count: int,
+    return_horizon: int,
+    pairwise: int = Config.PANEL_PAIRWISE,
+) -> list[str]:
     """列出某个 (m, n) 组合对应的 m 个截面百分位排名列。"""
     # rank_count=m，所以窗口序号从 1 到 m；return_horizon=n，体现在 past_ret_{n}m。
-    return [
-        f"past_ret_{return_horizon}m_rank_{window_index}"
-        for window_index in range(1, rank_count + 1)
-    ]
+    columns = []
+    for window_index in range(1, rank_count + 1):
+        base = f"past_ret_{return_horizon}m_rank_{window_index}"
+        columns.append(base if pairwise == 1 else f"{base}_pairwise{pairwise}")
+    return columns
 
 
 def get_added_columns() -> list[str]:
     """列出本脚本负责维护的全部新增列，便于重复运行前先清理旧结果。"""
     columns: list[str] = []
-    for rank_count, return_horizon in PAST_RETURN_COMBOS:
+    for rank_count, return_horizon, pairwise in PAST_RETURN_SPECS:
         columns.extend(
             [
-                get_rank_mean_column(rank_count, return_horizon),
-                get_top_half_column(rank_count, return_horizon),
-                get_median_split_column(rank_count, return_horizon),
+                get_rank_mean_column(rank_count, return_horizon, pairwise),
+                get_top_half_column(rank_count, return_horizon, pairwise),
+                get_median_split_column(rank_count, return_horizon, pairwise),
             ]
         )
     return columns
@@ -145,10 +167,12 @@ def require_columns(data: pd.DataFrame, input_path: Path) -> None:
         Config.COLUMN_INVESTMENT_TYPE,
     ]
     # 每个 (m, n) 组合都需要 m 个排名列，还需要对应的 FAC_rank_vol 列来确定插入位置。
-    for rank_count, return_horizon in PAST_RETURN_COMBOS:
-        required_columns.extend(get_rank_columns(rank_count, return_horizon))
+    for rank_count, return_horizon, pairwise in PAST_RETURN_SPECS:
+        required_columns.extend(
+            get_rank_columns(rank_count, return_horizon, pairwise)
+        )
         required_columns.append(
-            get_fac_rank_volatility_column(rank_count, return_horizon)
+            get_fac_rank_volatility_column(rank_count, return_horizon, pairwise)
         )
 
     # 先集中报出所有缺失字段，比让 pandas 在后面某一行报 KeyError 更容易定位问题。
@@ -178,8 +202,8 @@ def read_panel(input_path: Path) -> pd.DataFrame:
         raise ValueError(f"{input_path} 中存在无法识别的 month_date。")
 
     # 排名列理论上已经是数值型；这里再显式转换一次，避免 Excel/CSV 中转后的对象类型干扰均值。
-    for rank_count, return_horizon in PAST_RETURN_COMBOS:
-        for column in get_rank_columns(rank_count, return_horizon):
+    for rank_count, return_horizon, pairwise in PAST_RETURN_SPECS:
+        for column in get_rank_columns(rank_count, return_horizon, pairwise):
             data[column] = pd.to_numeric(data[column], errors="coerce")
 
     return data
@@ -192,11 +216,15 @@ def add_rank_mean_and_group_columns(data: pd.DataFrame) -> pd.DataFrame:
     # 高低组是在“同一个月份、同一个投资类型”的基金之间比较，所以这里定义截面分组键。
     group_columns = [Config.COLUMN_MONTH_DATE, Config.COLUMN_INVESTMENT_TYPE]
 
-    for rank_count, return_horizon in PAST_RETURN_COMBOS:
+    for rank_count, return_horizon, pairwise in PAST_RETURN_SPECS:
         # 先把本组合涉及的列名都算出来，后面计算和校验都复用这些变量，减少手写列名出错。
-        rank_columns = get_rank_columns(rank_count, return_horizon)
-        rank_mean_column = get_rank_mean_column(rank_count, return_horizon)
-        top_half_column = get_top_half_column(rank_count, return_horizon)
+        rank_columns = get_rank_columns(rank_count, return_horizon, pairwise)
+        rank_mean_column = get_rank_mean_column(
+            rank_count, return_horizon, pairwise
+        )
+        top_half_column = get_top_half_column(
+            rank_count, return_horizon, pairwise
+        )
         # ranks 是一个只包含 m 个排名列的小表；后续横向 mean/notna 都针对这 m 列执行。
         ranks = result[rank_columns]
 
@@ -233,7 +261,9 @@ def add_rank_mean_and_group_columns(data: pd.DataFrame) -> pd.DataFrame:
             top_half_column,
         ] = 1
 
-        median_column = get_median_split_column(rank_count, return_horizon)
+        median_column = get_median_split_column(
+            rank_count, return_horizon, pairwise
+        )
         result[median_column] = np.nan
         result.loc[non_missing_rank_mean & (cross_section_rank_pct <= 0.5), median_column] = -2
         result.loc[non_missing_rank_mean & (cross_section_rank_pct > 0.5), median_column] = 2
@@ -254,15 +284,17 @@ def order_columns_after_fac_rank_vol(data: pd.DataFrame) -> pd.DataFrame:
             continue
         ordered_columns.append(column)
 
-        # PAST_RETURN_COMBOS 数量很少，直接循环匹配最直观，也方便以后增加组合。
-        for rank_count, return_horizon in PAST_RETURN_COMBOS:
-            fac_column = get_fac_rank_volatility_column(rank_count, return_horizon)
+        # 规格数量很少，直接循环匹配最直观，也方便以后增加组合。
+        for rank_count, return_horizon, pairwise in PAST_RETURN_SPECS:
+            fac_column = get_fac_rank_volatility_column(
+                rank_count, return_horizon, pairwise
+            )
             if column == fac_column:
                 ordered_columns.extend(
                     [
-                        get_rank_mean_column(rank_count, return_horizon),
-                        get_top_half_column(rank_count, return_horizon),
-                        get_median_split_column(rank_count, return_horizon),
+                        get_rank_mean_column(rank_count, return_horizon, pairwise),
+                        get_top_half_column(rank_count, return_horizon, pairwise),
+                        get_median_split_column(rank_count, return_horizon, pairwise),
                     ]
                 )
 
@@ -284,14 +316,22 @@ def validate_grouping_factors(original: pd.DataFrame, result: pd.DataFrame) -> N
 
     # 校验高低组时也必须按同样的截面定义计算百分位排名。
     group_columns = [Config.COLUMN_MONTH_DATE, Config.COLUMN_INVESTMENT_TYPE]
-    for rank_count, return_horizon in PAST_RETURN_COMBOS:
+    for rank_count, return_horizon, pairwise in PAST_RETURN_SPECS:
         # 为当前组合准备所有要检查的列名，避免下面的校验逻辑混到其他组合。
-        rank_columns = get_rank_columns(rank_count, return_horizon)
-        rank_mean_column = get_rank_mean_column(rank_count, return_horizon)
-        top_half_column = get_top_half_column(rank_count, return_horizon)
-        fac_column = get_fac_rank_volatility_column(rank_count, return_horizon)
+        rank_columns = get_rank_columns(rank_count, return_horizon, pairwise)
+        rank_mean_column = get_rank_mean_column(
+            rank_count, return_horizon, pairwise
+        )
+        top_half_column = get_top_half_column(
+            rank_count, return_horizon, pairwise
+        )
+        fac_column = get_fac_rank_volatility_column(
+            rank_count, return_horizon, pairwise
+        )
 
-        median_column = get_median_split_column(rank_count, return_horizon)
+        median_column = get_median_split_column(
+            rank_count, return_horizon, pairwise
+        )
 
         fac_index = list(result.columns).index(fac_column)
         expected_after_fac = [rank_mean_column, top_half_column, median_column]

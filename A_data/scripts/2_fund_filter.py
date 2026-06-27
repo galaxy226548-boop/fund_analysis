@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import argparse
 import importlib.util
+import json
 import re
 from pathlib import Path
 from typing import Iterable
@@ -38,6 +39,9 @@ DEFAULT_INPUT_DIR = A_DATA_ROOT / "output" / "fund_managers"
 DEFAULT_REGISTRY_PATH = A_DATA_ROOT / "data" / "fund_registry.xlsx"
 DEFAULT_IFIND_DIR = A_DATA_ROOT / "data" / "iFind_API"
 DEFAULT_OUTPUT_DIR = A_DATA_ROOT / "prepared_data"
+IFIND_EXPIRED_SIZE_PATTERN = re.compile(
+    r"^iFind(?P<fund_type>.+)已到期基金基金规模\.xlsx$"
+)
 
 # 规模文件的单位是人民币元，1 亿元等于 100,000,000 元。
 SIZE_THRESHOLD = 100_000_000
@@ -122,6 +126,93 @@ def require_columns(
     if missing:
         raise ValueError(
             f"{source_path} 缺少字段：{missing}；实际字段为：{list(data.columns)}"
+        )
+
+
+def clean_headers(columns: Iterable[object]) -> list[str]:
+    """清理列名中的排序箭头和首尾空格。"""
+    return [
+        str(column).replace("↑", "").replace("↓", "").strip()
+        for column in columns
+    ]
+
+
+def is_meaningless_tail_row(row: pd.Series) -> bool:
+    """判断表格最后的单行是否只是空行或数据来源说明。"""
+    values = row.dropna()
+    if values.empty:
+        return True
+
+    # 终端导出文件有时会在最后一行写“数据来源”，这类行不是基金记录。
+    text_values = values.astype(str).str.strip()
+    return text_values.str.contains("数据来源", na=False).any()
+
+
+def drop_meaningless_tail_rows(data: pd.DataFrame, source_path: Path) -> pd.DataFrame:
+    """只检查表格最下面两行，并删除其中的全空行或文件来源行。"""
+    cleaned = data.copy()
+    removed = 0
+
+    # 需求只要求检查最下面两行，因此最多删两次；这样不会误删中间业务数据。
+    for _ in range(2):
+        if cleaned.empty or not is_meaningless_tail_row(cleaned.iloc[-1]):
+            break
+        cleaned = cleaned.iloc[:-1].copy()
+        removed += 1
+
+    if removed:
+        print(f"清理尾行：{source_path.name} 删除 {removed} 行")
+    return cleaned
+
+
+def read_ifind_size_month_sheet(path: Path) -> pd.DataFrame:
+    """读取 iFind 基金规模 month sheet，并清理列名和尾部说明行。"""
+    data = pd.read_excel(path, sheet_name="month")
+    data.columns = clean_headers(data.columns)
+    return drop_meaningless_tail_rows(data, path)
+
+
+def merge_ifind_expired_size_files(ifind_dir: Path) -> None:
+    """把 iFind 已到期基金规模表合并回对应的主基金规模表。"""
+    for expired_file in sorted(ifind_dir.glob("iFind*已到期基金基金规模.xlsx")):
+        match = IFIND_EXPIRED_SIZE_PATTERN.fullmatch(expired_file.name)
+        if not match:
+            continue
+
+        fund_type = match.group("fund_type")
+        base_file = ifind_dir / f"iFind{fund_type}基金基金规模.xlsx"
+        if not base_file.exists():
+            raise FileNotFoundError(
+                f"{expired_file.name} 找不到对应主规模文件：{base_file.name}"
+            )
+
+        base = read_ifind_size_month_sheet(base_file)
+        expired = read_ifind_size_month_sheet(expired_file)
+        if list(base.columns) != list(expired.columns):
+            missing_columns = [
+                column for column in base.columns if column not in expired.columns
+            ]
+            extra_columns = [
+                column for column in expired.columns if column not in base.columns
+            ]
+            raise ValueError(
+                f"{expired_file.name} 与 {base_file.name} 列名不一致："
+                f"缺少主文件列 {missing_columns[:10]}；额外列 {extra_columns[:10]}"
+            )
+
+        # 按主文件列顺序合并，避免 Excel 导出列顺序细微变化影响后续规模读取。
+        merged = pd.concat(
+            [base, expired.reindex(columns=base.columns)],
+            ignore_index=True,
+        )
+        before_dedup = len(merged)
+        # 允许脚本重复运行：已合并过的已到期基金规模行不会再次膨胀。
+        merged = merged.drop_duplicates(ignore_index=True)
+        merged.to_excel(base_file, sheet_name="month", index=False)
+        print(
+            f"iFind 已到期基金规模合并：{fund_type}基金 "
+            f"{len(base)} 行 + {len(expired)} 行，"
+            f"去重 {before_dedup - len(merged)} 行 -> {base_file}"
         )
 
 
@@ -285,8 +376,26 @@ def build_size_and_share_labels(
     size_wide = size_wide.merge(
         registry_columns, on="ifind_code", how="left", validate="one_to_one"
     )
-    if nav_wide["main_code"].isna().any() or size_wide["main_code"].isna().any():
-        raise ValueError("iFind 宽表中存在无法匹配基金主代码的基金。")
+    skipped_nav_codes = sorted(
+        nav_wide.loc[nav_wide["main_code"].isna(), "ifind_code"].unique().tolist()
+    )
+    skipped_size_codes = sorted(
+        size_wide.loc[size_wide["main_code"].isna(), "ifind_code"].unique().tolist()
+    )
+    if skipped_nav_codes:
+        print(
+            f"{nav_path.name} 跳过主代码为空的净值行："
+            f"{len(skipped_nav_codes)} 只"
+        )
+    if skipped_size_codes:
+        print(
+            f"{size_path.name} 跳过主代码为空的规模行："
+            f"{len(skipped_size_codes)} 只"
+        )
+
+    # 主代码是规模汇总和代表份额选择的分组键；为空时无法可靠纳入口径。
+    nav_wide = nav_wide.dropna(subset=["main_code"]).copy()
+    size_wide = size_wide.dropna(subset=["main_code"]).copy()
 
     # 0 和负数都不是有效规模。先转成长表，再按主代码和月份求和。
     size_long = size_wide.melt(
@@ -347,6 +456,8 @@ def build_size_and_share_labels(
     diagnostics = {
         "all_zero_main_code_count": int(all_zero_main_codes.sum()),
         "primary_share_count": len(primary_codes),
+        "skipped_nav_wide_code_count": len(skipped_nav_codes),
+        "skipped_size_wide_code_count": len(skipped_size_codes),
     }
     return main_size, share_labels, diagnostics
 
@@ -504,6 +615,23 @@ def process_one_file(
     source = pd.read_parquet(source_path)
     require_columns(source, REQUIRED_SOURCE_COLUMNS, source_path)
 
+    # 主代码为空的基金无法做主基金层面的规模汇总和代表份额选择，因此本轮直接跳过。
+    source_main_codes = source[["ifind_code"]].drop_duplicates().merge(
+        fund_registry[["ifind_code", "main_code"]],
+        on="ifind_code",
+        how="left",
+        validate="one_to_one",
+    )
+    skipped_missing_main_codes = sorted(
+        source_main_codes.loc[
+            source_main_codes["main_code"].isna(), "ifind_code"
+        ].tolist()
+    )
+    if skipped_missing_main_codes:
+        source = source[
+            ~source["ifind_code"].isin(skipped_missing_main_codes)
+        ].copy()
+
     investment_type = investment_type_from_source_path(source_path)
     nav_path, size_path = find_ifind_files(investment_type, ifind_dir)
     main_size, share_labels, diagnostics = build_size_and_share_labels(
@@ -552,6 +680,10 @@ def process_one_file(
         "size_eligible_count": int(output["is_size_eligible_t"].sum()),
         "primary_share_count": diagnostics["primary_share_count"],
         "all_zero_main_code_count": diagnostics["all_zero_main_code_count"],
+        "skipped_missing_main_code_count": len(skipped_missing_main_codes),
+        "skipped_missing_main_codes": skipped_missing_main_codes,
+        "skipped_nav_wide_code_count": diagnostics["skipped_nav_wide_code_count"],
+        "skipped_size_wide_code_count": diagnostics["skipped_size_wide_code_count"],
         "sample_count": int(output["is_sample"].sum()),
         "missing_inception_codes": missing_inception_codes,
         "missing_manager_codes": missing_manager_codes,
@@ -570,10 +702,28 @@ def print_summary(summary: dict[str, object]) -> None:
     print(f"主代码规模不低于 1 亿元：{summary['size_eligible_count']:,}")
     print(f"代表份额基金数：{summary['primary_share_count']:,}")
     print(
+        f"因主代码为空跳过的源基金："
+        f"{summary['skipped_missing_main_code_count']:,}"
+    )
+    print(
+        f"净值/规模宽表中跳过的主代码为空基金："
+        f"{summary['skipped_nav_wide_code_count']:,} / "
+        f"{summary['skipped_size_wide_code_count']:,}"
+    )
+    print(
         f"净值宽表全期间均为 0 或空值的主代码："
         f"{summary['all_zero_main_code_count']:,}"
     )
     print(f"is_sample=True：{summary['sample_count']:,}")
+
+    skipped_missing_main_codes = summary["skipped_missing_main_codes"]
+    if skipped_missing_main_codes:
+        print(
+            f"跳过主代码为空的基金（{len(skipped_missing_main_codes)} 只）："
+            + ", ".join(skipped_missing_main_codes)
+        )
+    else:
+        print("跳过主代码为空的基金：无")
 
     missing_inception_codes = summary["missing_inception_codes"]
     if missing_inception_codes:
@@ -628,6 +778,9 @@ def main() -> None:
     if not args.ifind_dir.exists():
         raise FileNotFoundError(f"iFind 数据目录不存在：{args.ifind_dir}")
 
+    # 先把 iFind 已到期基金规模补回主规模表，后续规模筛选统一读取主文件。
+    merge_ifind_expired_size_files(args.ifind_dir)
+
     source_files = find_source_files(args.input_dir)
     fund_registry = read_fund_registry(args.registry)
 
@@ -642,6 +795,33 @@ def main() -> None:
         )
         summaries.append(summary)
         print_summary(summary)
+
+    diagnostics_by_type = {}
+    for summary in summaries:
+        investment_type = investment_type_from_source_path(summary["source_path"])
+        diagnostics_by_type[investment_type] = {
+            "fund_count": summary["fund_count"],
+            "row_count": summary["row_count"],
+            "establish_eligible_count": summary["establish_eligible_count"],
+            "manager_eligible_count": summary["manager_eligible_count"],
+            "missing_size_count": summary["missing_size_count"],
+            "size_eligible_count": summary["size_eligible_count"],
+            "primary_share_count": summary["primary_share_count"],
+            "skipped_missing_main_code_count": summary["skipped_missing_main_code_count"],
+            "skipped_missing_main_codes": summary["skipped_missing_main_codes"],
+            "skipped_nav_wide_code_count": summary["skipped_nav_wide_code_count"],
+            "skipped_size_wide_code_count": summary["skipped_size_wide_code_count"],
+            "all_zero_main_code_count": summary["all_zero_main_code_count"],
+            "sample_count": summary["sample_count"],
+            "missing_inception_codes": summary["missing_inception_codes"],
+            "missing_manager_codes": summary["missing_manager_codes"],
+        }
+    diagnostics_path = A_DATA_ROOT / "output" / "skipped_missing_main_codes_2_fund_filter.json"
+    diagnostics_path.parent.mkdir(parents=True, exist_ok=True)
+    diagnostics_path.write_text(
+        json.dumps(diagnostics_by_type, ensure_ascii=False, indent=2) + "\n"
+    )
+    print(f"诊断信息已保存至：{diagnostics_path}")
 
     print("\n" + "=" * 72)
     print(f"全部完成，共生成 {len(summaries)} 份 Parquet 文件。")

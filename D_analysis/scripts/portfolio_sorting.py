@@ -1498,6 +1498,34 @@ def merge_long_output_by_y(
     return pd.concat([kept_existing, new_df], ignore_index=True)
 
 
+def has_tuple_factor(factors: list[object]) -> bool:
+    """判断 registry factors 中是否包含 tuple/list 形式的 dummy 变量组。"""
+
+    return any(isinstance(factor, (tuple, list)) for factor in factors)
+
+
+def write_skipped_portfolio_sorting_registry(
+    output_registry_path: Path,
+    *,
+    model_key: str,
+    input_path: Path,
+    reason: str,
+    factors: list[object],
+) -> None:
+    """为不适合 portfolio sorting 的模型写出跳过记录，避免 engine 误判失败。"""
+
+    registry = load_output_registry(output_registry_path)
+    registry["skipped"] = True
+    registry["last_skip"] = {
+        "model_key": model_key,
+        "input_path": str(input_path),
+        "reason": reason,
+        "factors": [str(factor) for factor in factors],
+        "updated_at": datetime.now().isoformat(timespec="seconds"),
+    }
+    save_output_registry(registry, output_registry_path)
+
+
 def run_registry_portfolio_sorting(
     model_key: str = "fm_baseline",
     factors: list[str] | None = None,
@@ -1546,7 +1574,25 @@ def run_registry_portfolio_sorting(
     ret_col = str(y_col) if y_col is not None else str(config["y"])
     # 先解析未来收益期限，避免无法排序的 y_col 静默混进结果表。
     parse_future_return_horizon(ret_col)
-    base_factors = [str(col) for col in config["factors"]]
+    raw_factors = list(config["factors"])
+    has_explicit_sort_factors = bool(config.get("portfolio_sorting_factors"))
+    if factors is None and not has_explicit_sort_factors and has_tuple_factor(raw_factors):
+        reason = (
+            "registry factors 包含 tuple/list dummy 变量组，默认 portfolio sorting "
+            "没有单一排序列口径；如需运行，请在 registry 中显式配置 portfolio_sorting_factors。"
+        )
+        write_skipped_portfolio_sorting_registry(
+            output_registry_path,
+            model_key=model_key,
+            input_path=input_path,
+            reason=reason,
+            factors=raw_factors,
+        )
+        print(f"跳过 portfolio sorting：{reason}")
+        print(f"跳过记录已写入：{output_registry_path}")
+        return {}
+
+    base_factors = [str(col) for col in raw_factors]
     raw_sort_factors = list(config.get("portfolio_sorting_factors") or base_factors)
     selected_raw_sort_factors = raw_sort_factors if factors is None else factors
     sort_specs = expand_sort_specs(selected_raw_sort_factors, base_factors)

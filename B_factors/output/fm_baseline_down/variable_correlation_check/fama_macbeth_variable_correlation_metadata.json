@@ -1,5 +1,5 @@
 {
-  "run_time": "2026-06-24T22:39:14",
+  "run_time": "2026-06-26T20:58:36",
   "model_key": "fm_baseline_down",
   "input_path": "/Users/chloezh/Projects/Fund_Analysis/B_factors/output/fm_baseline_down/panel_base.parquet",
   "output_dir": "/Users/chloezh/Projects/Fund_Analysis/B_factors/output/fm_baseline_down/variable_correlation_check",
@@ -83,7 +83,7 @@
       "is_median_rank_mean_m12_n6_pairwise1": -2
     }
   },
-  "input_rows": 140029,
+  "input_rows": 156184,
   "input_months": 215,
   "correlation": {
     "mode": "factor_specific_filters",
@@ -102,7 +102,7 @@
           "is_insample_future_ret_6m": 1,
           "is_median_rank_mean_m3_n6_pairwise1": -2
         },
-        "filtered_rows": 16891,
+        "filtered_rows": 16937,
         "corr_metadata": {
           "eligible_months": 105,
           "skipped_months": [
@@ -582,10 +582,10 @@
               "reason": "完整变量样本数小于 min_cross_section_n"
             }
           ],
-          "complete_case_rows": 14750
+          "complete_case_rows": 14796
         },
         "overall_vif_metadata": {
-          "pooled_complete_case_rows": 16887,
+          "pooled_complete_case_rows": 16933,
           "pooled_status": "ok",
           "pooled_reason": ""
         }
@@ -604,7 +604,7 @@
           "is_insample_future_ret_6m": 1,
           "is_median_rank_mean_m6_n3_pairwise1": -2
         },
-        "filtered_rows": 16889,
+        "filtered_rows": 16935,
         "corr_metadata": {
           "eligible_months": 105,
           "skipped_months": [
@@ -1084,10 +1084,10 @@
               "reason": "完整变量样本数小于 min_cross_section_n"
             }
           ],
-          "complete_case_rows": 14751
+          "complete_case_rows": 14797
         },
         "overall_vif_metadata": {
-          "pooled_complete_case_rows": 16885,
+          "pooled_complete_case_rows": 16931,
           "pooled_status": "ok",
           "pooled_reason": ""
         }
@@ -1106,7 +1106,7 @@
           "is_insample_future_ret_6m": 1,
           "is_median_rank_mean_m6_n6_pairwise1": -2
         },
-        "filtered_rows": 14463,
+        "filtered_rows": 14498,
         "corr_metadata": {
           "eligible_months": 91,
           "skipped_months": [
@@ -1621,10 +1621,10 @@
               "reason": "完整变量样本数小于 min_cross_section_n"
             }
           ],
-          "complete_case_rows": 12103
+          "complete_case_rows": 12138
         },
         "overall_vif_metadata": {
-          "pooled_complete_case_rows": 14462,
+          "pooled_complete_case_rows": 14497,
           "pooled_status": "ok",
           "pooled_reason": ""
         }
@@ -1643,7 +1643,7 @@
           "is_insample_future_ret_6m": 1,
           "is_median_rank_mean_m6_n12_pairwise1": -2
         },
-        "filtered_rows": 10814,
+        "filtered_rows": 10828,
         "corr_metadata": {
           "eligible_months": 60,
           "skipped_months": [
@@ -2283,10 +2283,10 @@
               "reason": "完整变量样本数小于 min_cross_section_n"
             }
           ],
-          "complete_case_rows": 7945
+          "complete_case_rows": 7959
         },
         "overall_vif_metadata": {
-          "pooled_complete_case_rows": 10814,
+          "pooled_complete_case_rows": 10828,
           "pooled_status": "ok",
           "pooled_reason": ""
         }
@@ -2305,7 +2305,7 @@
           "is_insample_future_ret_6m": 1,
           "is_median_rank_mean_m12_n6_pairwise1": -2
         },
-        "filtered_rows": 10814,
+        "filtered_rows": 10828,
         "corr_metadata": {
           "eligible_months": 60,
           "skipped_months": [
@@ -2945,10 +2945,10 @@
               "reason": "完整变量样本数小于 min_cross_section_n"
             }
           ],
-          "complete_case_rows": 7945
+          "complete_case_rows": 7959
         },
         "overall_vif_metadata": {
-          "pooled_complete_case_rows": 10814,
+          "pooled_complete_case_rows": 10828,
           "pooled_status": "ok",
           "pooled_reason": ""
         }
@@ -2961,7 +2961,7 @@
   },
   "diagnostic_review": {
     "correlation_risk_threshold": 0.5,
-    "correlation_risk_pair_count": 7,
+    "correlation_risk_pair_count": 2,
     "vif_risk_metric": "p90_vif",
     "vif_risk_threshold": 5.0,
     "vif_risk_variable_count": 0,

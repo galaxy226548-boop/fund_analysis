@@ -148,7 +148,7 @@
     {
       "output_id": "ps_002",
       "created_at": "2026-06-25T00:20:20",
-      "updated_at": "2026-06-25T00:20:20",
+      "updated_at": "2026-06-26T20:59:01",
       "core_config": {
         "date_col": "month_date",
         "factor_sample_filters": {},
@@ -286,7 +286,7 @@
           }
         },
         "figure_grid": "/Users/chloezh/Projects/Fund_Analysis/D_analysis/output/fund_consistency/fm_baseline_interaction/portfolio_sorting/ps_002_future_ret_6m_bar_grid.png",
-        "updated_at": "2026-06-25T00:20:22"
+        "updated_at": "2026-06-26T20:59:04"
       }
     }
   ]

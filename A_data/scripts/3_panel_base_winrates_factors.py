@@ -11,8 +11,11 @@
     B_factors/input/panel_base.parquet
     B_factors/input/panel_base_preview.xlsx
 
-本脚本只负责基于已有 past_ret_{m}m_rank_{k} 列生成命中特征，不重新计算
+本脚本只负责基于已有 past_ret_{n}m_rank_{k} 列生成命中特征，不重新计算
 past_ret、rank、控制变量或回归因子。
+
+项目统一约定：m 是排名/命中期数 rank_count，n 是单期过去收益窗口长度
+return_horizon。完全不重叠时 pairwise=n。
 
 运行方式：
 
@@ -44,9 +47,9 @@ DEFAULT_RANK_HIT_REGISTRY_PATH = (
 )
 DEFAULT_PREVIEW_ROWS = 1000
 
-# 这里的 m 表示收益率排名窗口长度，如 past_ret_6m_rank_k 中的 6m；
-# n 表示统计 rank_1 到 rank_n 共多少期。
-RANK_HIT_COMBOS = ((3, 6), (6, 3), (6, 6), (6, 12), (12, 6))
+# 每个元素为 (m=rank_count, n=return_horizon, pairwise)。直接复用面板规格，
+# 保证 winrate 的命名、读取列数和底层窗口步长来自同一份配置。
+RANK_HIT_SPECS = Config.PANEL_PAST_RETURN_SPECS
 
 # 重要方向说明：
 # 3_generate_panel_base.py 的 add_pairwise_past_rank_columns 使用 pct=True，
@@ -134,39 +137,44 @@ def read_panel(input_path: Path) -> pd.DataFrame:
     return data.copy()
 
 
-def get_rank_columns(rank_window_m: int, n_periods: int) -> list[str]:
-    """根据 m 和 n 拼出需要读取的 rank 列名。"""
-    return [
-        f"past_ret_{rank_window_m}m_rank_{period_index}"
-        for period_index in range(1, n_periods + 1)
-    ]
+def get_rank_columns(
+    rank_count: int, return_horizon: int, pairwise: int = Config.PANEL_PAIRWISE
+) -> list[str]:
+    """读取 n 个月收益的前 m 期排名列。"""
+    columns = []
+    for period_index in range(1, rank_count + 1):
+        base = f"past_ret_{return_horizon}m_rank_{period_index}"
+        columns.append(base if pairwise == 1 else f"{base}_pairwise{pairwise}")
+    return columns
 
 
-def get_hitrate_column(metric: str, rank_window_m: int, n_periods: int, pairwise: int) -> str:
+def get_hitrate_column(
+    metric: str, rank_count: int, return_horizon: int, pairwise: int
+) -> str:
     """生成命中比例变量名。"""
-    return f"hitrate_{metric}_m{rank_window_m}_n{n_periods}_pairwise{pairwise}"
+    return f"hitrate_{metric}_m{rank_count}_n{return_horizon}_pairwise{pairwise}"
 
 
 def get_hitcount_column(
-    metric: str, rank_window_m: int, n_periods: int, pairwise: int
+    metric: str, rank_count: int, return_horizon: int, pairwise: int
 ) -> str:
     """生成命中次数变量名。"""
-    return f"hitcount_{metric}_m{rank_window_m}_n{n_periods}_pairwise{pairwise}"
+    return f"hitcount_{metric}_m{rank_count}_n{return_horizon}_pairwise{pairwise}"
 
 
 def get_dummy_column(
-    metric: str, rank_window_m: int, n_periods: int, hit_k: int, pairwise: int
+    metric: str, rank_count: int, return_horizon: int, hit_k: int, pairwise: int
 ) -> str:
     """生成命中次数 dummy 变量名。"""
     return (
-        f"dummy_{metric}_m{rank_window_m}_n{n_periods}_hit{hit_k}_pairwise{pairwise}"
+        f"dummy_{metric}_m{rank_count}_n{return_horizon}_hit{hit_k}_pairwise{pairwise}"
     )
 
 
 def make_feature_record(
     variable_name: str,
-    rank_window_m: int,
-    n_periods: int,
+    rank_count: int,
+    return_horizon: int,
     metric: str,
     variable_type: str,
     pairwise: int,
@@ -175,8 +183,10 @@ def make_feature_record(
     """把单个新增变量整理成 registry 中的一条记录。"""
     record: dict[str, object] = {
         "variable_name": variable_name,
-        "m": rank_window_m,
-        "n": n_periods,
+        "m": rank_count,
+        "n": return_horizon,
+        "rank_count": rank_count,
+        "return_horizon": return_horizon,
         "metric": metric,
         "variable_type": variable_type,
         "pairwise": pairwise,
@@ -189,47 +199,46 @@ def make_feature_record(
 
 def find_existing_output_columns(
     data: pd.DataFrame,
-    combos: tuple[tuple[int, int], ...],
+    specs: tuple[tuple[int, int, int], ...],
     thresholds_config: dict[str, dict[str, object]],
-    pairwise: int,
 ) -> list[str]:
     """检查将要生成的列名是否已经存在，避免误覆盖旧结果。"""
     output_columns: list[str] = []
-    for rank_window_m, n_periods in combos:
+    for rank_count, return_horizon, pairwise in specs:
         for metric in thresholds_config:
             output_columns.append(
-                get_hitrate_column(metric, rank_window_m, n_periods, pairwise)
+                get_hitrate_column(metric, rank_count, return_horizon, pairwise)
             )
             output_columns.append(
-                get_hitcount_column(metric, rank_window_m, n_periods, pairwise)
+                get_hitcount_column(metric, rank_count, return_horizon, pairwise)
             )
             output_columns.extend(
-                get_dummy_column(metric, rank_window_m, n_periods, hit_k, pairwise)
-                for hit_k in range(0, n_periods + 1)
+                get_dummy_column(metric, rank_count, return_horizon, hit_k, pairwise)
+                for hit_k in range(0, rank_count + 1)
             )
     return [column for column in output_columns if column in data.columns]
 
 
 def add_rank_hit_features(
     df: pd.DataFrame,
-    rank_window_m: int,
-    n_periods: int,
+    rank_count: int,
+    return_horizon: int,
     thresholds_config: dict[str, dict[str, object]],
     pairwise: int = 1,
     require_full_window: bool = True,
 ) -> tuple[pd.DataFrame, list[dict[str, object]]]:
     """为一个 (m,n) 组合追加 hitrate、hitcount 和 dummy 变量。
 
-    只有 rank_1 到 rank_n 全部非缺失时，才计算有效值；否则该组合下所有
-    hitrate、hitcount、dummy 都保留 NaN。dummy_hit0 到 dummy_hitn 会全部生成，
+    只有 rank_1 到 rank_m 全部非缺失时，才计算有效值；否则该组合下所有
+    hitrate、hitcount、dummy 都保留 NaN。dummy_hit0 到 dummy_hitm 会全部生成，
     但带截距项回归时不能同时放入全部 dummy，需要省略一个基准组，避免
     dummy variable trap。
     """
-    rank_cols = get_rank_columns(rank_window_m, n_periods)
+    rank_cols = get_rank_columns(rank_count, return_horizon, pairwise)
     missing_rank_cols = [column for column in rank_cols if column not in df.columns]
     if missing_rank_cols:
         print(
-            f"跳过 m={rank_window_m}, n={n_periods}：缺少 rank 列 "
+            f"跳过 m={rank_count}, n={return_horizon}, pairwise={pairwise}：缺少 rank 列 "
             f"{missing_rank_cols}"
         )
         return df, []
@@ -243,11 +252,11 @@ def add_rank_hit_features(
         invalid_columns = invalid_rank_mask.any(axis=0)
         bad_columns = invalid_columns[invalid_columns].index.tolist()
         raise ValueError(
-            f"m={rank_window_m}, n={n_periods} 的 rank 列出现 [0,1] 之外取值："
+            f"m={rank_count}, n={return_horizon}, pairwise={pairwise} 的 rank 列出现 [0,1] 之外取值："
             f"{bad_columns}"
         )
 
-    # require_full_window=True 是本研究口径的核心：n 代表固定历史期数，
+    # require_full_window=True 是本研究口径的核心：m 代表固定历史期数，
     # 如果只用部分非缺失列算比例，会把不同历史长度的样本混在一起。
     if require_full_window:
         valid_window = rank_values.notna().all(axis=1)
@@ -262,30 +271,44 @@ def add_rank_hit_features(
             raise ValueError(f"不支持的阈值比较符：{op_text}")
 
         hit_flags = THRESHOLD_OPERATORS[op_text](rank_values, threshold)
-        hitcount_col = get_hitcount_column(metric, rank_window_m, n_periods, pairwise)
-        hitrate_col = get_hitrate_column(metric, rank_window_m, n_periods, pairwise)
+        hitcount_col = get_hitcount_column(
+            metric, rank_count, return_horizon, pairwise
+        )
+        hitrate_col = get_hitrate_column(
+            metric, rank_count, return_horizon, pairwise
+        )
 
         # NaN 与阈值比较会得到 False，所以必须先按 valid_window 清掉无效窗口；
         # 否则缺失 rank 会被误当作“未命中”。
         hitcount = hit_flags.sum(axis=1).astype("float64")
         hitcount.loc[~valid_window] = np.nan
         result[hitcount_col] = hitcount
-        result[hitrate_col] = hitcount / n_periods
+        result[hitrate_col] = hitcount / rank_count
 
         records.append(
             make_feature_record(
-                hitrate_col, rank_window_m, n_periods, metric, "hitrate", pairwise
+                hitrate_col,
+                rank_count,
+                return_horizon,
+                metric,
+                "hitrate",
+                pairwise,
             )
         )
         records.append(
             make_feature_record(
-                hitcount_col, rank_window_m, n_periods, metric, "hitcount", pairwise
+                hitcount_col,
+                rank_count,
+                return_horizon,
+                metric,
+                "hitcount",
+                pairwise,
             )
         )
 
-        for hit_k in range(0, n_periods + 1):
+        for hit_k in range(0, rank_count + 1):
             dummy_col = get_dummy_column(
-                metric, rank_window_m, n_periods, hit_k, pairwise
+                metric, rank_count, return_horizon, hit_k, pairwise
             )
             dummy_values = (hitcount == hit_k).astype("float64")
             dummy_values.loc[~valid_window] = np.nan
@@ -293,8 +316,8 @@ def add_rank_hit_features(
             records.append(
                 make_feature_record(
                     dummy_col,
-                    rank_window_m,
-                    n_periods,
+                    rank_count,
+                    return_horizon,
                     metric,
                     "dummy",
                     pairwise,
@@ -327,7 +350,7 @@ def validate_rank_hit_features(
         else:
             combo_records[variable_type] = record
 
-    for (rank_window_m, n_periods, metric, pairwise), combo_records in records_by_combo.items():
+    for (rank_count, return_horizon, metric, pairwise), combo_records in records_by_combo.items():
         hitrate_record = combo_records["hitrate"]
         hitcount_record = combo_records["hitcount"]
         dummy_records = sorted(
@@ -335,7 +358,10 @@ def validate_rank_hit_features(
         )
 
         if hitrate_record is None or hitcount_record is None:
-            raise AssertionError(f"m={rank_window_m}, n={n_periods}, {metric} 缺少核心变量。")
+            raise AssertionError(
+                f"m={rank_count}, n={return_horizon}, pairwise={pairwise}, "
+                f"{metric} 缺少核心变量。"
+            )
 
         hitrate_col = str(hitrate_record["variable_name"])
         hitcount_col = str(hitcount_record["variable_name"])
@@ -347,23 +373,28 @@ def validate_rank_hit_features(
         if not valid_hitrate.between(0, 1).all():
             raise AssertionError(f"{hitrate_col} 出现 [0,1] 之外取值。")
 
-        # 2. hitcount 必须是 0~n 的整数或 NaN。
+        # 2. hitcount 必须是 0~m 的整数或 NaN。
         valid_hitcount = hitcount.dropna()
-        if not valid_hitcount.between(0, n_periods).all():
-            raise AssertionError(f"{hitcount_col} 出现 0~{n_periods} 之外取值。")
+        if not valid_hitcount.between(0, rank_count).all():
+            raise AssertionError(f"{hitcount_col} 出现 0~{rank_count} 之外取值。")
         if not np.isclose(valid_hitcount, np.round(valid_hitcount)).all():
             raise AssertionError(f"{hitcount_col} 出现非整数取值。")
 
-        # 3. hitrate 必须等于 hitcount / n。
+        # 3. hitrate 必须等于 hitcount / m。
         comparable = hitrate.notna() & hitcount.notna()
-        if not np.isclose(hitrate.loc[comparable], hitcount.loc[comparable] / n_periods).all():
-            raise AssertionError(f"{hitrate_col} 与 {hitcount_col}/{n_periods} 不一致。")
+        if not np.isclose(
+            hitrate.loc[comparable], hitcount.loc[comparable] / rank_count
+        ).all():
+            raise AssertionError(
+                f"{hitrate_col} 与 {hitcount_col}/{rank_count} 不一致。"
+            )
 
-        # 4. rank 完整非缺失的样本中，dummy_hit0 到 dummy_hitn 的行和必须等于 1。
-        expected_dummy_count = n_periods + 1
+        # 4. rank 完整非缺失的样本中，dummy_hit0 到 dummy_hitm 的行和必须等于 1。
+        expected_dummy_count = rank_count + 1
         if len(dummy_records) != expected_dummy_count:
             raise AssertionError(
-                f"m={rank_window_m}, n={n_periods}, {metric} 的 dummy 数量不正确。"
+                f"m={rank_count}, n={return_horizon}, pairwise={pairwise}, "
+                f"{metric} 的 dummy 数量不正确。"
             )
         dummy_cols = [str(record["variable_name"]) for record in dummy_records]
         dummy_values = data[dummy_cols]
@@ -371,11 +402,13 @@ def validate_rank_hit_features(
         dummy_sum = dummy_values.loc[valid_window].sum(axis=1)
         if not np.isclose(dummy_sum, 1).all():
             raise AssertionError(
-                f"m={rank_window_m}, n={n_periods}, {metric} 的 dummy 行和不等于 1。"
+                f"m={rank_count}, n={return_horizon}, pairwise={pairwise}, "
+                f"{metric} 的 dummy 行和不等于 1。"
             )
         if dummy_values.loc[~valid_window].notna().any().any():
             raise AssertionError(
-                f"m={rank_window_m}, n={n_periods}, {metric} 的缺失窗口 dummy 未保持 NaN。"
+                f"m={rank_count}, n={return_horizon}, pairwise={pairwise}, "
+                f"{metric} 的缺失窗口 dummy 未保持 NaN。"
             )
 
 
@@ -386,11 +419,24 @@ def build_rank_hit_feature_registry(
     """整理本次新增变量清单，写入轻量 JSON registry。"""
     return {
         "generated_at": datetime.now().isoformat(timespec="seconds"),
+        "m_definition": "排名/命中期数 rank_count",
+        "n_definition": "单期过去收益窗口长度（月）return_horizon",
+        "pairwise_definition": "相邻收益窗口向过去移动的月数；完全不重叠时等于 n",
+        "rank_hit_specs": [
+            {
+                "m": rank_count,
+                "n": return_horizon,
+                "rank_count": rank_count,
+                "return_horizon": return_horizon,
+                "pairwise": pairwise,
+            }
+            for rank_count, return_horizon, pairwise in RANK_HIT_SPECS
+        ],
         "rank_direction": RANK_DIRECTION_DESCRIPTION,
         "rank_larger_means_higher_return": RANK_LARGER_MEANS_HIGHER_RETURN,
         "thresholds": RANK_HIT_THRESHOLDS,
         "dummy_regression_note": (
-            "dummy_hit0 到 dummy_hitn 会全部生成；带截距项回归不能同时放入全部 "
+            "dummy_hit0 到 dummy_hitm 会全部生成；带截距项回归不能同时放入全部 "
             "dummy，需要省略一个基准组，避免 dummy variable trap。"
         ),
         "features": feature_records,
@@ -443,9 +489,8 @@ def generate_rank_hit_features(
     original = read_panel(input_path)
     existing_output_columns = find_existing_output_columns(
         original,
-        combos=RANK_HIT_COMBOS,
+        specs=RANK_HIT_SPECS,
         thresholds_config=RANK_HIT_THRESHOLDS,
-        pairwise=Config.PANEL_PAIRWISE,
     )
     if existing_output_columns:
         raise ValueError(
@@ -457,29 +502,32 @@ def generate_rank_hit_features(
     result = original
     feature_records: list[dict[str, object]] = []
     skipped_combos: list[dict[str, object]] = []
-    for rank_window_m, n_periods in RANK_HIT_COMBOS:
-        rank_cols = get_rank_columns(rank_window_m, n_periods)
+    for rank_count, return_horizon, pairwise in RANK_HIT_SPECS:
+        rank_cols = get_rank_columns(rank_count, return_horizon, pairwise)
         missing_rank_cols = [column for column in rank_cols if column not in result.columns]
         if missing_rank_cols:
             skipped_combos.append(
                 {
-                    "m": rank_window_m,
-                    "n": n_periods,
+                    "m": rank_count,
+                    "n": return_horizon,
+                    "rank_count": rank_count,
+                    "return_horizon": return_horizon,
+                    "pairwise": pairwise,
                     "missing_rank_columns": missing_rank_cols,
                 }
             )
             print(
-                f"跳过 m={rank_window_m}, n={n_periods}：缺少 rank 列 "
+                f"跳过 m={rank_count}, n={return_horizon}, pairwise={pairwise}：缺少 rank 列 "
                 f"{missing_rank_cols}"
             )
             continue
 
         result, combo_records = add_rank_hit_features(
             result,
-            rank_window_m=rank_window_m,
-            n_periods=n_periods,
+            rank_count=rank_count,
+            return_horizon=return_horizon,
             thresholds_config=RANK_HIT_THRESHOLDS,
-            pairwise=Config.PANEL_PAIRWISE,
+            pairwise=pairwise,
             require_full_window=True,
         )
         feature_records.extend(combo_records)
@@ -537,7 +585,7 @@ def print_summary(summary: dict[str, object]) -> None:
         print("跳过的 (m,n) 组合：")
         for item in summary["skipped_combos"]:
             print(
-                f"  m={item['m']}, n={item['n']}，缺少："
+                f"  m={item['m']}, n={item['n']}, pairwise={item['pairwise']}，缺少："
                 + "、".join(item["missing_rank_columns"])
             )
     else:
@@ -550,7 +598,8 @@ def print_summary(summary: dict[str, object]) -> None:
             hit_k_text = f"，hit_k={record['hit_k']}"
         print(
             f"  {record['variable_name']}：m={record['m']}，n={record['n']}，"
-            f"口径={record['metric']}，类型={record['variable_type']}{hit_k_text}"
+            f"pairwise={record['pairwise']}，口径={record['metric']}，"
+            f"类型={record['variable_type']}{hit_k_text}"
         )
 
 

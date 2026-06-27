@@ -446,14 +446,32 @@ def main():
     inventory_df = scan_all_files(root_dir)
 
     # 重排列順序：前四列為手動填寫欄位，file_type 移至最後
+    MANUAL_COLS = ["clean_data", "frequency", "content"]
     inventory_df.insert(0, "clean_data", "")
     inventory_df.insert(1, "frequency", "")
     inventory_df.insert(2, "content", "")
-    fixed_cols = ["clean_data", "frequency", "content", "data_source"]
+
+    xlsx_output = ref_dir / "data_inventory_A.xlsx"
+
+    # 合并旧文件中的手填列
+    if xlsx_output.exists():
+        try:
+            old_df = pd.read_excel(xlsx_output)
+            merge_key = ["file_path", "sheet_name"]
+            if all(c in old_df.columns for c in merge_key + MANUAL_COLS):
+                old_manual = old_df[merge_key + MANUAL_COLS].copy()
+                old_manual = old_manual.fillna("")
+                inventory_df = inventory_df.drop(columns=MANUAL_COLS)
+                inventory_df = inventory_df.merge(old_manual, on=merge_key, how="left")
+                inventory_df[MANUAL_COLS] = inventory_df[MANUAL_COLS].fillna("")
+                print(f"已从旧文件合并手填列（{len(old_manual)} 条旧记录）。")
+        except Exception as e:
+            print(f"警告：读取旧文件失败，手填列将为空。({e})")
+
+    fixed_cols = MANUAL_COLS + ["data_source"]
     remaining = [c for c in inventory_df.columns if c not in fixed_cols and c != "file_type"]
     inventory_df = inventory_df[fixed_cols + remaining + ["file_type"]]
 
-    xlsx_output = ref_dir / "data_inventory_A.xlsx"
     inventory_df.to_excel(xlsx_output, index=False)
     print(f"扫描完成，共记录 {len(inventory_df)} 个条目（xlsx sheet + parquet 文件）。")
     print(f"xlsx 已保存到：{xlsx_output}")

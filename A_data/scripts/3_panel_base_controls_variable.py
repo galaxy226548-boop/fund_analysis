@@ -327,7 +327,7 @@ def add_investment_type_dummy_columns(
 
 
 def read_one_fund_size_long(fund_size_path: Path) -> pd.DataFrame:
-    """读取单个 iFind 宽表，并转成长表格式的 fund_size 数据。"""
+    """读取单个 iFind 基金规模宽表，并转成长表格式的 fund_size 数据。"""
 
     # 1. 读取 Excel 文件的 month sheet（iFind 导出的宽表格式）
     wide = pd.read_excel(fund_size_path, sheet_name="month")
@@ -389,18 +389,18 @@ def read_one_fund_size_long(fund_size_path: Path) -> pd.DataFrame:
 
 
 def read_fund_size_long(fund_size_dir: Path) -> pd.DataFrame:
-    """批量读取 iFind 基金净值变化宽表，并合并成长表。"""
+    """批量读取已合并好的 iFind 主基金规模宽表，并合并成长表。"""
     if not fund_size_dir.exists():
-        raise FileNotFoundError(f"iFind 基金净值变化目录不存在：{fund_size_dir}")
+        raise FileNotFoundError(f"iFind 基金规模目录不存在：{fund_size_dir}")
 
-    # 1. 扫描目录下所有以"基金净值变化.xlsx"结尾的文件（排除 Excel 临时文件 ~$）
+    # 1. 扫描目录下主基金规模文件。已到期基金规模已在 2_fund_filter.py 合并进主表。
     fund_size_paths = sorted(
         path
-        for path in fund_size_dir.glob("*基金净值变化.xlsx")
-        if not path.name.startswith("~$")
+        for path in fund_size_dir.glob("iFind*基金基金规模.xlsx")
+        if not path.name.startswith("~$") and "已到期基金" not in path.name
     )
     if not fund_size_paths:
-        raise FileNotFoundError(f"{fund_size_dir} 中没有找到 *基金净值变化.xlsx。")
+        raise FileNotFoundError(f"{fund_size_dir} 中没有找到 iFind*基金基金规模.xlsx。")
 
     # 2. 逐个读取并转为长表，然后纵向拼接
     fund_size_frames = [read_one_fund_size_long(path) for path in fund_size_paths]

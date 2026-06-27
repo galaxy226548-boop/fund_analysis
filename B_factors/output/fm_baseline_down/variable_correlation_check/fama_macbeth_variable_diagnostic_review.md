@@ -1,6 +1,6 @@
 # Fama-MacBeth 变量相关性与 VIF 审核报告
 
-生成时间：2026-06-24T22:39:14
+生成时间：2026-06-26T20:58:36
 
 ## 一、审核口径
 
@@ -14,17 +14,12 @@
 
 ## 二、相关性风险变量对
 
-按 `abs(mean_corr) >= 0.50` 口径，本次发现 7 组相关性风险变量对：
+按 `abs(mean_corr) >= 0.50` 口径，本次发现 2 组相关性风险变量对：
 
 | variable_1 | variable_2 | mean_corr | abs_mean_corr | stars | n_months | risk_level |
 | --- | --- | --- | --- | --- | --- | --- |
-| Ctrl_fund_age | Ctrl_log_fund_size | 0.767 | 0.767 | *** | 105 | 重点关注相关性风险 |
-| Ctrl_fund_age | Ctrl_log_fund_size | 0.767 | 0.767 | *** | 105 | 重点关注相关性风险 |
-| Ctrl_fund_age | Ctrl_log_fund_size | 0.775 | 0.775 | *** | 91 | 重点关注相关性风险 |
-| Ctrl_fund_age | Ctrl_log_fund_size | 0.774 | 0.774 | *** | 60 | 重点关注相关性风险 |
-| Ctrl_fund_age | as_偏股混合型基金 | 0.579 | 0.579 | *** | 60 | 重点关注相关性风险 |
-| Ctrl_fund_age | Ctrl_log_fund_size | 0.770 | 0.770 | *** | 60 | 重点关注相关性风险 |
-| Ctrl_fund_age | as_偏股混合型基金 | 0.577 | 0.577 | *** | 60 | 重点关注相关性风险 |
+| Ctrl_fund_age | as_偏股混合型基金 | 0.578 | 0.578 | *** | 60 | 重点关注相关性风险 |
+| Ctrl_fund_age | as_偏股混合型基金 | 0.576 | 0.576 | *** | 60 | 重点关注相关性风险 |
 
 ## 三、VIF 风险变量
 

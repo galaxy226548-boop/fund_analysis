@@ -86,6 +86,10 @@ DEFAULT_REGISTRY_PATH = A_DATA_ROOT / "data" / "fund_registry.xlsx"
 DEFAULT_NAV_DIR = A_DATA_ROOT / "data" / "iFind_API"
 DEFAULT_MANAGER_DIR = A_DATA_ROOT / "data" / "Wind_terminal_fund_center"
 DEFAULT_OUTPUT_DIR = A_DATA_ROOT / "output" / "fund_managers"
+WIND_MANAGER_BASE_PATTERN = re.compile(r"^Wind(?P<fund_type>.+基金)历任基金经理\.xlsx$")
+IFIND_EXPIRED_NAV_PATTERN = re.compile(
+    r"^iFind(?P<fund_type>.+)已到期基金净值变化\.xlsx$"
+)
 
 
 # 这个正则表达式用来拆解类似下面的文字：
@@ -163,6 +167,193 @@ def require_columns(data: pd.DataFrame, columns: Iterable[str], source: Path) ->
 def clean_headers(columns: Iterable[object]) -> list[str]:
     """清理列名中的排序箭头和首尾空格。"""
     return [str(column).replace("↑", "").replace("↓", "").strip() for column in columns]
+
+
+def is_meaningless_tail_row(row: pd.Series) -> bool:
+    """判断 Wind 导出表最后的单行是否只是空行或数据来源说明。"""
+    values = row.dropna()
+    if values.empty:
+        return True
+
+    # Wind 终端导出的文件常在最后一行写“数据来源：Wind”，这不是基金经理记录。
+    text_values = values.astype(str).str.strip()
+    return text_values.str.contains("数据来源", na=False).any()
+
+
+def drop_meaningless_tail_rows(data: pd.DataFrame, source: Path) -> pd.DataFrame:
+    """只检查表格最下面两行，并删除其中的全空行或文件来源行。"""
+    cleaned = data.copy()
+    removed = 0
+
+    # 只处理尾部最多两行，避免误删中间真正缺字段的业务记录。
+    for _ in range(2):
+        if cleaned.empty or not is_meaningless_tail_row(cleaned.iloc[-1]):
+            break
+        cleaned = cleaned.iloc[:-1].copy()
+        removed += 1
+
+    if removed:
+        print(f"清理尾行：{source.name} 删除 {removed} 行")
+    return cleaned
+
+
+def read_wind_manager_excel(path: Path) -> pd.DataFrame:
+    """读取 Wind 历任基金经理表，并统一清理列名和尾部说明行。"""
+    data = pd.read_excel(path)
+    data.columns = clean_headers(data.columns)
+    return drop_meaningless_tail_rows(data, path)
+
+
+def discover_wind_manager_base_files(manager_dir: Path) -> list[tuple[str, Path]]:
+    """找出 Wind 主历任基金经理文件，排除带存续状态括号的补充文件。"""
+    base_files: list[tuple[str, Path]] = []
+    for path in sorted(manager_dir.glob("Wind*历任基金经理.xlsx")):
+        match = WIND_MANAGER_BASE_PATTERN.fullmatch(path.name)
+        if match:
+            base_files.append((match.group("fund_type"), path))
+    return base_files
+
+
+def merge_wind_existing_manager_files(manager_dir: Path) -> None:
+    """先把 Wind 按存续状态导出的历任基金经理文件合并回对应主文件。"""
+    for fund_type, base_file in discover_wind_manager_base_files(manager_dir):
+        extra_files = sorted(manager_dir.glob(f"Wind{fund_type}*历任基金经理.xlsx"))
+        extra_files = [path for path in extra_files if path != base_file]
+        if not extra_files:
+            continue
+
+        # 主文件决定最终列顺序；补充文件多出的“投资类型”等冗余列不会进入主表。
+        base = read_wind_manager_excel(base_file)
+        frames = [base]
+
+        for extra_file in extra_files:
+            extra = read_wind_manager_excel(extra_file)
+            missing_columns = [
+                column for column in base.columns if column not in extra.columns
+            ]
+            if missing_columns:
+                raise ValueError(
+                    f"{extra_file.name} 与 {base_file.name} 列名不一致："
+                    f"缺少主文件列 {missing_columns}"
+                )
+
+            extra_only_columns = [
+                column for column in extra.columns if column not in base.columns
+            ]
+            if extra_only_columns:
+                print(f"忽略补充文件额外列：{extra_file.name} {extra_only_columns}")
+
+            # 按主文件列顺序合并，保证后续 parse_manager_tenures 读到稳定字段。
+            frames.append(extra.reindex(columns=base.columns))
+
+        merged = pd.concat(frames, ignore_index=True)
+        before_dedup = len(merged)
+        # 允许脚本重复运行：已经合并过的经理记录不会再次膨胀。
+        merged = merged.drop_duplicates(ignore_index=True)
+        merged.to_excel(base_file, index=False)
+        print(
+            f"Wind 存续状态历任基金经理合并：{fund_type} "
+            f"{len(base)} 行 + {sum(len(frame) for frame in frames[1:])} 行，"
+            f"去重 {before_dedup - len(merged)} 行 -> {base_file}"
+        )
+
+
+def read_ifind_month_sheet(path: Path) -> pd.DataFrame:
+    """读取 iFind 净值文件的 month sheet，并清理列名中的排序箭头。"""
+    data = pd.read_excel(path, sheet_name="month")
+    data.columns = clean_headers(data.columns)
+    return data
+
+
+def nav_date_columns(columns: Iterable[object]) -> list[object]:
+    """从净值表列名中找出可识别为日期的月度净值列。"""
+    return [column for column in columns if not pd.isna(parse_excel_date(column))]
+
+
+def mask_expired_nav_values(expired: pd.DataFrame, expired_file: Path) -> pd.DataFrame:
+    """把每只已到期基金到期日之后的净值置为空值，避免后续算出 -100% 收益率。"""
+    require_columns(expired, ["证券代码", "基金到期日"], expired_file)
+    cleaned = expired.copy()
+    date_columns = nav_date_columns(cleaned.columns[2:])
+    if len(date_columns) != len(cleaned.columns[2:]):
+        invalid_columns = [
+            column for column in cleaned.columns[2:] if column not in date_columns
+        ]
+        raise ValueError(
+            f"{expired_file.name} 含无法识别为日期的净值列：{invalid_columns[:10]}"
+        )
+
+    expiry_dates = cleaned["基金到期日"].map(parse_excel_date)
+    if expiry_dates.isna().any():
+        examples = cleaned.loc[expiry_dates.isna(), ["证券代码", "基金到期日"]].head(10)
+        raise ValueError(
+            f"{expired_file.name} 存在无法识别的基金到期日：\n"
+            + examples.to_string(index=False)
+        )
+
+    # 逐个日期列比较：列名日期晚于本行基金到期日时，说明该列不是有效存续期净值。
+    masked_cells = 0
+    for column in date_columns:
+        column_date = parse_excel_date(column)
+        expired_after_column = column_date > expiry_dates
+        masked_cells += int(expired_after_column.sum())
+        cleaned.loc[expired_after_column, column] = np.nan
+
+    print(f"到期后净值置空：{expired_file.name} {masked_cells} 个单元格")
+    return cleaned
+
+
+def merge_ifind_expired_nav_files(nav_dir: Path) -> None:
+    """把 iFind 已到期基金净值表处理后合并回对应的主净值表。"""
+    for expired_file in sorted(nav_dir.glob("iFind*已到期基金净值变化.xlsx")):
+        match = IFIND_EXPIRED_NAV_PATTERN.fullmatch(expired_file.name)
+        if not match:
+            continue
+
+        fund_type = match.group("fund_type")
+        base_file = nav_dir / f"iFind{fund_type}基金净值变化.xlsx"
+        if not base_file.exists():
+            raise FileNotFoundError(
+                f"{expired_file.name} 找不到对应主净值文件：{base_file.name}"
+            )
+
+        base = read_ifind_month_sheet(base_file)
+        expired = mask_expired_nav_values(
+            read_ifind_month_sheet(expired_file), expired_file
+        )
+
+        base_date_columns = list(base.columns[1:])
+        expired_date_columns = list(expired.columns[2:])
+        if base_date_columns != expired_date_columns:
+            missing_columns = [
+                column
+                for column in base_date_columns
+                if column not in expired_date_columns
+            ]
+            extra_columns = [
+                column
+                for column in expired_date_columns
+                if column not in base_date_columns
+            ]
+            raise ValueError(
+                f"{expired_file.name} 与 {base_file.name} 日期列不一致："
+                f"缺少主文件列 {missing_columns[:10]}；额外列 {extra_columns[:10]}"
+            )
+
+        # 去掉第二列“基金到期日”，保留证券代码和各日期净值列，再按主文件列顺序追加。
+        expired_for_merge = expired.drop(columns=["基金到期日"]).reindex(
+            columns=base.columns
+        )
+        merged = pd.concat([base, expired_for_merge], ignore_index=True)
+        before_dedup = len(merged)
+        # 允许脚本重复运行：已经追加过的已到期基金行不会再次膨胀。
+        merged = merged.drop_duplicates(ignore_index=True)
+        merged.to_excel(base_file, sheet_name="month", index=False)
+        print(
+            f"iFind 已到期基金净值合并：{fund_type}基金 "
+            f"{len(base)} 行 + {len(expired_for_merge)} 行，"
+            f"去重 {before_dedup - len(merged)} 行 -> {base_file}"
+        )
 
 
 def normalize_code(value: object) -> str | None:
@@ -257,7 +448,11 @@ def discover_input_pairs(nav_dir: Path, manager_dir: Path) -> list[tuple[str, Pa
 
         (投资类型, iFind净值路径, Wind经理路径)
     """
-    nav_paths = sorted(nav_dir.glob("iFind*净值变化.xlsx"))
+    nav_paths = [
+        path
+        for path in sorted(nav_dir.glob("iFind*净值变化.xlsx"))
+        if "已到期基金" not in path.name and "基准指数" not in path.name
+    ]
     if not nav_paths:
         raise FileNotFoundError(f"{nav_dir} 中没有找到 iFind*净值变化.xlsx。")
 
@@ -807,6 +1002,12 @@ def main() -> None:
         raise FileNotFoundError(f"iFind 净值目录不存在：{args.nav_dir}")
     if not args.manager_dir.exists():
         raise FileNotFoundError(f"Wind 经理目录不存在：{args.manager_dir}")
+
+    # 先把 Wind 终端按存续状态单独导出的历任基金经理补回主文件。
+    merge_wind_existing_manager_files(args.manager_dir)
+
+    # 再把 iFind 已到期基金净值补回主净值表，并清空每只基金到期日之后的净值。
+    merge_ifind_expired_nav_files(args.nav_dir)
 
     # registry 对所有投资类型都相同，因此只读取一次，减少重复工作。
     mapping, inception_column = read_registry(args.registry)
