@@ -1188,12 +1188,13 @@ def plot_portfolio_return_grid(
     ret_col: str,
     output_path: Path,
     *,
-    n_cols: int = 3,
+    max_cols: int = 3,
 ) -> None:
-    """把多个因子的 portfolio sorting 柱状图放在同一张画布上。
+    """把一个或多个因子的 portfolio sorting 柱状图放在同一张图里。
 
-    目前 baseline 系列通常有五个因子，所以使用每行三张小图的布局：
-    第一行三张、第二行两张，最后一个空子图隐藏。
+    图的布局跟随因子数量自动调整：只有一个因子时就是一张完整子图，
+    两个因子时一行两张，三个及以上时最多每行三张。这样既保留统一大标题，
+    又避免单因子结果被强行塞进 1×3 的空画布里。
     """
 
     if len(research_tables) != len(sort_cols):
@@ -1201,6 +1202,9 @@ def plot_portfolio_return_grid(
     if not research_tables:
         return
 
+    # 根据真实因子数量决定列数。max_cols 保留为参数，方便未来需要每行两张或四张时复用。
+    n_items = len(research_tables)
+    n_cols = min(max_cols, n_items)
     n_rows = int(np.ceil(len(research_tables) / n_cols))
     fig, axes = plt.subplots(n_rows, n_cols, figsize=(5.2 * n_cols, 4.0 * n_rows))
     flat_axes = np.atleast_1d(axes).ravel()

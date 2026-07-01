@@ -8,6 +8,10 @@
 
     A_data/output/panel_base.parquet
 
+热力图专用输出文件：
+
+    A_data/output/panel_base_heatmap_m1_12_n1_12.parquet
+
 脚本按配置生成逐步前推的过去收益率窗口，并计算未来 3、6、12 个月
 被解释变量收益率。收益率可以选择：
 
@@ -21,6 +25,7 @@
 
     python A_data/scripts/3_generate_panel_base.py
     python A_data/scripts/3_generate_panel_base.py --return-type log
+    python A_data/scripts/3_generate_panel_base.py --spec-set heatmap
 
 整体流程概览：
     1. 读取筛选长表（每个投资类型一份 parquet 文件）
@@ -56,6 +61,7 @@ PROJECT_ROOT = Config.PROJECT_ROOT          # 项目根目录
 A_DATA_ROOT = Config.A_DATA_ROOT            # A_data 目录
 DEFAULT_SOURCE_DIR = Config.PANEL_SOURCE_DIR    # 筛选长表所在目录
 DEFAULT_OUTPUT_PATH = Config.PANEL_OUTPUT_PATH  # 面板输出路径
+DEFAULT_HEATMAP_OUTPUT_PATH = Config.PANEL_HEATMAP_OUTPUT_PATH
 
 # 未来收益率的期限列表，例如 [3, 6, 12] 表示未来 3/6/12 个月
 FUTURE_RETURN_HORIZONS = Config.PANEL_FUTURE_RETURN_HORIZONS
@@ -66,14 +72,26 @@ REQUIRED_COLUMNS = Config.PANEL_REQUIRED_COLUMNS
 # 原有 pairwise=1 组合继续单独保留，主要用于兼容已有调用方。
 PAST_RETURN_COMBOS = Config.PANEL_PAST_RETURN_COMBOS
 
-# 多步长统一规格。每个元素依次为：排名期数 m、单期收益期限 n、实际步长。
-# 例如 (6, 3, 3) 表示回看 6 个互不重叠的 3 个月收益窗口。
+# 多步长统一规格。每个元素依次为：单期收益期限 m、排名期数 n、实际步长。
+# 例如 (6, 3, 6) 表示回看 3 个互不重叠的 6 个月收益窗口。
 PAST_RETURN_SPECS = Config.PANEL_PAST_RETURN_SPECS
+
+SPEC_SET_CHOICES = ("baseline", "heatmap")
 
 
 def parse_args() -> argparse.Namespace:
     """读取命令行参数，允许用户在运行时指定收益率类型、源目录和输出路径。"""
     parser = argparse.ArgumentParser(description="生成基金多周期收益率面板。")
+    parser.add_argument(
+        "--spec-set",
+        choices=SPEC_SET_CHOICES,
+        default="baseline",
+        help=(
+            "过去收益率规格集合：baseline 为原有规格；"
+            "heatmap 为 m=1..12、n=1..12、pairwise=1，并补充 winrate 所需"
+            "m,n=1..6、pairwise=m 的非重叠规格。"
+        ),
+    )
     parser.add_argument(
         "--return-type",
         choices=Config.VALID_RETURN_TYPES,
@@ -89,10 +107,46 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--output",
         type=Path,
-        default=DEFAULT_OUTPUT_PATH,
-        help="面板输出路径。",
+        default=None,
+        help=(
+            "面板输出路径。未指定时，baseline 写入默认 panel_base.parquet，"
+            "heatmap 写入热力图专用 parquet。"
+        ),
     )
     return parser.parse_args()
+
+
+def get_specs_for_spec_set(spec_set: str) -> tuple[tuple[int, int, int], ...]:
+    """按命令行选择返回过去收益率规格。
+
+    baseline 保持项目原有规格不变；heatmap 使用 1..12 滚动完整网格，并补入
+    1..6 的非重叠 winrate 网格。
+    返回 tuple 是为了让后续校验和循环逻辑拿到不可变、可复现的配置快照。
+    """
+    if spec_set == "baseline":
+        return Config.PANEL_PAST_RETURN_SPECS
+    if spec_set == "heatmap":
+        return Config.PANEL_HEATMAP_PAST_RETURN_SPECS
+    raise ValueError(f"未知规格集合：{spec_set}")
+
+
+def get_default_output_path(spec_set: str) -> Path:
+    """按规格集合返回默认输出路径，避免热力图模式覆盖基准面板。"""
+    if spec_set == "baseline":
+        return DEFAULT_OUTPUT_PATH
+    if spec_set == "heatmap":
+        return DEFAULT_HEATMAP_OUTPUT_PATH
+    raise ValueError(f"未知规格集合：{spec_set}")
+
+
+def set_past_return_specs(specs: Iterable[tuple[int, int, int]]) -> None:
+    """切换当前运行使用的过去收益率规格。
+
+    本脚本中很多列名函数会共享同一套规格。集中在入口处切换全局变量，
+    可以让 baseline 和 heatmap 共用同一条计算流水线，又不改变默认行为。
+    """
+    global PAST_RETURN_SPECS
+    PAST_RETURN_SPECS = tuple(specs)
 
 
 def require_columns(
@@ -198,8 +252,8 @@ def validate_past_return_specs() -> None:
     for spec in PAST_RETURN_SPECS:
         if len(spec) != 3:
             raise ValueError(f"过去收益率规格必须为三元组，当前为 {spec!r}。")
-        rank_count, return_horizon, pairwise = spec
-        values = (rank_count, return_horizon, pairwise)
+        return_horizon, rank_count, pairwise = spec
+        values = (return_horizon, rank_count, pairwise)
         if any(
             not isinstance(value, int) or isinstance(value, bool) or value <= 0
             for value in values
@@ -223,7 +277,7 @@ def get_pairwise_past_return_windows() -> dict[tuple[int, int], int]:
     """
     validate_past_return_specs()
     windows: dict[tuple[int, int], int] = {}
-    for rank_count, return_horizon, pairwise in PAST_RETURN_SPECS:
+    for return_horizon, rank_count, pairwise in PAST_RETURN_SPECS:
         key = (return_horizon, pairwise)
         windows[key] = max(windows.get(key, 0), rank_count)
     return dict(sorted(windows.items()))
@@ -306,12 +360,12 @@ def get_rank_volatility_column(
     """返回指定 (m, n) 组合的排名波动率列名。
 
     排名波动率 = 多个子期间排名的标准差。
-    列名格式：rank_vol_m{rank_count}_n{return_horizon}_pairwise{step}
+    列名格式：rank_vol_m{return_horizon}_n{rank_count}_pairwise{step}
     例如 rank_vol_m6_n12_pairwise1 表示：
-        回看 6 个子期间（m=6），每个子期间算 12 个月收益率（n=12），步长为 1
+        回看 12 个子期间（n=12），每个子期间计算 6 个月收益率（m=6），步长为 1
     """
     return (
-        f"rank_vol_m{rank_count}_n{return_horizon}_"
+        f"rank_vol_m{return_horizon}_n{rank_count}_"
         f"pairwise{pairwise}"
     )
 
@@ -320,7 +374,7 @@ def get_rank_volatility_columns() -> list[str]:
     """列出所有排名波动率列名（rank_vol_*）。"""
     return [
         get_rank_volatility_column(rank_count, return_horizon, pairwise)
-        for rank_count, return_horizon, pairwise in PAST_RETURN_SPECS
+        for return_horizon, rank_count, pairwise in PAST_RETURN_SPECS
     ]
 
 
@@ -339,7 +393,7 @@ def get_fac_rank_volatility_columns() -> list[str]:
     """列出所有排名波动率反向指标列名（FAC_rank_vol_*）。"""
     return [
         get_fac_rank_volatility_column(rank_count, return_horizon, pairwise)
-        for rank_count, return_horizon, pairwise in PAST_RETURN_SPECS
+        for return_horizon, rank_count, pairwise in PAST_RETURN_SPECS
     ]
 
 
@@ -599,7 +653,7 @@ def add_rank_volatility_columns(result: pd.DataFrame) -> pd.DataFrame:
     区别在于这里有更严格的缺失值处理和 match 标签过滤。
     """
     new_columns: dict[str, pd.Series] = {}
-    for rank_count, return_horizon, pairwise in PAST_RETURN_SPECS:
+    for return_horizon, rank_count, pairwise in PAST_RETURN_SPECS:
         # 收集需要的排名列名（共 rank_count 列）
         rank_columns = [
             get_past_rank_column(return_horizon, window_index, pairwise)
@@ -640,7 +694,7 @@ def add_fac_rank_volatility_columns(result: pd.DataFrame) -> pd.DataFrame:
     如果原始 rank_vol 缺失，1 - NaN = NaN，自然保留为缺失值。
     """
     new_columns: dict[str, pd.Series] = {}
-    for rank_count, return_horizon, pairwise in PAST_RETURN_SPECS:
+    for return_horizon, rank_count, pairwise in PAST_RETURN_SPECS:
         volatility_column = get_rank_volatility_column(
             rank_count, return_horizon, pairwise
         )
@@ -832,7 +886,7 @@ def validate_panel(panel: pd.DataFrame, source_row_count: int) -> None:
                 raise AssertionError(f"{rank_column} 在非排名样本中出现非缺失值。")
 
     # --- 校验 7-9：排名波动率和 FAC 指标 ---
-    for rank_count, return_horizon, pairwise in PAST_RETURN_SPECS:
+    for return_horizon, rank_count, pairwise in PAST_RETURN_SPECS:
         rank_columns = [
             get_past_rank_column(return_horizon, window_index, pairwise)
             for window_index in range(1, rank_count + 1)
@@ -865,8 +919,9 @@ def validate_panel(panel: pd.DataFrame, source_row_count: int) -> None:
 
 def generate_panel(
     source_dir: Path = DEFAULT_SOURCE_DIR,
-    output_path: Path = DEFAULT_OUTPUT_PATH,
+    output_path: Path | None = None,
     return_type: str = Config.PANEL_RETURN_TYPE,
+    spec_set: str = "baseline",
     write_preview: bool = True,
 ) -> dict[str, object]:
     """生成面板文件的主入口函数。
@@ -879,6 +934,12 @@ def generate_panel(
     5. 保存 parquet 和可选的 Excel 预览
     6. 返回运行摘要字典
     """
+    # 根据运行模式切换过去收益率规格。默认 baseline 完全沿用原有规格；
+    # heatmap 则使用 m=1..12、n=1..12 的专用网格，并默认写入独立文件。
+    set_past_return_specs(get_specs_for_spec_set(spec_set))
+    if output_path is None:
+        output_path = get_default_output_path(spec_set)
+
     if not source_dir.exists():
         raise FileNotFoundError(f"输入目录不存在：{source_dir}")
 
@@ -930,7 +991,7 @@ def generate_panel(
             pairwise_rank_counts[key] = int(
                 panel[rank_column].notna().sum()
             )
-    for rank_count, return_horizon, pairwise in PAST_RETURN_SPECS:
+    for return_horizon, rank_count, pairwise in PAST_RETURN_SPECS:
         volatility_column = get_rank_volatility_column(
             rank_count, return_horizon, pairwise
         )
@@ -939,6 +1000,7 @@ def generate_panel(
         )
 
     return {
+        "spec_set": spec_set,
         "return_type": return_type,
         "source_file_count": len(source_files),
         "row_count": len(panel),
@@ -953,6 +1015,7 @@ def generate_panel(
 
 def print_panel_summary(summary: dict[str, object]) -> None:
     """打印面板生成摘要，展示各周期的有效样本数量。"""
+    print(f"规格集合：{summary['spec_set']}")
     print(f"收益率类型：{summary['return_type']}")
     print(f"来源文件数：{summary['source_file_count']}")
     print(f"输出行数：{summary['row_count']:,}")
@@ -970,8 +1033,8 @@ def print_panel_summary(summary: dict[str, object]) -> None:
     pairwise_match_counts = summary["pairwise_match_counts"]
     pairwise_rank_counts = summary["pairwise_rank_counts"]
     rank_volatility_counts = summary["rank_volatility_counts"]
-    for rank_count, return_horizon, pairwise in PAST_RETURN_SPECS:
-        spec = (rank_count, return_horizon, pairwise)
+    for return_horizon, rank_count, pairwise in PAST_RETURN_SPECS:
+        spec = (return_horizon, rank_count, pairwise)
         print(f"过去收益率窗口规格 {spec}：")
         for window_index in range(1, rank_count + 1):
             key = get_past_return_column(return_horizon, window_index, pairwise)
@@ -989,24 +1052,15 @@ def print_panel_summary(summary: dict[str, object]) -> None:
         )
 
 
-def main() -> None:
-    """命令行入口：解析参数 → 生成面板 → 打印摘要。"""
-    args = parse_args()
-    summary = generate_panel(
-        source_dir=args.source_dir,
-        output_path=args.output,
-        return_type=args.return_type,
-        write_preview=True,
-    )
-    print_panel_summary(summary)
+def run_downstream_scripts() -> None:
+    """运行基准面板的后续脚本。
 
+    这些脚本默认读取 A_data/output/panel_base.parquet。热力图模式写入的是专用
+    parquet，因此不自动运行它们，避免用户只想生成热力图面板时误触发默认流程。
+    """
+    import subprocess
+    import sys
 
-if __name__ == "__main__":
-    import subprocess, sys
-
-    main()
-
-    # 生成面板后自动运行控制变量和分组因子脚本，省去手动输三次命令。
     scripts_dir = Path(__file__).parent
     for script in ("3_panel_base_controls_variable.py", "3_panel_base_grouping_factors.py"):
         script_path = scripts_dir / script
@@ -1017,3 +1071,26 @@ if __name__ == "__main__":
         if result.returncode != 0:
             print(f"\n{script} 运行失败（returncode={result.returncode}），中止后续脚本。")
             sys.exit(result.returncode)
+
+
+def main() -> argparse.Namespace:
+    """命令行入口：解析参数 → 生成面板 → 打印摘要。"""
+    args = parse_args()
+    summary = generate_panel(
+        source_dir=args.source_dir,
+        output_path=args.output,
+        return_type=args.return_type,
+        spec_set=args.spec_set,
+        write_preview=True,
+    )
+    print_panel_summary(summary)
+    return args
+
+
+if __name__ == "__main__":
+    parsed_args = main()
+
+    # 保持默认行为不变：无参数或显式 baseline 时，仍在生成基准 panel_base 后
+    # 自动运行控制变量和分组因子脚本。heatmap 只产出专用 parquet。
+    if parsed_args.spec_set == "baseline":
+        run_downstream_scripts()

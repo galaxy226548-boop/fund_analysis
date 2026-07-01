@@ -84,6 +84,19 @@ FACTOR_SAMPLE_FILTERS = {
     factor: dict(filters)
     for factor, filters in dict(REGRESSION_CONFIG.get("factor_sample_filters", {})).items()
 }
+INTERACTION_MAIN_EFFECTS = list(
+    REGRESSION_CONFIG.get("interaction_main_effects") or []
+)
+RAW_INTERACTIONS = list(REGRESSION_CONFIG.get("interactions") or [])
+RAW_INTERACTION_CENTERING = REGRESSION_CONFIG.get("interaction_centering", "none")
+Y_COL = str(REGRESSION_CONFIG["y"])
+
+CURRENT_FACTOR_PLACEHOLDER = "FAC"
+MATCHED_RANK_MEAN_PLACEHOLDER = "RANK_MEAN"
+STANDARDIZE_NONE = "none"
+STANDARDIZE_CROSS_SECTION = "cross_section"
+CENTER_NONE = "none"
+CENTER_CROSS_SECTION_MEAN = "cross_section_mean"
 
 # 审核结果阈值。
 # 相关系数使用绝对值，是因为高正相关和高负相关都可能带来共线性或变量重叠风险。
@@ -129,6 +142,246 @@ def flatten_factor_columns(factor_specs: list[object]) -> list[str]:
     for factor_spec in factor_specs:
         columns.extend(factor_columns_for_spec(factor_spec))
     return list(dict.fromkeys(columns))
+
+
+def resolve_variable_for_factor(variable: object, factor_col: str) -> str:
+    """把 FAC/RANK_MEAN 占位符解析成当前期限的真实列名。"""
+    variable_name = str(variable).strip()
+    if variable_name == CURRENT_FACTOR_PLACEHOLDER:
+        return factor_col
+    if variable_name == MATCHED_RANK_MEAN_PLACEHOLDER:
+        if not factor_col.startswith("FAC_rank_vol_"):
+            raise ValueError(f"无法从当前 factor 推导 rank_mean 列名：{factor_col!r}")
+        return factor_col.replace("FAC_rank_vol_", "rank_mean_", 1)
+    if not variable_name:
+        raise ValueError("交互项或主效应变量名不能为空")
+    return variable_name
+
+
+def normalize_standardize_method(method: object) -> str:
+    """统一交互项标准化配置；当前支持不标准化和按月截面标准化。"""
+    normalized = str(method if method is not None else STANDARDIZE_NONE).strip().lower()
+    aliases = {
+        "": STANDARDIZE_NONE,
+        "none": STANDARDIZE_NONE,
+        "no": STANDARDIZE_NONE,
+        "不标准化": STANDARDIZE_NONE,
+        "不標準化": STANDARDIZE_NONE,
+        "cross_section": STANDARDIZE_CROSS_SECTION,
+        "cross-section": STANDARDIZE_CROSS_SECTION,
+        "cross_sectional": STANDARDIZE_CROSS_SECTION,
+        "by_month": STANDARDIZE_CROSS_SECTION,
+        "按回归截面标准化": STANDARDIZE_CROSS_SECTION,
+        "按回歸截面標準化": STANDARDIZE_CROSS_SECTION,
+    }
+    if normalized not in aliases:
+        raise ValueError(f"未知交互项标准化方式：{method!r}")
+    return aliases[normalized]
+
+
+def normalize_centering_method(method: object) -> str:
+    """统一交互变量中心化配置；目前支持不处理和按月截面去均值。"""
+    normalized = str(method if method is not None else CENTER_NONE).strip().lower()
+    aliases = {
+        "": CENTER_NONE,
+        "none": CENTER_NONE,
+        "no": CENTER_NONE,
+        "不中心化": CENTER_NONE,
+        "cross_section_mean": CENTER_CROSS_SECTION_MEAN,
+        "cross-section-mean": CENTER_CROSS_SECTION_MEAN,
+        "by_month_mean": CENTER_CROSS_SECTION_MEAN,
+        "monthly_demean": CENTER_CROSS_SECTION_MEAN,
+        "月度去均值": CENTER_CROSS_SECTION_MEAN,
+    }
+    if normalized not in aliases:
+        raise ValueError(f"未知交互变量中心化方式：{method!r}")
+    return aliases[normalized]
+
+
+INTERACTION_CENTERING = normalize_centering_method(RAW_INTERACTION_CENTERING)
+
+
+def parse_braced_interaction(text: str) -> tuple[str, str]:
+    """解析 registry 中的 ``{X1,X2}`` 交互项简写。"""
+    stripped = text.strip()
+    if not (stripped.startswith("{") and stripped.endswith("}")):
+        raise ValueError(f"字符串交互项必须写成 {{X1,X2}} 形式：{text!r}")
+    variables = [part.strip() for part in stripped[1:-1].split(",")]
+    if len(variables) != 2 or any(not variable for variable in variables):
+        raise ValueError(f"交互项必须恰好包含两个非空变量：{text!r}")
+    return variables[0], variables[1]
+
+
+def parse_interaction_config(
+    raw_interactions: list[object],
+) -> list[dict[str, str]]:
+    """把 registry 的多种交互项写法整理成统一结构。"""
+    parsed: list[dict[str, str]] = []
+    for index, item in enumerate(raw_interactions, start=1):
+        standardize = STANDARDIZE_NONE
+        custom_name: str | None = None
+
+        if isinstance(item, str):
+            var1, var2 = parse_braced_interaction(item)
+        elif isinstance(item, dict):
+            if "variables" in item:
+                variables = item["variables"]
+            elif "vars" in item:
+                variables = item["vars"]
+            elif "columns" in item:
+                variables = item["columns"]
+            elif {"x1", "x2"}.issubset(item):
+                variables = [item["x1"], item["x2"]]
+            else:
+                raise ValueError(f"交互项字典缺少变量定义：第 {index} 项 {item!r}")
+            if isinstance(variables, str):
+                var1, var2 = parse_braced_interaction(variables)
+            else:
+                values = sorted(variables) if isinstance(variables, set) else list(variables)
+                if len(values) != 2:
+                    raise ValueError(f"交互项必须恰好包含两个变量：第 {index} 项")
+                var1, var2 = str(values[0]), str(values[1])
+            standardize = normalize_standardize_method(item.get("standardize"))
+            custom_name = str(item["name"]).strip() if item.get("name") else None
+        elif isinstance(item, (list, tuple, set)):
+            values = sorted(item) if isinstance(item, set) else list(item)
+            if len(values) != 2:
+                raise ValueError(f"交互项必须恰好包含两个变量：第 {index} 项")
+            var1, var2 = str(values[0]), str(values[1])
+        else:
+            raise TypeError(f"不支持的交互项配置类型：{type(item).__name__}")
+
+        var1, var2 = str(var1).strip(), str(var2).strip()
+        if not var1 or not var2 or var1 == var2:
+            raise ValueError(f"交互项变量无效：第 {index} 项 {item!r}")
+        suffix = "" if standardize == STANDARDIZE_NONE else "__zcs"
+        if INTERACTION_CENTERING == CENTER_CROSS_SECTION_MEAN:
+            suffix += "__dmcs"
+        parsed.append(
+            {
+                "var1": var1,
+                "var2": var2,
+                "standardize": standardize,
+                "name": custom_name or f"{var1}__x__{var2}{suffix}",
+            }
+        )
+    return parsed
+
+
+INTERACTIONS = parse_interaction_config(RAW_INTERACTIONS)
+
+if INTERACTION_CENTERING != CENTER_NONE and any(
+    interaction["standardize"] != STANDARDIZE_NONE for interaction in INTERACTIONS
+):
+    raise ValueError("interaction_centering 不能与交互项 standardize 同时启用")
+
+
+def interaction_source_columns_for_factor(factor_col: str) -> list[str]:
+    """列出当前期限生成主效应和交互项所需的原始输入列。"""
+    columns = [
+        resolve_variable_for_factor(variable, factor_col)
+        for variable in INTERACTION_MAIN_EFFECTS
+    ]
+    for interaction in INTERACTIONS:
+        columns.extend(
+            [
+                resolve_variable_for_factor(interaction["var1"], factor_col),
+                resolve_variable_for_factor(interaction["var2"], factor_col),
+            ]
+        )
+    return list(dict.fromkeys(columns))
+
+
+def make_centered_column_name(column: str) -> str:
+    """生成与回归脚本一致的月度截面去均值列名。"""
+    return f"{column}__dmcs"
+
+
+def demean_by_cross_section(
+    data: pd.DataFrame,
+    column: str,
+    centering_mask: pd.Series | None = None,
+) -> pd.Series:
+    """在当前模型完整候选样本内，按月对单个解释变量仅做去均值。"""
+    if centering_mask is None:
+        centering_mask = pd.Series(True, index=data.index)
+
+    centered = pd.Series(np.nan, index=data.index, dtype=float)
+    numeric = pd.to_numeric(data.loc[centering_mask, column], errors="coerce")
+    month_means = numeric.groupby(
+        data.loc[centering_mask, DATE_COL], sort=False
+    ).transform("mean")
+    centered.loc[centering_mask] = numeric - month_means
+    return centered
+
+
+def add_interaction_columns(
+    data: pd.DataFrame,
+    factor_col: str,
+    centering_mask: pd.Series | None = None,
+) -> pd.DataFrame:
+    """按当前期限生成与回归脚本同定义的乘积交互项。"""
+    if not INTERACTIONS:
+        return data
+
+    result = data.copy()
+    for interaction in INTERACTIONS:
+        var1 = resolve_variable_for_factor(interaction["var1"], factor_col)
+        var2 = resolve_variable_for_factor(interaction["var2"], factor_col)
+        method = interaction["standardize"]
+
+        if method == STANDARDIZE_NONE:
+            if INTERACTION_CENTERING == CENTER_CROSS_SECTION_MEAN:
+                # 与回归脚本完全一致：两侧变量先在当月完整候选样本内减均值，
+                # 诊断矩阵同时使用这两个中心化主效应及其乘积。
+                left = demean_by_cross_section(result, var1, centering_mask)
+                right = demean_by_cross_section(result, var2, centering_mask)
+                result[make_centered_column_name(var1)] = left
+                result[make_centered_column_name(var2)] = right
+            else:
+                left = pd.to_numeric(result[var1], errors="coerce")
+                right = pd.to_numeric(result[var2], errors="coerce")
+        else:
+            # 标准化只使用当前期限通过样本筛选后的月度截面，与回归口径一致。
+            def zscore(series: pd.Series) -> pd.Series:
+                numeric = pd.to_numeric(series, errors="coerce")
+                std = numeric.std(ddof=0)
+                if pd.isna(std) or std == 0:
+                    return pd.Series(np.nan, index=series.index)
+                return (numeric - numeric.mean()) / std
+
+            left = result.groupby(DATE_COL, sort=False)[var1].transform(zscore)
+            right = result.groupby(DATE_COL, sort=False)[var2].transform(zscore)
+
+        result[interaction["name"]] = left * right
+    return result
+
+
+def diagnostic_variables_for_factor(
+    factor_col: str, control_columns: list[str]
+) -> list[str]:
+    """构造当前期限完整回归设计矩阵的变量顺序。"""
+    main_effects = [
+        resolve_variable_for_factor(variable, factor_col)
+        for variable in INTERACTION_MAIN_EFFECTS
+    ]
+    factor_and_main_effects = [factor_col, *main_effects]
+    if INTERACTION_CENTERING == CENTER_CROSS_SECTION_MEAN and INTERACTIONS:
+        interaction_sources = {
+            resolve_variable_for_factor(variable, factor_col)
+            for interaction in INTERACTIONS
+            for variable in (interaction["var1"], interaction["var2"])
+        }
+        factor_and_main_effects = [
+            make_centered_column_name(column)
+            if column in interaction_sources
+            else column
+            for column in factor_and_main_effects
+        ]
+    interaction_names = [interaction["name"] for interaction in INTERACTIONS]
+    return list(
+        dict.fromkeys([*factor_and_main_effects, *interaction_names, *control_columns])
+    )
 
 
 def parse_args() -> argparse.Namespace:
@@ -934,17 +1187,42 @@ def main() -> None:
     )
 
     data = pd.read_parquet(args.input)
-    require_columns(data, [DATE_COL] + variables + get_filter_columns(), args.input)
+    required_variables = list(variables)
+    if variable_source_info["mode"] == "grouped_consistency_control":
+        # 交互项列稍后在脚本内生成；这里检查生成它们所需的 rank_mean 等源列。
+        for factor_col in variable_source_info["consistency_columns"]:
+            required_variables.extend(interaction_source_columns_for_factor(factor_col))
+    require_columns(
+        data,
+        [DATE_COL] + list(dict.fromkeys(required_variables)) + get_filter_columns(),
+        args.input,
+    )
 
     factor_filter_metadata: dict[str, dict[str, object]] = {}
     if variable_source_info["mode"] == "grouped_consistency_control":
         # 默认 registry 模式：每个 Consistency 指标单独应用自己的 factor_sample_filters。
         per_factor_outputs: list[dict[str, object]] = []
         for factor_col in variable_source_info["consistency_columns"]:
-            factor_variables = [factor_col] + variable_source_info["control_columns"]
+            factor_variables = diagnostic_variables_for_factor(
+                factor_col,
+                variable_source_info["control_columns"],
+            )
             factor_filters = get_filters_for_factor(factor_col)
             factor_filter_metadata[factor_col] = factor_filters
             factor_data = apply_sample_filters(data, factor_filters)
+            # 中心化均值使用和回归相同的完整候选样本：因变量、当前 FAC、
+            # 对应 rank_mean 及所有控制变量都非缺失，其他期限不会影响本期限。
+            raw_required = list(
+                dict.fromkeys(
+                    [Y_COL, factor_col]
+                    + interaction_source_columns_for_factor(factor_col)
+                    + list(variable_source_info["control_columns"])
+                )
+            )
+            centering_mask = factor_data[raw_required].notna().all(axis=1)
+            factor_data = add_interaction_columns(
+                factor_data, factor_col, centering_mask
+            )
             output = analyze_variable_set(
                 data=factor_data,
                 variables=factor_variables,
@@ -1024,6 +1302,19 @@ def main() -> None:
                 }
                 for output in per_factor_outputs
             },
+        }
+        # 报告和 metadata 使用真正进入各期限诊断的完整变量合集。
+        variables = list(
+            dict.fromkeys(
+                variable
+                for output in per_factor_outputs
+                for variable in output["variables"]
+            )
+        )
+        variable_source_info["variables"] = variables
+        variable_source_info["expanded_variables_by_factor"] = {
+            str(output["factor_col"]): output["variables"]
+            for output in per_factor_outputs
         }
     else:
         # 手动变量模式没有明确的“当前 factor”，只应用共同基础筛选，维持旧的整体诊断语义。
@@ -1110,6 +1401,7 @@ def main() -> None:
         "date_col": DATE_COL,
         "min_cross_section_n": int(args.min_cross_section_n),
         "source_config": str(REGISTRY_PATH),
+        "interaction_centering": INTERACTION_CENTERING,
         "variable_source_info": variable_source_info,
         "sample_filters": SAMPLE_FILTERS,
         "factor_sample_filters": {

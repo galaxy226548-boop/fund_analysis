@@ -23,6 +23,7 @@ import argparse
 import json
 import subprocess
 import sys
+import tempfile
 from collections import OrderedDict
 from datetime import datetime
 from pathlib import Path
@@ -40,6 +41,27 @@ DEFAULT_MAX_ROUNDS = 50
 # 如果不加 --skip-panel 就会导致面板脚本被重复执行。
 SCRIPT_EXTRA_ARGS: dict[str, list[str]] = {
     "2_fund_filter.py": ["--skip-panel"],
+    "3_generate_panel_base_heatmap.py": ["--spec-set", "heatmap"],
+    "3_panel_base_controls_variable_heatmap.py": [
+        "--input",
+        "A_data/output/panel_base_heatmap_m1_12_n1_12.parquet",
+        "--output",
+        "A_data/output/panel_base_heatmap_m1_12_n1_12.parquet",
+        "--factor-input-dir",
+        # heatmap 数据不会被 B_factors 使用，这里只是用来满足脚本
+        # "必须复制一份到 factor-input-dir" 的硬性要求，因此指向系统临时目录，
+        # 避免在项目仓库里留下没人用的副本。
+        str(Path(tempfile.gettempdir()) / "fund_analysis_heatmap_factor_input_unused"),
+    ],
+    "3_panel_base_grouping_factors_heatmap.py": ["--spec-set", "heatmap"],
+}
+
+# 部分 JSON key 是同一个脚本文件的不同运行变体（例如 heatmap 模式），
+# 需要映射回真实的脚本文件名才能定位到磁盘上的文件。
+SCRIPT_FILE_OVERRIDES: dict[str, str] = {
+    "3_generate_panel_base_heatmap.py": "3_generate_panel_base.py",
+    "3_panel_base_controls_variable_heatmap.py": "3_panel_base_controls_variable.py",
+    "3_panel_base_grouping_factors_heatmap.py": "3_panel_base_grouping_factors.py",
 }
 
 
@@ -140,7 +162,8 @@ def resolve_script_path(script_name: str) -> Path:
     """
     if "/" in script_name or "\\" in script_name:
         return PROJECT_ROOT / script_name
-    return SCRIPTS_DIR / script_name
+    actual_name = SCRIPT_FILE_OVERRIDES.get(script_name, script_name)
+    return SCRIPTS_DIR / actual_name
 
 
 def run_script(script_name: str, python_executable: Path) -> None:

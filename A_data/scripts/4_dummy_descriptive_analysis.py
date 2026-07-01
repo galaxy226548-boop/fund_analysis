@@ -3,7 +3,9 @@
 
 本脚本优先从 regression_registry.py 的已有字段自动推断，不需要新增配置字段。
 需要的字段包括：factors、y、date_col、sample_filters、preprocess_output_path、
-output_dir 和 factor_group_suffixes。
+output_dir 和 factor_group_suffixes。回归配置为了避免 dummy variable trap 会省略
+hit0 基准组；描述性统计会为普通 one-hot 组自动补回 hit0，累积门槛组则保持
+原有的四个嵌套变量。
 """
 
 from __future__ import annotations
@@ -159,13 +161,68 @@ def clean_filename_text(raw_text: str) -> str:
 
 
 def extract_hit_label(dummy_name: str) -> str:
-    """从 dummy 列名中提取 hit1、hit2 这样的短标签。"""
+    """从 dummy 列名中提取简短且保留经济含义的 hit 标签。"""
+    # 累积门槛必须先匹配，避免将 hit_above0 错当成普通 hit0。
+    cumulative_match = re.search(r"_hit_above(\d+)(?:_|$)", dummy_name)
+    if cumulative_match:
+        return f"hit>{cumulative_match.group(1)}"
+
     # 用正则匹配 "_hitN_" 或 "_hitN" 结尾的模式，取出数字 N。
     match = re.search(r"_hit(\d+)(?:_|$)", dummy_name)
     if match:
         return f"hit{match.group(1)}"
     # 没有匹配到 hit 模式时，退回原始列名作为标签。
     return dummy_name
+
+
+def include_hit0_for_descriptive(
+    df: pd.DataFrame,
+    dummy_cols: tuple[str, ...],
+) -> tuple[str, ...]:
+    """为普通 one-hot 描述性统计补回回归配置中省略的 hit0 基准组。
+
+    带截距项回归只能放入 hit1 到 hitm，否则全部 dummy 的行和为 1，会产生完全
+    共线性；描述性统计没有这个限制，因此应该展示 hit0 到 hitm 的完整分布。
+    ``hit_aboveN`` 累积 dummy 不是互斥分组，不能也不需要补造 hit0。
+    """
+    # 如果配置以后已经显式包含 hit0，就直接沿用，避免重复添加同一列。
+    if any(extract_hit_label(column) == "hit0" for column in dummy_cols):
+        return dummy_cols
+
+    # 同一组 dummy 只有命中次数不同，因此可由第一列（通常是 hit1）稳定推导 hit0。
+    first_col = dummy_cols[0]
+    hit0_col = re.sub(r"_hit\d+(?=_|$)", "_hit0", first_col, count=1)
+
+    # 对不采用 hitN 命名的通用 dummy 组保持原行为，不擅自猜测基准组列名。
+    if hit0_col == first_col:
+        return dummy_cols
+
+    if hit0_col not in df.columns:
+        # 清洗流水线只保留回归需要的 hit1 到 hitm，因此输出面板可能没有 hit0。
+        # 利用 one-hot 互斥关系重建基准组，同时保留无有效历史窗口行的缺失状态。
+        numeric_df = build_dummy_numeric_df(df, dummy_cols)
+        all_missing = numeric_df.isna().all(axis=1)
+        all_present = numeric_df.notna().all(axis=1)
+        partial_missing = ~(all_missing | all_present)
+        if partial_missing.any():
+            raise ValueError(
+                f"{dummy_cols[0]} 所在 dummy 组出现部分列缺失，无法可靠重建 hit0；"
+                f"异常行数：{int(partial_missing.sum())}"
+            )
+
+        row_sum = numeric_df.loc[all_present].sum(axis=1)
+        invalid_sum = ~row_sum.isin([0, 1])
+        if invalid_sum.any():
+            raise ValueError(
+                f"{dummy_cols[0]} 所在 dummy 组不满足 one-hot 规则，无法可靠重建 hit0；"
+                f"异常行数：{int(invalid_sum.sum())}"
+            )
+
+        hit0 = pd.Series(np.nan, index=df.index, dtype="float64")
+        hit0.loc[all_present] = (row_sum == 0).astype("int64")
+        df[hit0_col] = hit0
+
+    return (hit0_col, *dummy_cols)
 
 
 def infer_group_suffix(dummy_cols: tuple[str, ...]) -> str:
@@ -714,11 +771,17 @@ def main() -> None:
     all_tables: dict[str, tuple[pd.DataFrame, bool]] = {}
     plot_items: list[dict[str, Any]] = []
     for dummy_cols in dummy_groups:
+        # suffix 映射的 key 使用原始回归变量组，因此要在补 hit0 之前取得短名称。
         group_suffix = get_group_suffix(dummy_cols, factor_group_suffixes)
+        # 普通 one-hot 回归省略 hit0，描述性统计会补回；累积门槛组保持不变。
+        descriptive_dummy_cols = include_hit0_for_descriptive(
+            filtered_df,
+            dummy_cols,
+        )
         print(f"\n开始分析：{group_suffix}")
         analysis_result = analyze_one_dummy_group(
             filtered_df,
-            dummy_cols,
+            descriptive_dummy_cols,
             group_suffix,
             y_column,
             date_col,
