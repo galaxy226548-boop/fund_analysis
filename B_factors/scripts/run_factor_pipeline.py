@@ -174,9 +174,14 @@ def resolve_config(args: argparse.Namespace) -> dict[str, Any]:
 def keep_columns(config: dict[str, Any]) -> list[str]:
     """按旧大脚本的列顺序拼出 KEEP_COLUMNS。"""
 
+    # sample_filters 里的列既要用于本轮筛选，也应保留到清洗面板，供回归、
+    # 相关性检查和组合排序再次核对同一口径。过去只依赖 sample_flag_columns，
+    # 如果 registry 新增筛选条件却忘了同步登记，就会在选列步骤提前丢失该列。
+    sample_filter_columns = list(dict(config.get("sample_filters", {})))
     base_columns = (
         list(config["id_columns"])
         + list(config["sample_flag_columns"])
+        + sample_filter_columns
         + list(config["y_columns"])
         + list(config["factor_columns"])
         + list(config["control_columns"])
@@ -188,9 +193,10 @@ def keep_columns(config: dict[str, Any]) -> list[str]:
         for filters in dict(config.get("factor_sample_filters", {})).values()
         for column in filters
     ]
-    return base_columns + [
+    columns = base_columns + [
         column for column in dict.fromkeys(factor_filter_columns) if column not in base_columns
     ]
+    return list(dict.fromkeys(columns))
 
 
 def write_outputs(

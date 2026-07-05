@@ -1,11 +1,12 @@
 {
-  "run_time": "2026-06-26T20:58:36",
+  "run_time": "2026-07-02T20:38:05",
   "model_key": "fm_baseline_up",
   "input_path": "/Users/chloezh/Projects/Fund_Analysis/B_factors/output/fm_baseline_up/panel_base.parquet",
   "output_dir": "/Users/chloezh/Projects/Fund_Analysis/B_factors/output/fm_baseline_up/variable_correlation_check",
   "date_col": "month_date",
   "min_cross_section_n": 50,
   "source_config": "/Users/chloezh/Projects/Fund_Analysis/D_analysis/config/regression_registry.py",
+  "interaction_centering": "none",
   "variable_source_info": {
     "mode": "grouped_consistency_control",
     "variables_source": "consistency_columns + control_columns",
@@ -28,21 +29,69 @@
     ],
     "variables": [
       "FAC_rank_vol_m3_n6_pairwise1",
-      "FAC_rank_vol_m6_n3_pairwise1",
-      "FAC_rank_vol_m6_n6_pairwise1",
-      "FAC_rank_vol_m6_n12_pairwise1",
-      "FAC_rank_vol_m12_n6_pairwise1",
       "CtrlRetSTR",
       "CtrlRetLTM",
       "CtrlVol",
       "as_偏股混合型基金",
       "Ctrl_log_fund_size",
-      "Ctrl_fund_age"
+      "Ctrl_fund_age",
+      "FAC_rank_vol_m6_n3_pairwise1",
+      "FAC_rank_vol_m6_n6_pairwise1",
+      "FAC_rank_vol_m6_n12_pairwise1",
+      "FAC_rank_vol_m12_n6_pairwise1"
     ],
-    "removed_duplicate_variables": []
+    "removed_duplicate_variables": [],
+    "expanded_variables_by_factor": {
+      "FAC_rank_vol_m3_n6_pairwise1": [
+        "FAC_rank_vol_m3_n6_pairwise1",
+        "CtrlRetSTR",
+        "CtrlRetLTM",
+        "CtrlVol",
+        "as_偏股混合型基金",
+        "Ctrl_log_fund_size",
+        "Ctrl_fund_age"
+      ],
+      "FAC_rank_vol_m6_n3_pairwise1": [
+        "FAC_rank_vol_m6_n3_pairwise1",
+        "CtrlRetSTR",
+        "CtrlRetLTM",
+        "CtrlVol",
+        "as_偏股混合型基金",
+        "Ctrl_log_fund_size",
+        "Ctrl_fund_age"
+      ],
+      "FAC_rank_vol_m6_n6_pairwise1": [
+        "FAC_rank_vol_m6_n6_pairwise1",
+        "CtrlRetSTR",
+        "CtrlRetLTM",
+        "CtrlVol",
+        "as_偏股混合型基金",
+        "Ctrl_log_fund_size",
+        "Ctrl_fund_age"
+      ],
+      "FAC_rank_vol_m6_n12_pairwise1": [
+        "FAC_rank_vol_m6_n12_pairwise1",
+        "CtrlRetSTR",
+        "CtrlRetLTM",
+        "CtrlVol",
+        "as_偏股混合型基金",
+        "Ctrl_log_fund_size",
+        "Ctrl_fund_age"
+      ],
+      "FAC_rank_vol_m12_n6_pairwise1": [
+        "FAC_rank_vol_m12_n6_pairwise1",
+        "CtrlRetSTR",
+        "CtrlRetLTM",
+        "CtrlVol",
+        "as_偏股混合型基金",
+        "Ctrl_log_fund_size",
+        "Ctrl_fund_age"
+      ]
+    }
   },
   "sample_filters": {
-    "is_insample_future_ret_6m": 1
+    "is_insample_future_ret_6m": 1,
+    "match_is_sample_future_ret_6m": 1
   },
   "factor_sample_filters": {
     "FAC_rank_vol_m3_n6_pairwise1": {
@@ -64,26 +113,31 @@
   "filters_by_factor": {
     "FAC_rank_vol_m3_n6_pairwise1": {
       "is_insample_future_ret_6m": 1,
+      "match_is_sample_future_ret_6m": 1,
       "is_median_rank_mean_m3_n6_pairwise1": 2
     },
     "FAC_rank_vol_m6_n3_pairwise1": {
       "is_insample_future_ret_6m": 1,
+      "match_is_sample_future_ret_6m": 1,
       "is_median_rank_mean_m6_n3_pairwise1": 2
     },
     "FAC_rank_vol_m6_n6_pairwise1": {
       "is_insample_future_ret_6m": 1,
+      "match_is_sample_future_ret_6m": 1,
       "is_median_rank_mean_m6_n6_pairwise1": 2
     },
     "FAC_rank_vol_m6_n12_pairwise1": {
       "is_insample_future_ret_6m": 1,
+      "match_is_sample_future_ret_6m": 1,
       "is_median_rank_mean_m6_n12_pairwise1": 2
     },
     "FAC_rank_vol_m12_n6_pairwise1": {
       "is_insample_future_ret_6m": 1,
+      "match_is_sample_future_ret_6m": 1,
       "is_median_rank_mean_m12_n6_pairwise1": 2
     }
   },
-  "input_rows": 156184,
+  "input_rows": 49479,
   "input_months": 215,
   "correlation": {
     "mode": "factor_specific_filters",
@@ -100,12 +154,18 @@
         ],
         "filters": {
           "is_insample_future_ret_6m": 1,
+          "match_is_sample_future_ret_6m": 1,
           "is_median_rank_mean_m3_n6_pairwise1": 2
         },
-        "filtered_rows": 17138,
+        "filtered_rows": 15137,
         "corr_metadata": {
-          "eligible_months": 107,
+          "eligible_months": 89,
           "skipped_months": [
+            {
+              "month_date": "2005-08-31",
+              "n_obs": 1,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
             {
               "month_date": "2005-09-30",
               "n_obs": 1,
@@ -123,17 +183,17 @@
             },
             {
               "month_date": "2005-12-30",
-              "n_obs": 2,
+              "n_obs": 1,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2006-01-25",
-              "n_obs": 2,
+              "n_obs": 1,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2006-02-28",
-              "n_obs": 2,
+              "n_obs": 1,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
@@ -163,92 +223,92 @@
             },
             {
               "month_date": "2006-08-31",
-              "n_obs": 3,
+              "n_obs": 2,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2006-09-29",
-              "n_obs": 3,
+              "n_obs": 2,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2006-10-31",
-              "n_obs": 3,
+              "n_obs": 1,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2006-11-30",
-              "n_obs": 4,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2006-12-29",
-              "n_obs": 4,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2007-01-31",
-              "n_obs": 4,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2007-02-28",
-              "n_obs": 4,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2007-03-30",
-              "n_obs": 4,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2007-04-30",
-              "n_obs": 4,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2007-05-31",
-              "n_obs": 4,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2007-06-29",
               "n_obs": 3,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
+              "month_date": "2006-12-29",
+              "n_obs": 2,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2007-01-31",
+              "n_obs": 3,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2007-02-28",
+              "n_obs": 3,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2007-03-30",
+              "n_obs": 2,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2007-04-30",
+              "n_obs": 1,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2007-05-31",
+              "n_obs": 2,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2007-06-29",
+              "n_obs": 2,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
               "month_date": "2007-07-31",
-              "n_obs": 5,
+              "n_obs": 4,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2007-08-31",
-              "n_obs": 7,
+              "n_obs": 6,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2007-09-28",
-              "n_obs": 6,
+              "n_obs": 5,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2007-10-31",
-              "n_obs": 6,
+              "n_obs": 4,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2007-11-30",
-              "n_obs": 6,
+              "n_obs": 4,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2007-12-28",
-              "n_obs": 7,
+              "n_obs": 6,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2008-01-31",
-              "n_obs": 6,
+              "n_obs": 5,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
@@ -278,314 +338,404 @@
             },
             {
               "month_date": "2008-07-31",
-              "n_obs": 12,
+              "n_obs": 11,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2008-08-29",
-              "n_obs": 13,
+              "n_obs": 12,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2008-09-26",
-              "n_obs": 13,
+              "n_obs": 9,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2008-10-31",
-              "n_obs": 14,
+              "n_obs": 10,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2008-11-28",
-              "n_obs": 16,
+              "n_obs": 12,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2008-12-31",
-              "n_obs": 18,
+              "n_obs": 15,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-01-23",
-              "n_obs": 18,
+              "n_obs": 14,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-02-27",
-              "n_obs": 19,
+              "n_obs": 15,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-03-31",
-              "n_obs": 17,
+              "n_obs": 12,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-04-30",
-              "n_obs": 20,
+              "n_obs": 15,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-05-27",
-              "n_obs": 21,
+              "n_obs": 18,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-06-30",
-              "n_obs": 22,
+              "n_obs": 20,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-07-31",
-              "n_obs": 22,
+              "n_obs": 19,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-08-31",
-              "n_obs": 23,
+              "n_obs": 20,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-09-30",
-              "n_obs": 24,
+              "n_obs": 20,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-10-30",
-              "n_obs": 26,
+              "n_obs": 20,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-11-30",
-              "n_obs": 27,
+              "n_obs": 20,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-12-31",
-              "n_obs": 30,
+              "n_obs": 23,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-01-29",
-              "n_obs": 28,
+              "n_obs": 22,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-02-26",
-              "n_obs": 30,
+              "n_obs": 21,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-03-31",
-              "n_obs": 30,
+              "n_obs": 23,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-04-30",
-              "n_obs": 30,
+              "n_obs": 22,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-05-31",
-              "n_obs": 29,
+              "n_obs": 23,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-06-30",
-              "n_obs": 29,
+              "n_obs": 25,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-07-30",
-              "n_obs": 29,
+              "n_obs": 23,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-08-31",
-              "n_obs": 28,
+              "n_obs": 24,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-09-30",
-              "n_obs": 30,
+              "n_obs": 25,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-10-29",
-              "n_obs": 28,
+              "n_obs": 23,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-11-30",
-              "n_obs": 30,
+              "n_obs": 23,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-12-31",
-              "n_obs": 31,
+              "n_obs": 25,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-01-31",
-              "n_obs": 31,
+              "n_obs": 25,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-02-28",
-              "n_obs": 32,
+              "n_obs": 29,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-03-31",
-              "n_obs": 32,
+              "n_obs": 28,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-04-29",
-              "n_obs": 33,
+              "n_obs": 31,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-05-31",
-              "n_obs": 35,
+              "n_obs": 32,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-06-30",
-              "n_obs": 35,
+              "n_obs": 33,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-07-29",
-              "n_obs": 35,
+              "n_obs": 28,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-08-31",
-              "n_obs": 37,
+              "n_obs": 29,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-09-30",
-              "n_obs": 39,
+              "n_obs": 29,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-10-31",
-              "n_obs": 38,
+              "n_obs": 29,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-11-30",
-              "n_obs": 39,
+              "n_obs": 28,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-12-30",
-              "n_obs": 40,
+              "n_obs": 30,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2012-01-31",
-              "n_obs": 40,
+              "n_obs": 34,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2012-02-29",
-              "n_obs": 42,
+              "n_obs": 37,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2012-03-30",
-              "n_obs": 41,
+              "n_obs": 37,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2012-04-27",
-              "n_obs": 42,
+              "n_obs": 36,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2012-05-31",
-              "n_obs": 45,
+              "n_obs": 40,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2012-06-29",
-              "n_obs": 45,
+              "n_obs": 42,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2012-07-31",
-              "n_obs": 47,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2012-08-31",
-              "n_obs": 49,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-06-30",
               "n_obs": 43,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2015-07-31",
-              "n_obs": 42,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-08-31",
+              "month_date": "2012-08-31",
               "n_obs": 44,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2015-09-30",
-              "n_obs": 42,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-10-30",
-              "n_obs": 42,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-11-30",
-              "n_obs": 44,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-12-31",
-              "n_obs": 46,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2016-01-29",
-              "n_obs": 45,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2016-02-29",
+              "month_date": "2012-09-28",
               "n_obs": 47,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2016-03-31",
+              "month_date": "2012-10-31",
+              "n_obs": 49,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2013-02-28",
+              "n_obs": 45,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2013-03-29",
               "n_obs": 48,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2016-04-29",
+              "month_date": "2014-07-31",
               "n_obs": 48,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-08-29",
+              "n_obs": 49,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-09-30",
+              "n_obs": 45,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-10-31",
+              "n_obs": 44,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-11-28",
+              "n_obs": 39,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-12-31",
+              "n_obs": 32,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-01-30",
+              "n_obs": 30,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-02-27",
+              "n_obs": 32,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-03-31",
+              "n_obs": 35,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-04-30",
+              "n_obs": 35,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-05-29",
+              "n_obs": 39,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-06-30",
+              "n_obs": 37,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-07-31",
+              "n_obs": 35,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-08-31",
+              "n_obs": 35,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-09-30",
+              "n_obs": 36,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-10-30",
+              "n_obs": 33,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-11-30",
+              "n_obs": 36,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-12-31",
+              "n_obs": 38,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-01-29",
+              "n_obs": 34,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-02-29",
+              "n_obs": 38,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-03-31",
+              "n_obs": 38,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-04-29",
+              "n_obs": 40,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-05-31",
+              "n_obs": 39,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-06-30",
+              "n_obs": 44,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-07-29",
+              "n_obs": 47,
               "reason": "完整变量样本数小于 min_cross_section_n"
             }
           ],
-          "complete_case_rows": 15007
+          "complete_case_rows": 12637
         },
         "overall_vif_metadata": {
-          "pooled_complete_case_rows": 17131,
+          "pooled_complete_case_rows": 15133,
           "pooled_status": "ok",
           "pooled_reason": ""
         }
@@ -602,12 +752,18 @@
         ],
         "filters": {
           "is_insample_future_ret_6m": 1,
+          "match_is_sample_future_ret_6m": 1,
           "is_median_rank_mean_m6_n3_pairwise1": 2
         },
-        "filtered_rows": 17140,
+        "filtered_rows": 15142,
         "corr_metadata": {
-          "eligible_months": 107,
+          "eligible_months": 88,
           "skipped_months": [
+            {
+              "month_date": "2005-08-31",
+              "n_obs": 1,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
             {
               "month_date": "2005-09-30",
               "n_obs": 1,
@@ -625,17 +781,17 @@
             },
             {
               "month_date": "2005-12-30",
-              "n_obs": 2,
+              "n_obs": 1,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2006-01-25",
-              "n_obs": 2,
+              "n_obs": 1,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2006-02-28",
-              "n_obs": 2,
+              "n_obs": 1,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
@@ -665,92 +821,92 @@
             },
             {
               "month_date": "2006-08-31",
-              "n_obs": 3,
+              "n_obs": 2,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2006-09-29",
-              "n_obs": 3,
+              "n_obs": 2,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2006-10-31",
-              "n_obs": 3,
+              "n_obs": 2,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2006-11-30",
-              "n_obs": 4,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2006-12-29",
-              "n_obs": 4,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2007-01-31",
-              "n_obs": 4,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2007-02-28",
-              "n_obs": 4,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2007-03-30",
-              "n_obs": 4,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2007-04-30",
-              "n_obs": 4,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2007-05-31",
-              "n_obs": 4,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2007-06-29",
               "n_obs": 3,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
+              "month_date": "2006-12-29",
+              "n_obs": 2,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2007-01-31",
+              "n_obs": 3,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2007-02-28",
+              "n_obs": 3,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2007-03-30",
+              "n_obs": 2,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2007-04-30",
+              "n_obs": 1,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2007-05-31",
+              "n_obs": 2,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2007-06-29",
+              "n_obs": 2,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
               "month_date": "2007-07-31",
-              "n_obs": 5,
+              "n_obs": 4,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2007-08-31",
-              "n_obs": 7,
+              "n_obs": 6,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2007-09-28",
-              "n_obs": 6,
+              "n_obs": 5,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2007-10-31",
-              "n_obs": 6,
+              "n_obs": 4,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2007-11-30",
-              "n_obs": 6,
+              "n_obs": 4,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2007-12-28",
-              "n_obs": 7,
+              "n_obs": 5,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2008-01-31",
-              "n_obs": 6,
+              "n_obs": 5,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
@@ -780,314 +936,409 @@
             },
             {
               "month_date": "2008-07-31",
-              "n_obs": 12,
+              "n_obs": 11,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2008-08-29",
-              "n_obs": 13,
+              "n_obs": 12,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2008-09-26",
-              "n_obs": 13,
+              "n_obs": 9,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2008-10-31",
-              "n_obs": 14,
+              "n_obs": 10,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2008-11-28",
-              "n_obs": 16,
+              "n_obs": 12,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2008-12-31",
-              "n_obs": 18,
+              "n_obs": 15,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-01-23",
-              "n_obs": 18,
+              "n_obs": 14,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-02-27",
-              "n_obs": 19,
+              "n_obs": 14,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-03-31",
-              "n_obs": 17,
+              "n_obs": 12,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-04-30",
-              "n_obs": 20,
+              "n_obs": 15,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-05-27",
-              "n_obs": 21,
+              "n_obs": 18,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-06-30",
-              "n_obs": 22,
+              "n_obs": 20,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-07-31",
-              "n_obs": 22,
+              "n_obs": 19,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-08-31",
-              "n_obs": 23,
+              "n_obs": 20,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-09-30",
-              "n_obs": 24,
+              "n_obs": 20,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-10-30",
-              "n_obs": 27,
+              "n_obs": 20,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-11-30",
-              "n_obs": 28,
+              "n_obs": 20,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-12-31",
-              "n_obs": 31,
+              "n_obs": 23,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-01-29",
-              "n_obs": 28,
+              "n_obs": 22,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-02-26",
-              "n_obs": 30,
+              "n_obs": 22,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-03-31",
-              "n_obs": 30,
+              "n_obs": 23,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-04-30",
-              "n_obs": 30,
+              "n_obs": 23,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-05-31",
-              "n_obs": 29,
+              "n_obs": 23,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-06-30",
-              "n_obs": 29,
+              "n_obs": 25,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-07-30",
-              "n_obs": 29,
+              "n_obs": 24,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-08-31",
-              "n_obs": 28,
+              "n_obs": 23,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-09-30",
-              "n_obs": 30,
+              "n_obs": 24,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-10-29",
-              "n_obs": 28,
+              "n_obs": 23,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-11-30",
-              "n_obs": 30,
+              "n_obs": 23,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-12-31",
-              "n_obs": 31,
+              "n_obs": 25,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-01-31",
-              "n_obs": 31,
+              "n_obs": 26,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-02-28",
-              "n_obs": 32,
+              "n_obs": 29,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-03-31",
-              "n_obs": 32,
+              "n_obs": 27,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-04-29",
-              "n_obs": 33,
+              "n_obs": 31,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-05-31",
-              "n_obs": 35,
+              "n_obs": 32,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-06-30",
-              "n_obs": 35,
+              "n_obs": 33,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-07-29",
-              "n_obs": 35,
+              "n_obs": 28,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-08-31",
-              "n_obs": 37,
+              "n_obs": 29,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-09-30",
-              "n_obs": 39,
+              "n_obs": 28,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-10-31",
-              "n_obs": 38,
+              "n_obs": 29,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-11-30",
-              "n_obs": 39,
+              "n_obs": 29,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-12-30",
-              "n_obs": 40,
+              "n_obs": 30,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2012-01-31",
-              "n_obs": 40,
+              "n_obs": 34,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2012-02-29",
-              "n_obs": 42,
+              "n_obs": 37,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2012-03-30",
-              "n_obs": 41,
+              "n_obs": 37,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2012-04-27",
-              "n_obs": 42,
+              "n_obs": 36,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2012-05-31",
-              "n_obs": 45,
+              "n_obs": 40,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2012-06-29",
-              "n_obs": 45,
+              "n_obs": 42,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2012-07-31",
-              "n_obs": 47,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2012-08-31",
-              "n_obs": 49,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-06-30",
               "n_obs": 43,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2015-07-31",
-              "n_obs": 42,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-08-31",
-              "n_obs": 44,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-09-30",
-              "n_obs": 42,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-10-30",
-              "n_obs": 42,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-11-30",
-              "n_obs": 44,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-12-31",
-              "n_obs": 46,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2016-01-29",
+              "month_date": "2012-08-31",
               "n_obs": 45,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2016-02-29",
+              "month_date": "2012-09-28",
               "n_obs": 47,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
+              "month_date": "2012-10-31",
+              "n_obs": 49,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2012-12-31",
+              "n_obs": 49,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2013-01-31",
+              "n_obs": 49,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2013-02-28",
+              "n_obs": 46,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-06-30",
+              "n_obs": 47,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-07-31",
+              "n_obs": 46,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-09-30",
+              "n_obs": 46,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-10-31",
+              "n_obs": 44,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-11-28",
+              "n_obs": 37,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-12-31",
+              "n_obs": 32,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-01-30",
+              "n_obs": 31,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-02-27",
+              "n_obs": 34,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-03-31",
+              "n_obs": 33,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-04-30",
+              "n_obs": 35,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-05-29",
+              "n_obs": 39,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-06-30",
+              "n_obs": 37,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-07-31",
+              "n_obs": 35,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-08-31",
+              "n_obs": 34,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-09-30",
+              "n_obs": 35,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-10-30",
+              "n_obs": 31,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-11-30",
+              "n_obs": 34,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-12-31",
+              "n_obs": 39,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-01-29",
+              "n_obs": 35,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-02-29",
+              "n_obs": 37,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
               "month_date": "2016-03-31",
-              "n_obs": 48,
+              "n_obs": 40,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2016-04-29",
+              "n_obs": 41,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-05-31",
+              "n_obs": 40,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-06-30",
+              "n_obs": 44,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-07-29",
               "n_obs": 48,
               "reason": "完整变量样本数小于 min_cross_section_n"
             }
           ],
-          "complete_case_rows": 15006
+          "complete_case_rows": 12594
         },
         "overall_vif_metadata": {
-          "pooled_complete_case_rows": 17133,
+          "pooled_complete_case_rows": 15138,
           "pooled_status": "ok",
           "pooled_reason": ""
         }
@@ -1104,12 +1355,18 @@
         ],
         "filters": {
           "is_insample_future_ret_6m": 1,
+          "match_is_sample_future_ret_6m": 1,
           "is_median_rank_mean_m6_n6_pairwise1": 2
         },
-        "filtered_rows": 14681,
+        "filtered_rows": 13057,
         "corr_metadata": {
-          "eligible_months": 92,
+          "eligible_months": 74,
           "skipped_months": [
+            {
+              "month_date": "2005-08-31",
+              "n_obs": 1,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
             {
               "month_date": "2005-09-30",
               "n_obs": 1,
@@ -1172,12 +1429,12 @@
             },
             {
               "month_date": "2006-09-29",
-              "n_obs": 3,
+              "n_obs": 2,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2006-10-31",
-              "n_obs": 3,
+              "n_obs": 2,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
@@ -1187,27 +1444,27 @@
             },
             {
               "month_date": "2006-12-29",
-              "n_obs": 3,
+              "n_obs": 2,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2007-01-31",
-              "n_obs": 3,
+              "n_obs": 2,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2007-02-28",
-              "n_obs": 4,
+              "n_obs": 3,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2007-03-30",
-              "n_obs": 4,
+              "n_obs": 2,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2007-04-30",
-              "n_obs": 3,
+              "n_obs": 2,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
@@ -1217,17 +1474,17 @@
             },
             {
               "month_date": "2007-06-29",
-              "n_obs": 3,
+              "n_obs": 2,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2007-07-31",
-              "n_obs": 3,
+              "n_obs": 2,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2007-08-31",
-              "n_obs": 3,
+              "n_obs": 2,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
@@ -1237,27 +1494,27 @@
             },
             {
               "month_date": "2007-10-31",
-              "n_obs": 4,
+              "n_obs": 2,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2007-11-30",
-              "n_obs": 6,
+              "n_obs": 4,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2007-12-28",
-              "n_obs": 6,
+              "n_obs": 4,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2008-01-31",
-              "n_obs": 5,
+              "n_obs": 4,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2008-02-29",
-              "n_obs": 5,
+              "n_obs": 4,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
@@ -1282,389 +1539,479 @@
             },
             {
               "month_date": "2008-07-31",
-              "n_obs": 7,
+              "n_obs": 6,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2008-08-29",
-              "n_obs": 9,
+              "n_obs": 8,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2008-09-26",
-              "n_obs": 9,
+              "n_obs": 6,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2008-10-31",
-              "n_obs": 12,
+              "n_obs": 9,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2008-11-28",
-              "n_obs": 12,
+              "n_obs": 9,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2008-12-31",
-              "n_obs": 13,
+              "n_obs": 9,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-01-23",
-              "n_obs": 13,
+              "n_obs": 10,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-02-27",
-              "n_obs": 14,
+              "n_obs": 10,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-03-31",
-              "n_obs": 16,
+              "n_obs": 13,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-04-30",
-              "n_obs": 16,
+              "n_obs": 12,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-05-27",
-              "n_obs": 17,
+              "n_obs": 12,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-06-30",
-              "n_obs": 16,
+              "n_obs": 12,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-07-31",
-              "n_obs": 17,
+              "n_obs": 13,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-08-31",
-              "n_obs": 18,
+              "n_obs": 15,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-09-30",
-              "n_obs": 19,
+              "n_obs": 16,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-10-30",
-              "n_obs": 20,
+              "n_obs": 15,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-11-30",
-              "n_obs": 22,
+              "n_obs": 17,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-12-31",
-              "n_obs": 23,
+              "n_obs": 18,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-01-29",
-              "n_obs": 23,
+              "n_obs": 21,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-02-26",
-              "n_obs": 24,
+              "n_obs": 18,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-03-31",
-              "n_obs": 26,
+              "n_obs": 20,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-04-30",
-              "n_obs": 25,
+              "n_obs": 20,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-05-31",
-              "n_obs": 25,
+              "n_obs": 20,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-06-30",
-              "n_obs": 26,
+              "n_obs": 22,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-07-30",
-              "n_obs": 26,
+              "n_obs": 20,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-08-31",
-              "n_obs": 25,
+              "n_obs": 21,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-09-30",
-              "n_obs": 25,
+              "n_obs": 22,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-10-29",
-              "n_obs": 25,
+              "n_obs": 19,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-11-30",
-              "n_obs": 25,
+              "n_obs": 18,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-12-31",
-              "n_obs": 27,
+              "n_obs": 21,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-01-31",
-              "n_obs": 26,
+              "n_obs": 21,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-02-28",
-              "n_obs": 26,
+              "n_obs": 21,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-03-31",
-              "n_obs": 26,
+              "n_obs": 23,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-04-29",
-              "n_obs": 25,
+              "n_obs": 22,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-05-31",
-              "n_obs": 27,
+              "n_obs": 25,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-06-30",
-              "n_obs": 28,
+              "n_obs": 26,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-07-29",
-              "n_obs": 29,
+              "n_obs": 25,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-08-31",
-              "n_obs": 31,
+              "n_obs": 25,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-09-30",
-              "n_obs": 31,
+              "n_obs": 25,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-10-31",
-              "n_obs": 31,
+              "n_obs": 24,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-11-30",
-              "n_obs": 34,
+              "n_obs": 27,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-12-30",
-              "n_obs": 35,
+              "n_obs": 27,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2012-01-31",
-              "n_obs": 31,
+              "n_obs": 28,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2012-02-29",
-              "n_obs": 32,
+              "n_obs": 28,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2012-03-30",
-              "n_obs": 32,
+              "n_obs": 29,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2012-04-27",
-              "n_obs": 34,
+              "n_obs": 31,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2012-05-31",
-              "n_obs": 37,
+              "n_obs": 34,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2012-06-29",
-              "n_obs": 37,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2012-07-31",
-              "n_obs": 37,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2012-08-31",
-              "n_obs": 39,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2012-09-28",
-              "n_obs": 40,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2012-10-31",
-              "n_obs": 43,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2012-11-30",
-              "n_obs": 45,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2012-12-31",
-              "n_obs": 49,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2014-12-31",
-              "n_obs": 49,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-01-30",
-              "n_obs": 48,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-03-31",
-              "n_obs": 48,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-04-30",
-              "n_obs": 45,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-05-29",
-              "n_obs": 42,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-06-30",
-              "n_obs": 36,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-07-31",
-              "n_obs": 37,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-08-31",
-              "n_obs": 39,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-09-30",
               "n_obs": 35,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2015-10-30",
+              "month_date": "2012-07-31",
+              "n_obs": 35,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2012-08-31",
               "n_obs": 36,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2015-11-30",
+              "month_date": "2012-09-28",
               "n_obs": 36,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2015-12-31",
-              "n_obs": 38,
+              "month_date": "2012-10-31",
+              "n_obs": 40,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2016-01-29",
-              "n_obs": 38,
+              "month_date": "2012-11-30",
+              "n_obs": 40,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2016-02-29",
-              "n_obs": 39,
+              "month_date": "2012-12-31",
+              "n_obs": 44,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2016-03-31",
-              "n_obs": 41,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2016-04-29",
-              "n_obs": 41,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2016-05-31",
-              "n_obs": 43,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2016-06-30",
+              "month_date": "2013-01-31",
               "n_obs": 45,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2016-07-29",
+              "month_date": "2013-02-28",
               "n_obs": 43,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2016-08-31",
+              "month_date": "2013-03-29",
+              "n_obs": 41,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2013-04-26",
+              "n_obs": 44,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2013-05-31",
               "n_obs": 45,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2016-09-30",
+              "month_date": "2013-06-28",
+              "n_obs": 47,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2013-07-31",
               "n_obs": 46,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
+              "month_date": "2013-08-30",
+              "n_obs": 48,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2013-09-30",
+              "n_obs": 48,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-04-30",
+              "n_obs": 49,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-06-30",
+              "n_obs": 45,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-07-31",
+              "n_obs": 42,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-08-29",
+              "n_obs": 42,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-09-30",
+              "n_obs": 42,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-10-31",
+              "n_obs": 37,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-11-28",
+              "n_obs": 33,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-12-31",
+              "n_obs": 29,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-01-30",
+              "n_obs": 26,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-02-27",
+              "n_obs": 27,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-03-31",
+              "n_obs": 28,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-04-30",
+              "n_obs": 28,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-05-29",
+              "n_obs": 29,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-06-30",
+              "n_obs": 30,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-07-31",
+              "n_obs": 32,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-08-31",
+              "n_obs": 34,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-09-30",
+              "n_obs": 30,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-10-30",
+              "n_obs": 27,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-11-30",
+              "n_obs": 30,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-12-31",
+              "n_obs": 33,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-01-29",
+              "n_obs": 30,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-02-29",
+              "n_obs": 33,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-03-31",
+              "n_obs": 35,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-04-29",
+              "n_obs": 35,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-05-31",
+              "n_obs": 37,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-06-30",
+              "n_obs": 39,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-07-29",
+              "n_obs": 40,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-08-31",
+              "n_obs": 41,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-09-30",
+              "n_obs": 43,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
               "month_date": "2016-10-31",
-              "n_obs": 47,
+              "n_obs": 44,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-11-30",
+              "n_obs": 48,
               "reason": "完整变量样本数小于 min_cross_section_n"
             }
           ],
-          "complete_case_rows": 12277
+          "complete_case_rows": 10305
         },
         "overall_vif_metadata": {
-          "pooled_complete_case_rows": 14679,
+          "pooled_complete_case_rows": 13056,
           "pooled_status": "ok",
           "pooled_reason": ""
         }
@@ -1681,11 +2028,12 @@
         ],
         "filters": {
           "is_insample_future_ret_6m": 1,
+          "match_is_sample_future_ret_6m": 1,
           "is_median_rank_mean_m6_n12_pairwise1": 2
         },
-        "filtered_rows": 11019,
+        "filtered_rows": 9894,
         "corr_metadata": {
-          "eligible_months": 60,
+          "eligible_months": 59,
           "skipped_months": [
             {
               "month_date": "2006-01-25",
@@ -1733,16 +2081,6 @@
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2006-10-31",
-              "n_obs": 1,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2006-11-30",
-              "n_obs": 1,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
               "month_date": "2006-12-29",
               "n_obs": 2,
               "reason": "完整变量样本数小于 min_cross_section_n"
@@ -1769,17 +2107,17 @@
             },
             {
               "month_date": "2007-05-31",
-              "n_obs": 2,
+              "n_obs": 1,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2007-06-29",
-              "n_obs": 2,
+              "n_obs": 1,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2007-07-31",
-              "n_obs": 2,
+              "n_obs": 1,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
@@ -1814,12 +2152,12 @@
             },
             {
               "month_date": "2008-02-29",
-              "n_obs": 2,
+              "n_obs": 1,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2008-03-31",
-              "n_obs": 2,
+              "n_obs": 1,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
@@ -1844,37 +2182,37 @@
             },
             {
               "month_date": "2008-08-29",
-              "n_obs": 4,
+              "n_obs": 3,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2008-09-26",
-              "n_obs": 5,
+              "n_obs": 3,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2008-10-31",
-              "n_obs": 5,
+              "n_obs": 3,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2008-11-28",
-              "n_obs": 7,
+              "n_obs": 5,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2008-12-31",
-              "n_obs": 7,
+              "n_obs": 5,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-01-23",
-              "n_obs": 7,
+              "n_obs": 6,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-02-27",
-              "n_obs": 8,
+              "n_obs": 6,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
@@ -1884,127 +2222,127 @@
             },
             {
               "month_date": "2009-04-30",
-              "n_obs": 10,
+              "n_obs": 8,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-05-27",
-              "n_obs": 10,
+              "n_obs": 8,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-06-30",
-              "n_obs": 10,
+              "n_obs": 8,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-07-31",
-              "n_obs": 10,
+              "n_obs": 8,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-08-31",
-              "n_obs": 10,
+              "n_obs": 8,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-09-30",
-              "n_obs": 12,
+              "n_obs": 10,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-10-30",
-              "n_obs": 13,
+              "n_obs": 9,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-11-30",
-              "n_obs": 14,
+              "n_obs": 9,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-12-31",
-              "n_obs": 13,
+              "n_obs": 8,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-01-29",
-              "n_obs": 15,
+              "n_obs": 11,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-02-26",
-              "n_obs": 17,
+              "n_obs": 11,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-03-31",
-              "n_obs": 16,
+              "n_obs": 12,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-04-30",
-              "n_obs": 17,
+              "n_obs": 13,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-05-31",
-              "n_obs": 18,
+              "n_obs": 14,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-06-30",
-              "n_obs": 19,
+              "n_obs": 14,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-07-30",
-              "n_obs": 20,
+              "n_obs": 14,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-08-31",
-              "n_obs": 18,
+              "n_obs": 15,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-09-30",
-              "n_obs": 20,
+              "n_obs": 16,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-10-29",
-              "n_obs": 18,
+              "n_obs": 14,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-11-30",
-              "n_obs": 19,
+              "n_obs": 14,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-12-31",
-              "n_obs": 21,
+              "n_obs": 16,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-01-31",
-              "n_obs": 20,
+              "n_obs": 16,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-02-28",
-              "n_obs": 20,
+              "n_obs": 17,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-03-31",
-              "n_obs": 20,
+              "n_obs": 15,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-04-29",
-              "n_obs": 18,
+              "n_obs": 15,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
@@ -2019,369 +2357,374 @@
             },
             {
               "month_date": "2011-07-29",
-              "n_obs": 18,
+              "n_obs": 16,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-08-31",
-              "n_obs": 18,
+              "n_obs": 16,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-09-30",
-              "n_obs": 19,
+              "n_obs": 16,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-10-31",
-              "n_obs": 20,
+              "n_obs": 17,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-11-30",
-              "n_obs": 22,
+              "n_obs": 19,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-12-30",
-              "n_obs": 22,
+              "n_obs": 18,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2012-01-31",
-              "n_obs": 22,
+              "n_obs": 21,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2012-02-29",
-              "n_obs": 24,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2012-03-30",
-              "n_obs": 24,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2012-04-27",
               "n_obs": 23,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
+              "month_date": "2012-03-30",
+              "n_obs": 21,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2012-04-27",
+              "n_obs": 21,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
               "month_date": "2012-05-31",
-              "n_obs": 25,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2012-06-29",
-              "n_obs": 25,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2012-07-31",
-              "n_obs": 25,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2012-08-31",
-              "n_obs": 25,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2012-09-28",
-              "n_obs": 26,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2012-10-31",
-              "n_obs": 29,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2012-11-30",
-              "n_obs": 31,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2012-12-31",
-              "n_obs": 31,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2013-01-31",
-              "n_obs": 33,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2013-02-28",
-              "n_obs": 34,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2013-03-29",
-              "n_obs": 35,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2013-04-26",
-              "n_obs": 38,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2013-05-31",
-              "n_obs": 39,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2013-06-28",
-              "n_obs": 40,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2013-07-31",
-              "n_obs": 41,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2013-08-30",
-              "n_obs": 42,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2013-09-30",
-              "n_obs": 43,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2013-10-31",
-              "n_obs": 45,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2013-11-29",
-              "n_obs": 44,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2013-12-31",
-              "n_obs": 46,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2014-01-30",
-              "n_obs": 45,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2014-02-28",
-              "n_obs": 46,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2014-03-31",
-              "n_obs": 45,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2014-04-30",
-              "n_obs": 46,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2014-05-30",
-              "n_obs": 48,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2014-06-30",
-              "n_obs": 48,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2014-07-31",
-              "n_obs": 48,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2014-08-29",
-              "n_obs": 48,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2014-09-30",
-              "n_obs": 48,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2014-10-31",
-              "n_obs": 45,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2014-11-28",
-              "n_obs": 45,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2014-12-31",
-              "n_obs": 41,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-01-30",
-              "n_obs": 38,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-02-27",
-              "n_obs": 39,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-03-31",
-              "n_obs": 36,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-04-30",
-              "n_obs": 34,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-05-29",
-              "n_obs": 30,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-06-30",
-              "n_obs": 26,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-07-31",
-              "n_obs": 25,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-08-31",
-              "n_obs": 27,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-09-30",
               "n_obs": 24,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2015-10-30",
+              "month_date": "2012-06-29",
+              "n_obs": 24,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2012-07-31",
+              "n_obs": 24,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2012-08-31",
+              "n_obs": 23,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2012-09-28",
               "n_obs": 25,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2015-11-30",
-              "n_obs": 27,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-12-31",
-              "n_obs": 27,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2016-01-29",
+              "month_date": "2012-10-31",
               "n_obs": 28,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2016-02-29",
+              "month_date": "2012-11-30",
               "n_obs": 30,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2016-03-31",
-              "n_obs": 31,
+              "month_date": "2012-12-31",
+              "n_obs": 27,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2016-04-29",
+              "month_date": "2013-01-31",
               "n_obs": 29,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2016-05-31",
-              "n_obs": 31,
+              "month_date": "2013-02-28",
+              "n_obs": 30,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2016-06-30",
+              "month_date": "2013-03-29",
+              "n_obs": 30,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2013-04-26",
+              "n_obs": 33,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2013-05-31",
               "n_obs": 32,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2016-07-29",
-              "n_obs": 31,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2016-08-31",
-              "n_obs": 34,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2016-09-30",
-              "n_obs": 34,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2016-10-31",
+              "month_date": "2013-06-28",
               "n_obs": 35,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2016-11-30",
+              "month_date": "2013-07-31",
               "n_obs": 37,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2016-12-30",
+              "month_date": "2013-08-30",
+              "n_obs": 37,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2013-09-30",
               "n_obs": 38,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2017-01-26",
+              "month_date": "2013-10-31",
               "n_obs": 38,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2017-02-28",
-              "n_obs": 39,
+              "month_date": "2013-11-29",
+              "n_obs": 34,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2017-03-31",
-              "n_obs": 39,
+              "month_date": "2013-12-31",
+              "n_obs": 38,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2017-04-28",
+              "month_date": "2014-01-30",
               "n_obs": 41,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
+              "month_date": "2014-02-28",
+              "n_obs": 40,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-03-31",
+              "n_obs": 38,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-04-30",
+              "n_obs": 39,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-05-30",
+              "n_obs": 42,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-06-30",
+              "n_obs": 38,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-07-31",
+              "n_obs": 33,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-08-29",
+              "n_obs": 33,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-09-30",
+              "n_obs": 34,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-10-31",
+              "n_obs": 30,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-11-28",
+              "n_obs": 26,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-12-31",
+              "n_obs": 22,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-01-30",
+              "n_obs": 21,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-02-27",
+              "n_obs": 20,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-03-31",
+              "n_obs": 21,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-04-30",
+              "n_obs": 20,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-05-29",
+              "n_obs": 22,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-06-30",
+              "n_obs": 21,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-07-31",
+              "n_obs": 20,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-08-31",
+              "n_obs": 22,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-09-30",
+              "n_obs": 19,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-10-30",
+              "n_obs": 18,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-11-30",
+              "n_obs": 20,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-12-31",
+              "n_obs": 23,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-01-29",
+              "n_obs": 23,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-02-29",
+              "n_obs": 25,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-03-31",
+              "n_obs": 25,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-04-29",
+              "n_obs": 26,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-05-31",
+              "n_obs": 28,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-06-30",
+              "n_obs": 29,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-07-29",
+              "n_obs": 30,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-08-31",
+              "n_obs": 32,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-09-30",
+              "n_obs": 32,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-10-31",
+              "n_obs": 33,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-11-30",
+              "n_obs": 35,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-12-30",
+              "n_obs": 36,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2017-01-26",
+              "n_obs": 34,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2017-02-28",
+              "n_obs": 35,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2017-03-31",
+              "n_obs": 34,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2017-04-28",
+              "n_obs": 36,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
               "month_date": "2017-05-31",
-              "n_obs": 43,
+              "n_obs": 37,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2017-06-30",
+              "n_obs": 43,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2017-07-31",
               "n_obs": 47,
               "reason": "完整变量样本数小于 min_cross_section_n"
             }
           ],
-          "complete_case_rows": 8019
+          "complete_case_rows": 7378
         },
         "overall_vif_metadata": {
-          "pooled_complete_case_rows": 11019,
+          "pooled_complete_case_rows": 9894,
           "pooled_status": "ok",
           "pooled_reason": ""
         }
@@ -2398,11 +2741,12 @@
         ],
         "filters": {
           "is_insample_future_ret_6m": 1,
+          "match_is_sample_future_ret_6m": 1,
           "is_median_rank_mean_m12_n6_pairwise1": 2
         },
-        "filtered_rows": 11019,
+        "filtered_rows": 9900,
         "corr_metadata": {
-          "eligible_months": 60,
+          "eligible_months": 59,
           "skipped_months": [
             {
               "month_date": "2006-01-25",
@@ -2450,16 +2794,6 @@
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2006-10-31",
-              "n_obs": 1,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2006-11-30",
-              "n_obs": 1,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
               "month_date": "2006-12-29",
               "n_obs": 2,
               "reason": "完整变量样本数小于 min_cross_section_n"
@@ -2496,7 +2830,7 @@
             },
             {
               "month_date": "2007-07-31",
-              "n_obs": 2,
+              "n_obs": 1,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
@@ -2526,17 +2860,17 @@
             },
             {
               "month_date": "2008-01-31",
-              "n_obs": 2,
+              "n_obs": 1,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2008-02-29",
-              "n_obs": 2,
+              "n_obs": 1,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2008-03-31",
-              "n_obs": 2,
+              "n_obs": 1,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
@@ -2561,37 +2895,37 @@
             },
             {
               "month_date": "2008-08-29",
-              "n_obs": 4,
+              "n_obs": 3,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2008-09-26",
-              "n_obs": 5,
+              "n_obs": 3,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2008-10-31",
-              "n_obs": 5,
+              "n_obs": 3,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2008-11-28",
-              "n_obs": 7,
+              "n_obs": 5,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2008-12-31",
-              "n_obs": 7,
+              "n_obs": 5,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-01-23",
-              "n_obs": 7,
+              "n_obs": 6,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-02-27",
-              "n_obs": 8,
+              "n_obs": 6,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
@@ -2601,132 +2935,132 @@
             },
             {
               "month_date": "2009-04-30",
-              "n_obs": 10,
+              "n_obs": 8,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-05-27",
-              "n_obs": 10,
+              "n_obs": 8,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-06-30",
-              "n_obs": 10,
+              "n_obs": 8,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-07-31",
-              "n_obs": 10,
+              "n_obs": 8,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-08-31",
-              "n_obs": 10,
+              "n_obs": 9,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-09-30",
-              "n_obs": 12,
+              "n_obs": 9,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-10-30",
-              "n_obs": 13,
+              "n_obs": 9,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-11-30",
-              "n_obs": 14,
+              "n_obs": 9,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2009-12-31",
-              "n_obs": 13,
+              "n_obs": 8,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-01-29",
-              "n_obs": 15,
+              "n_obs": 11,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-02-26",
-              "n_obs": 17,
+              "n_obs": 11,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-03-31",
-              "n_obs": 16,
+              "n_obs": 11,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-04-30",
-              "n_obs": 17,
+              "n_obs": 13,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-05-31",
-              "n_obs": 18,
+              "n_obs": 14,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-06-30",
-              "n_obs": 19,
+              "n_obs": 14,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-07-30",
-              "n_obs": 20,
+              "n_obs": 14,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-08-31",
-              "n_obs": 18,
+              "n_obs": 15,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-09-30",
-              "n_obs": 20,
+              "n_obs": 16,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-10-29",
-              "n_obs": 18,
+              "n_obs": 14,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-11-30",
-              "n_obs": 19,
+              "n_obs": 14,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2010-12-31",
-              "n_obs": 21,
+              "n_obs": 16,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-01-31",
-              "n_obs": 20,
+              "n_obs": 16,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-02-28",
-              "n_obs": 20,
+              "n_obs": 17,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-03-31",
-              "n_obs": 20,
+              "n_obs": 16,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-04-29",
-              "n_obs": 18,
+              "n_obs": 15,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-05-31",
-              "n_obs": 18,
+              "n_obs": 17,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
@@ -2736,369 +3070,374 @@
             },
             {
               "month_date": "2011-07-29",
-              "n_obs": 18,
+              "n_obs": 16,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-08-31",
-              "n_obs": 18,
+              "n_obs": 16,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-09-30",
-              "n_obs": 19,
+              "n_obs": 16,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-10-31",
-              "n_obs": 20,
+              "n_obs": 17,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-11-30",
-              "n_obs": 22,
+              "n_obs": 18,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2011-12-30",
-              "n_obs": 22,
+              "n_obs": 19,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2012-01-31",
-              "n_obs": 22,
+              "n_obs": 21,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2012-02-29",
-              "n_obs": 24,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2012-03-30",
-              "n_obs": 24,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2012-04-27",
               "n_obs": 23,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
+              "month_date": "2012-03-30",
+              "n_obs": 22,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2012-04-27",
+              "n_obs": 21,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
               "month_date": "2012-05-31",
-              "n_obs": 25,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2012-06-29",
-              "n_obs": 25,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2012-07-31",
-              "n_obs": 25,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2012-08-31",
-              "n_obs": 25,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2012-09-28",
-              "n_obs": 26,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2012-10-31",
-              "n_obs": 29,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2012-11-30",
-              "n_obs": 31,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2012-12-31",
-              "n_obs": 31,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2013-01-31",
-              "n_obs": 33,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2013-02-28",
-              "n_obs": 34,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2013-03-29",
-              "n_obs": 35,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2013-04-26",
-              "n_obs": 38,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2013-05-31",
-              "n_obs": 39,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2013-06-28",
-              "n_obs": 40,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2013-07-31",
-              "n_obs": 41,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2013-08-30",
-              "n_obs": 42,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2013-09-30",
-              "n_obs": 43,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2013-10-31",
-              "n_obs": 45,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2013-11-29",
-              "n_obs": 44,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2013-12-31",
-              "n_obs": 46,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2014-01-30",
-              "n_obs": 45,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2014-02-28",
-              "n_obs": 46,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2014-03-31",
-              "n_obs": 45,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2014-04-30",
-              "n_obs": 46,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2014-05-30",
-              "n_obs": 48,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2014-06-30",
-              "n_obs": 48,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2014-07-31",
-              "n_obs": 48,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2014-08-29",
-              "n_obs": 48,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2014-09-30",
-              "n_obs": 48,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2014-10-31",
-              "n_obs": 45,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2014-11-28",
-              "n_obs": 45,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2014-12-31",
-              "n_obs": 41,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-01-30",
-              "n_obs": 38,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-02-27",
-              "n_obs": 39,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-03-31",
-              "n_obs": 36,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-04-30",
-              "n_obs": 34,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-05-29",
-              "n_obs": 30,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-06-30",
-              "n_obs": 26,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-07-31",
-              "n_obs": 25,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-08-31",
-              "n_obs": 27,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-09-30",
               "n_obs": 24,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2015-10-30",
+              "month_date": "2012-06-29",
+              "n_obs": 24,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2012-07-31",
+              "n_obs": 24,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2012-08-31",
+              "n_obs": 23,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2012-09-28",
               "n_obs": 25,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2015-11-30",
-              "n_obs": 27,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2015-12-31",
-              "n_obs": 27,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2016-01-29",
+              "month_date": "2012-10-31",
               "n_obs": 28,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2016-02-29",
+              "month_date": "2012-11-30",
               "n_obs": 30,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2016-03-31",
-              "n_obs": 31,
+              "month_date": "2012-12-31",
+              "n_obs": 27,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2016-04-29",
+              "month_date": "2013-01-31",
               "n_obs": 29,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2016-05-31",
+              "month_date": "2013-02-28",
               "n_obs": 31,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2016-06-30",
+              "month_date": "2013-03-29",
+              "n_obs": 30,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2013-04-26",
+              "n_obs": 34,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2013-05-31",
               "n_obs": 32,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2016-07-29",
-              "n_obs": 31,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2016-08-31",
-              "n_obs": 34,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2016-09-30",
-              "n_obs": 34,
-              "reason": "完整变量样本数小于 min_cross_section_n"
-            },
-            {
-              "month_date": "2016-10-31",
+              "month_date": "2013-06-28",
               "n_obs": 35,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2016-11-30",
+              "month_date": "2013-07-31",
               "n_obs": 37,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2016-12-30",
+              "month_date": "2013-08-30",
+              "n_obs": 37,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2013-09-30",
               "n_obs": 38,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2017-01-26",
+              "month_date": "2013-10-31",
               "n_obs": 38,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2017-02-28",
-              "n_obs": 39,
+              "month_date": "2013-11-29",
+              "n_obs": 35,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2017-03-31",
-              "n_obs": 39,
+              "month_date": "2013-12-31",
+              "n_obs": 38,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
-              "month_date": "2017-04-28",
+              "month_date": "2014-01-30",
               "n_obs": 41,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
+              "month_date": "2014-02-28",
+              "n_obs": 40,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-03-31",
+              "n_obs": 38,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-04-30",
+              "n_obs": 39,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-05-30",
+              "n_obs": 42,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-06-30",
+              "n_obs": 38,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-07-31",
+              "n_obs": 33,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-08-29",
+              "n_obs": 33,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-09-30",
+              "n_obs": 33,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-10-31",
+              "n_obs": 28,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-11-28",
+              "n_obs": 26,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2014-12-31",
+              "n_obs": 22,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-01-30",
+              "n_obs": 21,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-02-27",
+              "n_obs": 20,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-03-31",
+              "n_obs": 21,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-04-30",
+              "n_obs": 20,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-05-29",
+              "n_obs": 21,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-06-30",
+              "n_obs": 21,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-07-31",
+              "n_obs": 20,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-08-31",
+              "n_obs": 21,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-09-30",
+              "n_obs": 19,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-10-30",
+              "n_obs": 17,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-11-30",
+              "n_obs": 21,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2015-12-31",
+              "n_obs": 23,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-01-29",
+              "n_obs": 23,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-02-29",
+              "n_obs": 25,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-03-31",
+              "n_obs": 25,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-04-29",
+              "n_obs": 26,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-05-31",
+              "n_obs": 28,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-06-30",
+              "n_obs": 28,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-07-29",
+              "n_obs": 30,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-08-31",
+              "n_obs": 33,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-09-30",
+              "n_obs": 32,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-10-31",
+              "n_obs": 33,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-11-30",
+              "n_obs": 35,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2016-12-30",
+              "n_obs": 36,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2017-01-26",
+              "n_obs": 34,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2017-02-28",
+              "n_obs": 35,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2017-03-31",
+              "n_obs": 34,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2017-04-28",
+              "n_obs": 36,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
               "month_date": "2017-05-31",
-              "n_obs": 43,
+              "n_obs": 37,
               "reason": "完整变量样本数小于 min_cross_section_n"
             },
             {
               "month_date": "2017-06-30",
+              "n_obs": 43,
+              "reason": "完整变量样本数小于 min_cross_section_n"
+            },
+            {
+              "month_date": "2017-07-31",
               "n_obs": 47,
               "reason": "完整变量样本数小于 min_cross_section_n"
             }
           ],
-          "complete_case_rows": 8019
+          "complete_case_rows": 7385
         },
         "overall_vif_metadata": {
-          "pooled_complete_case_rows": 11019,
+          "pooled_complete_case_rows": 9900,
           "pooled_status": "ok",
           "pooled_reason": ""
         }
@@ -3106,12 +3445,12 @@
     }
   },
   "vif": {
-    "monthly_ok_rows": 2982,
-    "monthly_failed_or_skipped_rows": 4116
+    "monthly_ok_rows": 2576,
+    "monthly_failed_or_skipped_rows": 4494
   },
   "diagnostic_review": {
     "correlation_risk_threshold": 0.5,
-    "correlation_risk_pair_count": 2,
+    "correlation_risk_pair_count": 0,
     "vif_risk_metric": "p90_vif",
     "vif_risk_threshold": 5.0,
     "vif_risk_variable_count": 0,

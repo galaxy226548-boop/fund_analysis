@@ -7,3 +7,9 @@ A_data/*
 !A_data/scripts/
 A_data/scripts/__pycache__/
 *.parquet
+
+# 批量生成的表格、图片和演示文稿不纳入 Git。
+*.csv
+*.png
+*.ppt
+*.pptx

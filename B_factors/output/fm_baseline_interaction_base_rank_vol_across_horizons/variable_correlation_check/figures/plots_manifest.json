@@ -1,0 +1,24 @@
+{
+  "model": "fm_baseline_interaction_base_rank_vol_across_horizons",
+  "generated_at": "2026-07-05T04:48:10",
+  "input_dir": "/Users/chloezh/Projects/Fund_Analysis/B_factors/output/fm_baseline_interaction_base_rank_vol_across_horizons/variable_correlation_check",
+  "output_dir": "/Users/chloezh/Projects/Fund_Analysis/B_factors/output/fm_baseline_interaction_base_rank_vol_across_horizons/variable_correlation_check/figures",
+  "n_factors": 1,
+  "figures": [
+    {
+      "factor": "rank_vol_across_horizons_1m_3m_6m_12m",
+      "type": "corr_heatmap",
+      "file": "corr_heatmap_rank_vol_across_horizons_1m_3m_6m_12m.png"
+    },
+    {
+      "factor": "rank_vol_across_horizons_1m_3m_6m_12m",
+      "type": "vif_overall",
+      "file": "vif_overall_rank_vol_across_horizons_1m_3m_6m_12m.png"
+    },
+    {
+      "factor": "rank_vol_across_horizons_1m_3m_6m_12m",
+      "type": "vif_monthly",
+      "file": "vif_monthly_rank_vol_across_horizons_1m_3m_6m_12m.png"
+    }
+  ]
+}

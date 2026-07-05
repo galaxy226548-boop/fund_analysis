@@ -1,0 +1,50 @@
+{
+  "family_id": "hitrate_nonoverlap_primary",
+  "description": "全部成功估计的 non-overlap Top50/Top33/Bottom33 连续 HitRate 主效应",
+  "role": "primary_directional_consistency",
+  "status": "active",
+  "method": "benjamini-hochberg",
+  "q_threshold": 0.05,
+  "family_size": 87,
+  "significant_q": 0,
+  "nominal_significant_p": 24,
+  "input_audit": {
+    "input_rows": 87,
+    "valid_p_values": 87,
+    "excluded_missing_p_values": 0,
+    "invalid_non_numeric": 0,
+    "invalid_non_finite": 0,
+    "invalid_out_of_range": 0
+  },
+  "sources": [
+    {
+      "path": "D_analysis/output/fund_consistency/winrates_hitrate_effect_grid_linear_full/hitrate_primary_results_fdr.csv",
+      "p_column": "p_value",
+      "selectors": [
+        {
+          "op": "truthy",
+          "column": "estimation_success"
+        }
+      ],
+      "label": "continuous_hitrate_primary"
+    }
+  ],
+  "notes": "读取 raw p_value 后重新统一计算 q_value，不依赖来源文件中已有的 q 值。",
+  "generated_at": "2026-07-05T07:27:42-07:00",
+  "dry_run": false,
+  "heatmap": {
+    "file": "fdr_heatmap.png",
+    "metric": "t_stat",
+    "significance_column": "q_value",
+    "q_threshold": 0.05,
+    "annotated": false
+  },
+  "heatmap_nominal_p": {
+    "file": "nominal_p_heatmap.png",
+    "metric": "t_stat",
+    "significance_column": "p_value",
+    "p_threshold": 0.05,
+    "note": "未做 BH-FDR 校正，仅供对照，不能替代 q 值作为正式结论。",
+    "annotated": false
+  }
+}

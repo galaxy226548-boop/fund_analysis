@@ -1,0 +1,45 @@
+{
+  "family_id": "hit_dummy_nonoverlap_cumulative_vs_hit0",
+  "description": "non-overlap 累计 Hit Dummy 各门槛相对 Hit0 的效应",
+  "role": "primary_cumulative_level_effect",
+  "status": "active",
+  "method": "benjamini-hochberg",
+  "q_threshold": 0.05,
+  "family_size": 216,
+  "significant_q": 4,
+  "nominal_significant_p": 57,
+  "input_audit": {
+    "input_rows": 216,
+    "valid_p_values": 216,
+    "excluded_missing_p_values": 0,
+    "invalid_non_numeric": 0,
+    "invalid_non_finite": 0,
+    "invalid_out_of_range": 0
+  },
+  "sources": [
+    {
+      "path": "D_analysis/output/fund_consistency/winrates_cumulative_dummy_effects/cumulative_hit_vs_hit0_effects_fdr.csv",
+      "p_column": "p_value",
+      "selectors": [],
+      "label": "D_analysis/output/fund_consistency/winrates_cumulative_dummy_effects/cumulative_hit_vs_hit0_effects_fdr.csv"
+    }
+  ],
+  "notes": "全部累计门槛相对 Hit0 的效果共同校正。",
+  "generated_at": "2026-07-05T07:27:39-07:00",
+  "dry_run": false,
+  "heatmap": {
+    "file": "fdr_heatmap.png",
+    "metric": "t_stat",
+    "significance_column": "q_value",
+    "q_threshold": 0.05,
+    "annotated": false
+  },
+  "heatmap_nominal_p": {
+    "file": "nominal_p_heatmap.png",
+    "metric": "t_stat",
+    "significance_column": "p_value",
+    "p_threshold": 0.05,
+    "note": "未做 BH-FDR 校正，仅供对照，不能替代 q 值作为正式结论。",
+    "annotated": false
+  }
+}

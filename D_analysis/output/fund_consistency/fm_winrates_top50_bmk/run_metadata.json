@@ -1,0 +1,93 @@
+{
+  "run_time": "2026-07-03T00:39:38",
+  "model_key": "fm_winrates_top50_bmk",
+  "input_path": "/Users/chloezh/Projects/Fund_Analysis/B_factors/output/fm_winrates_top50_bmk/panel_base.parquet",
+  "output_dir": "/Users/chloezh/Projects/Fund_Analysis/D_analysis/output/fund_consistency/fm_winrates_top50_bmk",
+  "date_col": "month_date",
+  "y_col": "future_ret_6m",
+  "consistency_cols": [
+    "('dummy_top50_bmk_m3_n6_hit_above0_pairwise1', 'dummy_top50_bmk_m3_n6_hit_above1_pairwise1', 'dummy_top50_bmk_m3_n6_hit_above2_pairwise1', 'dummy_top50_bmk_m3_n6_hit_above3_pairwise1', 'dummy_top50_bmk_m3_n6_hit_above4_pairwise1', 'dummy_top50_bmk_m3_n6_hit_above5_pairwise1')",
+    "('dummy_top50_bmk_m6_n3_hit_above0_pairwise1', 'dummy_top50_bmk_m6_n3_hit_above1_pairwise1', 'dummy_top50_bmk_m6_n3_hit_above2_pairwise1')",
+    "('dummy_top50_bmk_m6_n6_hit_above0_pairwise1', 'dummy_top50_bmk_m6_n6_hit_above1_pairwise1', 'dummy_top50_bmk_m6_n6_hit_above2_pairwise1', 'dummy_top50_bmk_m6_n6_hit_above3_pairwise1', 'dummy_top50_bmk_m6_n6_hit_above4_pairwise1', 'dummy_top50_bmk_m6_n6_hit_above5_pairwise1')",
+    "('dummy_top50_bmk_m6_n12_hit_above0_pairwise1', 'dummy_top50_bmk_m6_n12_hit_above1_pairwise1', 'dummy_top50_bmk_m6_n12_hit_above2_pairwise1', 'dummy_top50_bmk_m6_n12_hit_above3_pairwise1', 'dummy_top50_bmk_m6_n12_hit_above4_pairwise1', 'dummy_top50_bmk_m6_n12_hit_above5_pairwise1', 'dummy_top50_bmk_m6_n12_hit_above6_pairwise1', 'dummy_top50_bmk_m6_n12_hit_above7_pairwise1', 'dummy_top50_bmk_m6_n12_hit_above8_pairwise1', 'dummy_top50_bmk_m6_n12_hit_above9_pairwise1', 'dummy_top50_bmk_m6_n12_hit_above10_pairwise1', 'dummy_top50_bmk_m6_n12_hit_above11_pairwise1')",
+    "('dummy_top50_bmk_m12_n6_hit_above0_pairwise1', 'dummy_top50_bmk_m12_n6_hit_above1_pairwise1', 'dummy_top50_bmk_m12_n6_hit_above2_pairwise1', 'dummy_top50_bmk_m12_n6_hit_above3_pairwise1', 'dummy_top50_bmk_m12_n6_hit_above4_pairwise1', 'dummy_top50_bmk_m12_n6_hit_above5_pairwise1')"
+  ],
+  "consistency_input_cols": [
+    "dummy_top50_bmk_m3_n6_hit_above0_pairwise1",
+    "dummy_top50_bmk_m3_n6_hit_above1_pairwise1",
+    "dummy_top50_bmk_m3_n6_hit_above2_pairwise1",
+    "dummy_top50_bmk_m3_n6_hit_above3_pairwise1",
+    "dummy_top50_bmk_m3_n6_hit_above4_pairwise1",
+    "dummy_top50_bmk_m3_n6_hit_above5_pairwise1",
+    "dummy_top50_bmk_m6_n3_hit_above0_pairwise1",
+    "dummy_top50_bmk_m6_n3_hit_above1_pairwise1",
+    "dummy_top50_bmk_m6_n3_hit_above2_pairwise1",
+    "dummy_top50_bmk_m6_n6_hit_above0_pairwise1",
+    "dummy_top50_bmk_m6_n6_hit_above1_pairwise1",
+    "dummy_top50_bmk_m6_n6_hit_above2_pairwise1",
+    "dummy_top50_bmk_m6_n6_hit_above3_pairwise1",
+    "dummy_top50_bmk_m6_n6_hit_above4_pairwise1",
+    "dummy_top50_bmk_m6_n6_hit_above5_pairwise1",
+    "dummy_top50_bmk_m6_n12_hit_above0_pairwise1",
+    "dummy_top50_bmk_m6_n12_hit_above1_pairwise1",
+    "dummy_top50_bmk_m6_n12_hit_above2_pairwise1",
+    "dummy_top50_bmk_m6_n12_hit_above3_pairwise1",
+    "dummy_top50_bmk_m6_n12_hit_above4_pairwise1",
+    "dummy_top50_bmk_m6_n12_hit_above5_pairwise1",
+    "dummy_top50_bmk_m6_n12_hit_above6_pairwise1",
+    "dummy_top50_bmk_m6_n12_hit_above7_pairwise1",
+    "dummy_top50_bmk_m6_n12_hit_above8_pairwise1",
+    "dummy_top50_bmk_m6_n12_hit_above9_pairwise1",
+    "dummy_top50_bmk_m6_n12_hit_above10_pairwise1",
+    "dummy_top50_bmk_m6_n12_hit_above11_pairwise1",
+    "dummy_top50_bmk_m12_n6_hit_above0_pairwise1",
+    "dummy_top50_bmk_m12_n6_hit_above1_pairwise1",
+    "dummy_top50_bmk_m12_n6_hit_above2_pairwise1",
+    "dummy_top50_bmk_m12_n6_hit_above3_pairwise1",
+    "dummy_top50_bmk_m12_n6_hit_above4_pairwise1",
+    "dummy_top50_bmk_m12_n6_hit_above5_pairwise1"
+  ],
+  "control_cols": [
+    "CtrlRetSTR",
+    "CtrlRetLTM",
+    "CtrlVol",
+    "as_偏股混合型基金",
+    "Ctrl_log_fund_size",
+    "Ctrl_fund_age"
+  ],
+  "interaction_main_effects": [],
+  "interaction_centering": "none",
+  "interactions": [],
+  "sample_filters": {
+    "is_insample_future_ret_6m": 1,
+    "match_is_sample_future_ret_6m": 1
+  },
+  "factor_sample_filters": {},
+  "filters_by_factor": {
+    "winrate_bmk_m3_n6_pairwise1": {
+      "is_insample_future_ret_6m": 1,
+      "match_is_sample_future_ret_6m": 1
+    },
+    "winrate_bmk_m6_n3_pairwise1": {
+      "is_insample_future_ret_6m": 1,
+      "match_is_sample_future_ret_6m": 1
+    },
+    "winrate_bmk_m6_n6_pairwise1": {
+      "is_insample_future_ret_6m": 1,
+      "match_is_sample_future_ret_6m": 1
+    },
+    "winrate_bmk_m6_n12_pairwise1": {
+      "is_insample_future_ret_6m": 1,
+      "match_is_sample_future_ret_6m": 1
+    },
+    "winrate_bmk_m12_n6_pairwise1": {
+      "is_insample_future_ret_6m": 1,
+      "match_is_sample_future_ret_6m": 1
+    }
+  },
+  "newey_west_lag": 5,
+  "min_cross_section_n": 50,
+  "input_rows": 49479,
+  "input_months": 215,
+  "note": "输入表已由上游程序完成基础样本筛选、1-rank_vol 构造和月度横截面 1%/99% winsorize；本脚本按 factor 叠加 factor_sample_filters。"
+}

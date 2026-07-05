@@ -213,7 +213,7 @@ def get_rank_columns(
     return_horizon: int,
     pairwise: int = Config.PANEL_PAIRWISE,
 ) -> list[str]:
-    """列出某个 (m, n) 组合对应的 m 个截面百分位排名列。"""
+    """列出某个 (m, n) 组合对应的 n 个截面百分位排名列。"""
     # rank_count=n，所以窗口序号从 1 到 n；return_horizon=m，体现在 past_ret_{m}m。
     columns = []
     for window_index in range(1, rank_count + 1):
@@ -465,7 +465,7 @@ def validate_grouping_factors(original: pd.DataFrame, result: pd.DataFrame) -> N
 
         ranks = result[rank_columns]
         if Config.RANK_VOL_REQUIRE_FULL_WINDOW:
-            # 严格模式：只要 m 个排名里有任何一个缺失，rank_mean 就必须缺失。
+            # 严格模式：只要 n 个排名里有任何一个缺失，rank_mean 就必须缺失。
             full_window = ranks.notna().all(axis=1)
             if result.loc[~full_window, rank_mean_column].notna().any():
                 raise AssertionError(

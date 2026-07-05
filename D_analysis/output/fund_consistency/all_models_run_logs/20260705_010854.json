@@ -1,0 +1,41 @@
+{
+  "run_id": "20260705_010854",
+  "started_at": "2026-07-05T01:08:54",
+  "finished_at": "2026-07-05T01:09:02",
+  "dry_run": false,
+  "requested_steps": [
+    "preprocess",
+    "regression"
+  ],
+  "selected_model_count": 1,
+  "attempted_model_count": 1,
+  "success_count": 1,
+  "failed_count": 0,
+  "skipped_count": 0,
+  "succeeded_models": [
+    "fm_baseline_up_y1m"
+  ],
+  "failed_models": [],
+  "skipped_models": [],
+  "models": [
+    {
+      "model": "fm_baseline_up_y1m",
+      "status": "success",
+      "returncode": 0,
+      "steps": [
+        "preprocess",
+        "regression"
+      ],
+      "elapsed_seconds": 7.509,
+      "command": [
+        "/Users/chloezh/Projects/Fund_Analysis/.venv/bin/python",
+        "/Users/chloezh/Projects/Fund_Analysis/D_analysis/scripts/0_regression_engine.py",
+        "--model",
+        "fm_baseline_up_y1m",
+        "--steps",
+        "preprocess",
+        "regression"
+      ]
+    }
+  ]
+}

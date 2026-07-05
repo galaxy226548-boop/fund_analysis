@@ -1,0 +1,445 @@
+{
+  "run_id": "20260705_005353",
+  "started_at": "2026-07-05T00:53:53",
+  "finished_at": "2026-07-05T01:00:19",
+  "dry_run": false,
+  "requested_steps": [
+    "preprocess",
+    "descriptive",
+    "correlation_check",
+    "correlation_plots",
+    "regression",
+    "portfolio_sorting"
+  ],
+  "selected_model_count": 15,
+  "attempted_model_count": 15,
+  "success_count": 15,
+  "failed_count": 0,
+  "skipped_count": 0,
+  "succeeded_models": [
+    "fm_baseline_up_y1m",
+    "fm_baseline_up_y3m",
+    "fm_baseline_up_y12m",
+    "fm_baseline_down_y1m",
+    "fm_baseline_down_y3m",
+    "fm_baseline_down_y12m",
+    "fm_baseline_top33_y1m",
+    "fm_baseline_top33_y3m",
+    "fm_baseline_top33_y12m",
+    "fm_baseline_mid33_y1m",
+    "fm_baseline_mid33_y3m",
+    "fm_baseline_mid33_y12m",
+    "fm_baseline_bottom33_y1m",
+    "fm_baseline_bottom33_y3m",
+    "fm_baseline_bottom33_y12m"
+  ],
+  "failed_models": [],
+  "skipped_models": [],
+  "models": [
+    {
+      "model": "fm_baseline_up_y1m",
+      "status": "success",
+      "returncode": 0,
+      "steps": [
+        "preprocess",
+        "descriptive",
+        "correlation_check",
+        "correlation_plots",
+        "regression",
+        "portfolio_sorting"
+      ],
+      "elapsed_seconds": 27.014,
+      "command": [
+        "/Users/chloezh/Projects/Fund_Analysis/.venv/bin/python",
+        "/Users/chloezh/Projects/Fund_Analysis/D_analysis/scripts/0_regression_engine.py",
+        "--model",
+        "fm_baseline_up_y1m",
+        "--steps",
+        "preprocess",
+        "descriptive",
+        "correlation_check",
+        "correlation_plots",
+        "regression",
+        "portfolio_sorting"
+      ]
+    },
+    {
+      "model": "fm_baseline_up_y3m",
+      "status": "success",
+      "returncode": 0,
+      "steps": [
+        "preprocess",
+        "descriptive",
+        "correlation_check",
+        "correlation_plots",
+        "regression",
+        "portfolio_sorting"
+      ],
+      "elapsed_seconds": 26.416,
+      "command": [
+        "/Users/chloezh/Projects/Fund_Analysis/.venv/bin/python",
+        "/Users/chloezh/Projects/Fund_Analysis/D_analysis/scripts/0_regression_engine.py",
+        "--model",
+        "fm_baseline_up_y3m",
+        "--steps",
+        "preprocess",
+        "descriptive",
+        "correlation_check",
+        "correlation_plots",
+        "regression",
+        "portfolio_sorting"
+      ]
+    },
+    {
+      "model": "fm_baseline_up_y12m",
+      "status": "success",
+      "returncode": 0,
+      "steps": [
+        "preprocess",
+        "descriptive",
+        "correlation_check",
+        "correlation_plots",
+        "regression",
+        "portfolio_sorting"
+      ],
+      "elapsed_seconds": 24.858,
+      "command": [
+        "/Users/chloezh/Projects/Fund_Analysis/.venv/bin/python",
+        "/Users/chloezh/Projects/Fund_Analysis/D_analysis/scripts/0_regression_engine.py",
+        "--model",
+        "fm_baseline_up_y12m",
+        "--steps",
+        "preprocess",
+        "descriptive",
+        "correlation_check",
+        "correlation_plots",
+        "regression",
+        "portfolio_sorting"
+      ]
+    },
+    {
+      "model": "fm_baseline_down_y1m",
+      "status": "success",
+      "returncode": 0,
+      "steps": [
+        "preprocess",
+        "descriptive",
+        "correlation_check",
+        "correlation_plots",
+        "regression",
+        "portfolio_sorting"
+      ],
+      "elapsed_seconds": 33.313,
+      "command": [
+        "/Users/chloezh/Projects/Fund_Analysis/.venv/bin/python",
+        "/Users/chloezh/Projects/Fund_Analysis/D_analysis/scripts/0_regression_engine.py",
+        "--model",
+        "fm_baseline_down_y1m",
+        "--steps",
+        "preprocess",
+        "descriptive",
+        "correlation_check",
+        "correlation_plots",
+        "regression",
+        "portfolio_sorting"
+      ]
+    },
+    {
+      "model": "fm_baseline_down_y3m",
+      "status": "success",
+      "returncode": 0,
+      "steps": [
+        "preprocess",
+        "descriptive",
+        "correlation_check",
+        "correlation_plots",
+        "regression",
+        "portfolio_sorting"
+      ],
+      "elapsed_seconds": 28.4,
+      "command": [
+        "/Users/chloezh/Projects/Fund_Analysis/.venv/bin/python",
+        "/Users/chloezh/Projects/Fund_Analysis/D_analysis/scripts/0_regression_engine.py",
+        "--model",
+        "fm_baseline_down_y3m",
+        "--steps",
+        "preprocess",
+        "descriptive",
+        "correlation_check",
+        "correlation_plots",
+        "regression",
+        "portfolio_sorting"
+      ]
+    },
+    {
+      "model": "fm_baseline_down_y12m",
+      "status": "success",
+      "returncode": 0,
+      "steps": [
+        "preprocess",
+        "descriptive",
+        "correlation_check",
+        "correlation_plots",
+        "regression",
+        "portfolio_sorting"
+      ],
+      "elapsed_seconds": 24.196,
+      "command": [
+        "/Users/chloezh/Projects/Fund_Analysis/.venv/bin/python",
+        "/Users/chloezh/Projects/Fund_Analysis/D_analysis/scripts/0_regression_engine.py",
+        "--model",
+        "fm_baseline_down_y12m",
+        "--steps",
+        "preprocess",
+        "descriptive",
+        "correlation_check",
+        "correlation_plots",
+        "regression",
+        "portfolio_sorting"
+      ]
+    },
+    {
+      "model": "fm_baseline_top33_y1m",
+      "status": "success",
+      "returncode": 0,
+      "steps": [
+        "preprocess",
+        "descriptive",
+        "correlation_check",
+        "correlation_plots",
+        "regression",
+        "portfolio_sorting"
+      ],
+      "elapsed_seconds": 26.223,
+      "command": [
+        "/Users/chloezh/Projects/Fund_Analysis/.venv/bin/python",
+        "/Users/chloezh/Projects/Fund_Analysis/D_analysis/scripts/0_regression_engine.py",
+        "--model",
+        "fm_baseline_top33_y1m",
+        "--steps",
+        "preprocess",
+        "descriptive",
+        "correlation_check",
+        "correlation_plots",
+        "regression",
+        "portfolio_sorting"
+      ]
+    },
+    {
+      "model": "fm_baseline_top33_y3m",
+      "status": "success",
+      "returncode": 0,
+      "steps": [
+        "preprocess",
+        "descriptive",
+        "correlation_check",
+        "correlation_plots",
+        "regression",
+        "portfolio_sorting"
+      ],
+      "elapsed_seconds": 24.754,
+      "command": [
+        "/Users/chloezh/Projects/Fund_Analysis/.venv/bin/python",
+        "/Users/chloezh/Projects/Fund_Analysis/D_analysis/scripts/0_regression_engine.py",
+        "--model",
+        "fm_baseline_top33_y3m",
+        "--steps",
+        "preprocess",
+        "descriptive",
+        "correlation_check",
+        "correlation_plots",
+        "regression",
+        "portfolio_sorting"
+      ]
+    },
+    {
+      "model": "fm_baseline_top33_y12m",
+      "status": "success",
+      "returncode": 0,
+      "steps": [
+        "preprocess",
+        "descriptive",
+        "correlation_check",
+        "correlation_plots",
+        "regression",
+        "portfolio_sorting"
+      ],
+      "elapsed_seconds": 25.222,
+      "command": [
+        "/Users/chloezh/Projects/Fund_Analysis/.venv/bin/python",
+        "/Users/chloezh/Projects/Fund_Analysis/D_analysis/scripts/0_regression_engine.py",
+        "--model",
+        "fm_baseline_top33_y12m",
+        "--steps",
+        "preprocess",
+        "descriptive",
+        "correlation_check",
+        "correlation_plots",
+        "regression",
+        "portfolio_sorting"
+      ]
+    },
+    {
+      "model": "fm_baseline_mid33_y1m",
+      "status": "success",
+      "returncode": 0,
+      "steps": [
+        "preprocess",
+        "descriptive",
+        "correlation_check",
+        "correlation_plots",
+        "regression",
+        "portfolio_sorting"
+      ],
+      "elapsed_seconds": 23.911,
+      "command": [
+        "/Users/chloezh/Projects/Fund_Analysis/.venv/bin/python",
+        "/Users/chloezh/Projects/Fund_Analysis/D_analysis/scripts/0_regression_engine.py",
+        "--model",
+        "fm_baseline_mid33_y1m",
+        "--steps",
+        "preprocess",
+        "descriptive",
+        "correlation_check",
+        "correlation_plots",
+        "regression",
+        "portfolio_sorting"
+      ]
+    },
+    {
+      "model": "fm_baseline_mid33_y3m",
+      "status": "success",
+      "returncode": 0,
+      "steps": [
+        "preprocess",
+        "descriptive",
+        "correlation_check",
+        "correlation_plots",
+        "regression",
+        "portfolio_sorting"
+      ],
+      "elapsed_seconds": 25.299,
+      "command": [
+        "/Users/chloezh/Projects/Fund_Analysis/.venv/bin/python",
+        "/Users/chloezh/Projects/Fund_Analysis/D_analysis/scripts/0_regression_engine.py",
+        "--model",
+        "fm_baseline_mid33_y3m",
+        "--steps",
+        "preprocess",
+        "descriptive",
+        "correlation_check",
+        "correlation_plots",
+        "regression",
+        "portfolio_sorting"
+      ]
+    },
+    {
+      "model": "fm_baseline_mid33_y12m",
+      "status": "success",
+      "returncode": 0,
+      "steps": [
+        "preprocess",
+        "descriptive",
+        "correlation_check",
+        "correlation_plots",
+        "regression",
+        "portfolio_sorting"
+      ],
+      "elapsed_seconds": 23.461,
+      "command": [
+        "/Users/chloezh/Projects/Fund_Analysis/.venv/bin/python",
+        "/Users/chloezh/Projects/Fund_Analysis/D_analysis/scripts/0_regression_engine.py",
+        "--model",
+        "fm_baseline_mid33_y12m",
+        "--steps",
+        "preprocess",
+        "descriptive",
+        "correlation_check",
+        "correlation_plots",
+        "regression",
+        "portfolio_sorting"
+      ]
+    },
+    {
+      "model": "fm_baseline_bottom33_y1m",
+      "status": "success",
+      "returncode": 0,
+      "steps": [
+        "preprocess",
+        "descriptive",
+        "correlation_check",
+        "correlation_plots",
+        "regression",
+        "portfolio_sorting"
+      ],
+      "elapsed_seconds": 24.312,
+      "command": [
+        "/Users/chloezh/Projects/Fund_Analysis/.venv/bin/python",
+        "/Users/chloezh/Projects/Fund_Analysis/D_analysis/scripts/0_regression_engine.py",
+        "--model",
+        "fm_baseline_bottom33_y1m",
+        "--steps",
+        "preprocess",
+        "descriptive",
+        "correlation_check",
+        "correlation_plots",
+        "regression",
+        "portfolio_sorting"
+      ]
+    },
+    {
+      "model": "fm_baseline_bottom33_y3m",
+      "status": "success",
+      "returncode": 0,
+      "steps": [
+        "preprocess",
+        "descriptive",
+        "correlation_check",
+        "correlation_plots",
+        "regression",
+        "portfolio_sorting"
+      ],
+      "elapsed_seconds": 23.413,
+      "command": [
+        "/Users/chloezh/Projects/Fund_Analysis/.venv/bin/python",
+        "/Users/chloezh/Projects/Fund_Analysis/D_analysis/scripts/0_regression_engine.py",
+        "--model",
+        "fm_baseline_bottom33_y3m",
+        "--steps",
+        "preprocess",
+        "descriptive",
+        "correlation_check",
+        "correlation_plots",
+        "regression",
+        "portfolio_sorting"
+      ]
+    },
+    {
+      "model": "fm_baseline_bottom33_y12m",
+      "status": "success",
+      "returncode": 0,
+      "steps": [
+        "preprocess",
+        "descriptive",
+        "correlation_check",
+        "correlation_plots",
+        "regression",
+        "portfolio_sorting"
+      ],
+      "elapsed_seconds": 25.393,
+      "command": [
+        "/Users/chloezh/Projects/Fund_Analysis/.venv/bin/python",
+        "/Users/chloezh/Projects/Fund_Analysis/D_analysis/scripts/0_regression_engine.py",
+        "--model",
+        "fm_baseline_bottom33_y12m",
+        "--steps",
+        "preprocess",
+        "descriptive",
+        "correlation_check",
+        "correlation_plots",
+        "regression",
+        "portfolio_sorting"
+      ]
+    }
+  ]
+}

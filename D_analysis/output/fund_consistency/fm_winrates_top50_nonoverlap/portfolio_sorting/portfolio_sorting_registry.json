@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "records": [],
+  "skipped": true,
+  "last_skip": {
+    "model_key": "fm_winrates_top50_nonoverlap",
+    "input_path": "/Users/chloezh/Projects/Fund_Analysis/B_factors/output/fm_winrates_top50_nonoverlap/panel_base.parquet",
+    "reason": "registry factors 包含 tuple/list dummy 变量组，默认 portfolio sorting 没有单一排序列口径；如需运行，请在 registry 中显式配置 portfolio_sorting_factors。",
+    "factors": [
+      "('dummy_top50_m6_n3_hit1_pairwise6', 'dummy_top50_m6_n3_hit2_pairwise6', 'dummy_top50_m6_n3_hit3_pairwise6')",
+      "('dummy_top50_m3_n6_hit1_pairwise3', 'dummy_top50_m3_n6_hit2_pairwise3', 'dummy_top50_m3_n6_hit3_pairwise3', 'dummy_top50_m3_n6_hit4_pairwise3', 'dummy_top50_m3_n6_hit5_pairwise3', 'dummy_top50_m3_n6_hit6_pairwise3')",
+      "('dummy_top50_m6_n6_hit1_pairwise6', 'dummy_top50_m6_n6_hit2_pairwise6', 'dummy_top50_m6_n6_hit3_pairwise6', 'dummy_top50_m6_n6_hit4_pairwise6', 'dummy_top50_m6_n6_hit5_pairwise6', 'dummy_top50_m6_n6_hit6_pairwise6')",
+      "('dummy_top50_m3_n12_hit_above3_pairwise3', 'dummy_top50_m3_n12_hit_above6_pairwise3', 'dummy_top50_m3_n12_hit_above9_pairwise3')",
+      "('dummy_top50_m12_n3_hit1_pairwise12', 'dummy_top50_m12_n3_hit2_pairwise12', 'dummy_top50_m12_n3_hit3_pairwise12')"
+    ],
+    "updated_at": "2026-06-27T05:00:20"
+  }
+}

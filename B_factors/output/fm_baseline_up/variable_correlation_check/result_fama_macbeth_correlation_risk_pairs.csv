@@ -1,3 +1,0 @@
-﻿factor,variable_1,variable_2,mean_corr,abs_mean_corr,p_value,stars,n_months,risk_level,review_note
-FAC_rank_vol_m6_n12_pairwise1,Ctrl_fund_age,as_偏股混合型基金,0.5024350743910274,0.5024350743910274,1.19502882762394e-44,***,60,重点关注相关性风险,abs(mean_corr) >= 0.50，且显著性星号不为空；建议重点检查变量含义是否重叠。
-FAC_rank_vol_m12_n6_pairwise1,Ctrl_fund_age,as_偏股混合型基金,0.5043302866344643,0.5043302866344643,8.720743880735847e-44,***,60,重点关注相关性风险,abs(mean_corr) >= 0.50，且显著性星号不为空；建议重点检查变量含义是否重叠。

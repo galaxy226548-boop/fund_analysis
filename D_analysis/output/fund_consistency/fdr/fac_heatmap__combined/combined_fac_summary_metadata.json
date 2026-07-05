@@ -1,0 +1,15 @@
+{
+  "generated_at": "2026-07-05T07:27:46-07:00",
+  "exploratory_models": [
+    "fm_heatmap_up",
+    "fm_heatmap_down",
+    "fm_heatmap_top33",
+    "fm_heatmap_mid33",
+    "fm_heatmap_bottom33"
+  ],
+  "primary_model_excluded": "fm_heatmap_full",
+  "modes": {
+    "fdr": "BH-FDR q<0.05 per family（正式结论使用）",
+    "nominal": "raw p<0.05，未做多重检验校正（仅供对照）"
+  }
+}

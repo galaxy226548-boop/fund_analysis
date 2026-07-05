@@ -1,0 +1,168 @@
+{
+  "version": 1,
+  "records": [
+    {
+      "output_id": "ps_001",
+      "created_at": "2026-07-05T00:59:28",
+      "updated_at": "2026-07-05T00:59:28",
+      "core_config": {
+        "date_col": "month_date",
+        "factor_sample_filters": {
+          "FAC_rank_vol_m12_n6_pairwise1": {
+            "is_tercile_rank_mean_m12_n6_pairwise1": 1
+          },
+          "FAC_rank_vol_m3_n6_pairwise1": {
+            "is_tercile_rank_mean_m3_n6_pairwise1": 1
+          },
+          "FAC_rank_vol_m6_n12_pairwise1": {
+            "is_tercile_rank_mean_m6_n12_pairwise1": 1
+          },
+          "FAC_rank_vol_m6_n3_pairwise1": {
+            "is_tercile_rank_mean_m6_n3_pairwise1": 1
+          },
+          "FAC_rank_vol_m6_n6_pairwise1": {
+            "is_tercile_rank_mean_m6_n6_pairwise1": 1
+          }
+        },
+        "factors": [
+          "FAC_rank_vol_m3_n6_pairwise1",
+          "FAC_rank_vol_m6_n3_pairwise1",
+          "FAC_rank_vol_m6_n6_pairwise1",
+          "FAC_rank_vol_m6_n12_pairwise1",
+          "FAC_rank_vol_m12_n6_pairwise1"
+        ],
+        "frequency": "quarter",
+        "higher_sort_long": true,
+        "id_col": "ifind_code",
+        "input_path": "/Users/chloezh/Projects/Fund_Analysis/B_factors/output/fm_baseline_bottom33_y1m/panel_base.parquet",
+        "min_group_size": 5,
+        "model_key": "fm_baseline_bottom33_y1m",
+        "n_groups": 5,
+        "newey_west_lag": 5,
+        "require_ret_before_sort": true,
+        "sample_filters": {
+          "is_insample_future_ret_1m": 1,
+          "match_is_sample_future_ret_1m": 1
+        },
+        "tstat_method": "newey_west",
+        "weight_col": null,
+        "weight_method": "equal"
+      },
+      "y_cols": [
+        "future_ret_1m"
+      ],
+      "output_paths": {
+        "summary": "/Users/chloezh/Projects/Fund_Analysis/D_analysis/output/fund_consistency/fm_baseline_bottom33_y1m/portfolio_sorting/ps_001_summary.csv",
+        "period_returns": "/Users/chloezh/Projects/Fund_Analysis/D_analysis/output/fund_consistency/fm_baseline_bottom33_y1m/portfolio_sorting/ps_001_period_returns.csv",
+        "diagnostics": "/Users/chloezh/Projects/Fund_Analysis/D_analysis/output/fund_consistency/fm_baseline_bottom33_y1m/portfolio_sorting/ps_001_diagnostics.csv",
+        "sample_periods": "/Users/chloezh/Projects/Fund_Analysis/D_analysis/output/fund_consistency/fm_baseline_bottom33_y1m/portfolio_sorting/ps_001_sample_periods.csv",
+        "registry": "/Users/chloezh/Projects/Fund_Analysis/D_analysis/output/fund_consistency/fm_baseline_bottom33_y1m/portfolio_sorting/portfolio_sorting_registry.json"
+      },
+      "newey_west_lag_by_y": {
+        "future_ret_1m": 5
+      },
+      "last_run": {
+        "y_col": "future_ret_1m",
+        "factors": [
+          "FAC_rank_vol_m3_n6_pairwise1",
+          "FAC_rank_vol_m6_n3_pairwise1",
+          "FAC_rank_vol_m6_n6_pairwise1",
+          "FAC_rank_vol_m6_n12_pairwise1",
+          "FAC_rank_vol_m12_n6_pairwise1"
+        ],
+        "sort_specs": [
+          {
+            "filter_factor": "FAC_rank_vol_m3_n6_pairwise1",
+            "kind": "column",
+            "sort_col": "FAC_rank_vol_m3_n6_pairwise1",
+            "source_columns": [
+              "FAC_rank_vol_m3_n6_pairwise1"
+            ]
+          },
+          {
+            "filter_factor": "FAC_rank_vol_m6_n3_pairwise1",
+            "kind": "column",
+            "sort_col": "FAC_rank_vol_m6_n3_pairwise1",
+            "source_columns": [
+              "FAC_rank_vol_m6_n3_pairwise1"
+            ]
+          },
+          {
+            "filter_factor": "FAC_rank_vol_m6_n6_pairwise1",
+            "kind": "column",
+            "sort_col": "FAC_rank_vol_m6_n6_pairwise1",
+            "source_columns": [
+              "FAC_rank_vol_m6_n6_pairwise1"
+            ]
+          },
+          {
+            "filter_factor": "FAC_rank_vol_m6_n12_pairwise1",
+            "kind": "column",
+            "sort_col": "FAC_rank_vol_m6_n12_pairwise1",
+            "source_columns": [
+              "FAC_rank_vol_m6_n12_pairwise1"
+            ]
+          },
+          {
+            "filter_factor": "FAC_rank_vol_m12_n6_pairwise1",
+            "kind": "column",
+            "sort_col": "FAC_rank_vol_m12_n6_pairwise1",
+            "source_columns": [
+              "FAC_rank_vol_m12_n6_pairwise1"
+            ]
+          }
+        ],
+        "sample_filters": {
+          "is_insample_future_ret_1m": 1,
+          "match_is_sample_future_ret_1m": 1
+        },
+        "factor_sample_filters": {
+          "FAC_rank_vol_m3_n6_pairwise1": {
+            "is_tercile_rank_mean_m3_n6_pairwise1": 1
+          },
+          "FAC_rank_vol_m6_n3_pairwise1": {
+            "is_tercile_rank_mean_m6_n3_pairwise1": 1
+          },
+          "FAC_rank_vol_m6_n6_pairwise1": {
+            "is_tercile_rank_mean_m6_n6_pairwise1": 1
+          },
+          "FAC_rank_vol_m6_n12_pairwise1": {
+            "is_tercile_rank_mean_m6_n12_pairwise1": 1
+          },
+          "FAC_rank_vol_m12_n6_pairwise1": {
+            "is_tercile_rank_mean_m12_n6_pairwise1": 1
+          }
+        },
+        "filters_by_factor": {
+          "FAC_rank_vol_m3_n6_pairwise1": {
+            "is_insample_future_ret_1m": 1,
+            "match_is_sample_future_ret_1m": 1,
+            "is_tercile_rank_mean_m3_n6_pairwise1": 1
+          },
+          "FAC_rank_vol_m6_n3_pairwise1": {
+            "is_insample_future_ret_1m": 1,
+            "match_is_sample_future_ret_1m": 1,
+            "is_tercile_rank_mean_m6_n3_pairwise1": 1
+          },
+          "FAC_rank_vol_m6_n6_pairwise1": {
+            "is_insample_future_ret_1m": 1,
+            "match_is_sample_future_ret_1m": 1,
+            "is_tercile_rank_mean_m6_n6_pairwise1": 1
+          },
+          "FAC_rank_vol_m6_n12_pairwise1": {
+            "is_insample_future_ret_1m": 1,
+            "match_is_sample_future_ret_1m": 1,
+            "is_tercile_rank_mean_m6_n12_pairwise1": 1
+          },
+          "FAC_rank_vol_m12_n6_pairwise1": {
+            "is_insample_future_ret_1m": 1,
+            "match_is_sample_future_ret_1m": 1,
+            "is_tercile_rank_mean_m12_n6_pairwise1": 1
+          }
+        },
+        "figure_grid": "/Users/chloezh/Projects/Fund_Analysis/D_analysis/output/fund_consistency/fm_baseline_bottom33_y1m/portfolio_sorting/ps_001_future_ret_1m_bar_grid.png",
+        "updated_at": "2026-07-05T00:59:30"
+      }
+    }
+  ]
+}

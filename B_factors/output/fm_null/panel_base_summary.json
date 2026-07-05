@@ -1,0 +1,57 @@
+{
+  "generated_at": "2026-07-02T20:51:57-07:00",
+  "input_path": "/Users/chloezh/Projects/Fund_Analysis/A_data/output/panel_base.parquet",
+  "output_path": "/Users/chloezh/Projects/Fund_Analysis/B_factors/output/fm_null/panel_base.parquet",
+  "preview_path": "/Users/chloezh/Projects/Fund_Analysis/B_factors/output/fm_null/panel_base_preview.xlsx",
+  "original_rows": 406918,
+  "insample_rows": 49479,
+  "output_rows": 49479,
+  "sample_filters": {
+    "is_insample_future_ret_6m": 1,
+    "match_is_sample_future_ret_6m": 1
+  },
+  "factor_sample_filters": {},
+  "factor_specs": [],
+  "factor_columns": [],
+  "winsorize": {
+    "group_column": "month_date",
+    "lower_quantile": 0.01,
+    "upper_quantile": 0.99,
+    "columns": [
+      "future_ret_6m",
+      "CtrlRetSTR",
+      "CtrlRetLTM",
+      "CtrlVol",
+      "Ctrl_log_fund_size",
+      "Ctrl_fund_age"
+    ]
+  },
+  "kept_columns_before_group_labels": [
+    "ifind_code",
+    "month_date",
+    "investment_type",
+    "is_insample_future_ret_6m",
+    "match_is_sample_future_ret_6m",
+    "future_ret_6m",
+    "CtrlRetSTR",
+    "CtrlRetLTM",
+    "CtrlVol",
+    "as_偏股混合型基金",
+    "Ctrl_log_fund_size",
+    "Ctrl_fund_age"
+  ],
+  "output_columns": [
+    "ifind_code",
+    "month_date",
+    "investment_type",
+    "is_insample_future_ret_6m",
+    "match_is_sample_future_ret_6m",
+    "future_ret_6m",
+    "CtrlRetSTR",
+    "CtrlRetLTM",
+    "CtrlVol",
+    "as_偏股混合型基金",
+    "Ctrl_log_fund_size",
+    "Ctrl_fund_age"
+  ]
+}

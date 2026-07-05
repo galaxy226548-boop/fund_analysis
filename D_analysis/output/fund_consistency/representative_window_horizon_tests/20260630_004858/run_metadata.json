@@ -1,0 +1,57 @@
+{
+  "input_path": "/Users/chloezh/Projects/Fund_Analysis/A_data/output/panel_base_heatmap_m1_12_n1_12.parquet",
+  "output_dir": "/Users/chloezh/Projects/Fund_Analysis/D_analysis/output/fund_consistency/representative_window_horizon_tests/20260630_004858",
+  "y_column_map": {
+    "future_return_1m": "future_ret_1m",
+    "future_return_3m": "future_ret_3m",
+    "future_return_6m": "future_ret_6m",
+    "future_return_12m": "future_ret_12m"
+  },
+  "param_groups": {
+    "short_reversal_candidates": [
+      "m3_n6",
+      "m2_n6",
+      "m2_n7"
+    ],
+    "medium_continuation_candidates": [
+      "m6_n12",
+      "m6_n11",
+      "m5_n12",
+      "m1_n9"
+    ],
+    "neutral_controls": [
+      "m9_n6",
+      "m3_n4"
+    ]
+  },
+  "selected_params": [
+    "m3_n6",
+    "m2_n6",
+    "m2_n7",
+    "m6_n12",
+    "m6_n11",
+    "m5_n12",
+    "m1_n9",
+    "m9_n6",
+    "m3_n4"
+  ],
+  "sample_groups": [
+    "Top33",
+    "Mid33",
+    "Bottom33",
+    "Top50",
+    "Bottom50",
+    "Full sample"
+  ],
+  "controls": [
+    "CtrlRetSTR",
+    "CtrlRetLTM",
+    "CtrlVol",
+    "as_偏股混合型基金",
+    "Ctrl_log_fund_size",
+    "Ctrl_fund_age"
+  ],
+  "include_rank_mean": false,
+  "min_cross_section_n": 50,
+  "newey_west_lag": 5
+}

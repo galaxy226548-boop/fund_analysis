@@ -1,0 +1,59 @@
+{
+  "run_time": "2026-07-02T21:01:56",
+  "model_key": "fm_ymatch_style_growth",
+  "input_path": "/Users/chloezh/Projects/Fund_Analysis/B_factors/output/fm_ymatch_style_growth/panel_base.parquet",
+  "output_dir": "/Users/chloezh/Projects/Fund_Analysis/D_analysis/output/fund_consistency/fm_ymatch_style_growth",
+  "date_col": "month_date",
+  "y_col": "future_ret_6m_growth",
+  "consistency_cols": [
+    "FAC_rank_vol_growth_m3_n6_pairwise1",
+    "FAC_rank_vol_growth_m6_n3_pairwise1",
+    "FAC_rank_vol_growth_m6_n6_pairwise1",
+    "FAC_rank_vol_growth_m6_n12_pairwise1",
+    "FAC_rank_vol_growth_m12_n6_pairwise1"
+  ],
+  "consistency_input_cols": [
+    "FAC_rank_vol_growth_m3_n6_pairwise1",
+    "FAC_rank_vol_growth_m6_n3_pairwise1",
+    "FAC_rank_vol_growth_m6_n6_pairwise1",
+    "FAC_rank_vol_growth_m6_n12_pairwise1",
+    "FAC_rank_vol_growth_m12_n6_pairwise1"
+  ],
+  "control_cols": [
+    "CtrlRetSTR",
+    "CtrlRetLTM",
+    "CtrlVol",
+    "as_偏股混合型基金",
+    "Ctrl_log_fund_size",
+    "Ctrl_fund_age"
+  ],
+  "interaction_main_effects": [],
+  "interaction_centering": "none",
+  "interactions": [],
+  "sample_filters": {
+    "is_insample_future_ret_6m_growth": 1
+  },
+  "factor_sample_filters": {},
+  "filters_by_factor": {
+    "FAC_rank_vol_growth_m3_n6_pairwise1": {
+      "is_insample_future_ret_6m_growth": 1
+    },
+    "FAC_rank_vol_growth_m6_n3_pairwise1": {
+      "is_insample_future_ret_6m_growth": 1
+    },
+    "FAC_rank_vol_growth_m6_n6_pairwise1": {
+      "is_insample_future_ret_6m_growth": 1
+    },
+    "FAC_rank_vol_growth_m6_n12_pairwise1": {
+      "is_insample_future_ret_6m_growth": 1
+    },
+    "FAC_rank_vol_growth_m12_n6_pairwise1": {
+      "is_insample_future_ret_6m_growth": 1
+    }
+  },
+  "newey_west_lag": 5,
+  "min_cross_section_n": 50,
+  "input_rows": 123369,
+  "input_months": 206,
+  "note": "输入表已由上游程序完成基础样本筛选、1-rank_vol 构造和月度横截面 1%/99% winsorize；本脚本按 factor 叠加 factor_sample_filters。"
+}

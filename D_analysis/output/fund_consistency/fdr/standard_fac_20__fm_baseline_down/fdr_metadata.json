@@ -1,0 +1,107 @@
+{
+  "family_id": "standard_fac_20__fm_baseline_down",
+  "description": "fm_baseline_down 的五个固定 FAC 窗口 × 四个未来收益期限",
+  "role": "prespecified_5_windows_x_4_y_horizons",
+  "status": "active",
+  "method": "benjamini-hochberg",
+  "q_threshold": 0.05,
+  "family_size": 20,
+  "significant_q": 1,
+  "nominal_significant_p": 2,
+  "input_audit": {
+    "input_rows": 20,
+    "valid_p_values": 20,
+    "excluded_missing_p_values": 0,
+    "invalid_non_numeric": 0,
+    "invalid_non_finite": 0,
+    "invalid_out_of_range": 0
+  },
+  "sources": [
+    {
+      "path": "D_analysis/output/fund_consistency/fm_baseline_down_y1m/fama_macbeth_results.csv",
+      "p_column": "p_value",
+      "selectors": [
+        {
+          "op": "regex",
+          "column": "factor",
+          "pattern": "^FAC_rank_vol_(?:m3_n6|m6_n3|m6_n6|m6_n12|m12_n6)_pairwise1$"
+        },
+        {
+          "op": "column_equals_column",
+          "left": "variable",
+          "right": "factor"
+        }
+      ],
+      "label": "fm_baseline_down__y1m"
+    },
+    {
+      "path": "D_analysis/output/fund_consistency/fm_baseline_down_y3m/fama_macbeth_results.csv",
+      "p_column": "p_value",
+      "selectors": [
+        {
+          "op": "regex",
+          "column": "factor",
+          "pattern": "^FAC_rank_vol_(?:m3_n6|m6_n3|m6_n6|m6_n12|m12_n6)_pairwise1$"
+        },
+        {
+          "op": "column_equals_column",
+          "left": "variable",
+          "right": "factor"
+        }
+      ],
+      "label": "fm_baseline_down__y3m"
+    },
+    {
+      "path": "D_analysis/output/fund_consistency/fm_baseline_down/fama_macbeth_results.csv",
+      "p_column": "p_value",
+      "selectors": [
+        {
+          "op": "regex",
+          "column": "factor",
+          "pattern": "^FAC_rank_vol_(?:m3_n6|m6_n3|m6_n6|m6_n12|m12_n6)_pairwise1$"
+        },
+        {
+          "op": "column_equals_column",
+          "left": "variable",
+          "right": "factor"
+        }
+      ],
+      "label": "fm_baseline_down__y6m"
+    },
+    {
+      "path": "D_analysis/output/fund_consistency/fm_baseline_down_y12m/fama_macbeth_results.csv",
+      "p_column": "p_value",
+      "selectors": [
+        {
+          "op": "regex",
+          "column": "factor",
+          "pattern": "^FAC_rank_vol_(?:m3_n6|m6_n3|m6_n6|m6_n12|m12_n6)_pairwise1$"
+        },
+        {
+          "op": "column_equals_column",
+          "left": "variable",
+          "right": "factor"
+        }
+      ],
+      "label": "fm_baseline_down__y12m"
+    }
+  ],
+  "notes": "每个样本组独立执行20项 BH-FDR；不含132窗口 heatmap，也不跨样本组合并。跨组稳健性另按同一窗口、同一 Y、同方向且至少两个组各自q<0.05 判定。",
+  "generated_at": "2026-07-05T07:27:44-07:00",
+  "dry_run": false,
+  "heatmap": {
+    "file": "fdr_heatmap.png",
+    "metric": "t_stat",
+    "significance_column": "q_value",
+    "q_threshold": 0.05,
+    "annotated": false
+  },
+  "heatmap_nominal_p": {
+    "file": "nominal_p_heatmap.png",
+    "metric": "t_stat",
+    "significance_column": "p_value",
+    "p_threshold": 0.05,
+    "note": "未做 BH-FDR 校正，仅供对照，不能替代 q 值作为正式结论。",
+    "annotated": false
+  }
+}

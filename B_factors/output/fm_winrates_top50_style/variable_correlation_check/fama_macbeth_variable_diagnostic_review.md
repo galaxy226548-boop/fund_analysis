@@ -1,0 +1,71 @@
+# Fama-MacBeth 变量相关性与 VIF 审核报告
+
+生成时间：2026-07-02T20:59:39
+
+## 一、审核口径
+
+- 分析变量数：72。
+- 相关性风险：非对角线变量对的 `abs(mean_corr) >= 0.50`。
+- 重点关注相关性风险：达到相关性风险阈值，且 `stars` 不为空。
+- VIF 风险：`p90_vif > 5.0`。
+- 相关系数有效月份数：0。
+
+阈值说明：相关系数使用绝对值，是因为高正相关和高负相关都可能造成共线性风险；`0.50` 用来抓出中高相关变量对。VIF 使用 `p90_vif`，是为了代表较高月份的常态风险，同时避免 `max_vif` 被个别月份异常放大。
+
+## 二、相关性风险变量对
+
+按 `abs(mean_corr) >= 0.50` 口径，本次发现 40 组相关性风险变量对：
+
+| variable_1 | variable_2 | mean_corr | abs_mean_corr | stars | n_months | risk_level |
+| --- | --- | --- | --- | --- | --- | --- |
+| CtrlRetLTM | dummy_top50_growth_m6_n3_hit_above0_pairwise1 | 0.544 | 0.544 | *** | 123 | 重点关注相关性风险 |
+| CtrlRetLTM | dummy_top50_growth_m6_n3_hit_above1_pairwise1 | 0.601 | 0.601 | *** | 123 | 重点关注相关性风险 |
+| CtrlRetLTM | dummy_top50_growth_m6_n3_hit_above2_pairwise1 | 0.577 | 0.577 | *** | 123 | 重点关注相关性风险 |
+| CtrlRetLTM | dummy_top50_growth_m6_n6_hit_above1_pairwise1 | 0.516 | 0.516 | *** | 100 | 重点关注相关性风险 |
+| CtrlRetLTM | dummy_top50_growth_m6_n6_hit_above2_pairwise1 | 0.558 | 0.558 | *** | 100 | 重点关注相关性风险 |
+| CtrlRetLTM | dummy_top50_growth_m6_n6_hit_above3_pairwise1 | 0.581 | 0.581 | *** | 100 | 重点关注相关性风险 |
+| CtrlRetLTM | dummy_top50_growth_m6_n6_hit_above4_pairwise1 | 0.559 | 0.559 | *** | 100 | 重点关注相关性风险 |
+| Ctrl_fund_age | as_偏股混合型基金 | 0.548 | 0.548 | *** | 36 | 重点关注相关性风险 |
+| Ctrl_fund_age | as_偏股混合型基金 | 0.548 | 0.548 | *** | 36 | 重点关注相关性风险 |
+| Ctrl_fund_age | as_偏股混合型基金 | 0.548 | 0.548 | *** | 36 | 重点关注相关性风险 |
+| Ctrl_fund_age | as_偏股混合型基金 | 0.548 | 0.548 | *** | 36 | 重点关注相关性风险 |
+| Ctrl_fund_age | as_偏股混合型基金 | 0.548 | 0.548 | *** | 36 | 重点关注相关性风险 |
+| Ctrl_fund_age | as_偏股混合型基金 | 0.548 | 0.548 | *** | 36 | 重点关注相关性风险 |
+| Ctrl_fund_age | as_偏股混合型基金 | 0.548 | 0.548 | *** | 36 | 重点关注相关性风险 |
+| Ctrl_fund_age | as_偏股混合型基金 | 0.548 | 0.548 | *** | 36 | 重点关注相关性风险 |
+| Ctrl_fund_age | as_偏股混合型基金 | 0.548 | 0.548 | *** | 36 | 重点关注相关性风险 |
+| Ctrl_fund_age | as_偏股混合型基金 | 0.548 | 0.548 | *** | 36 | 重点关注相关性风险 |
+| Ctrl_fund_age | as_偏股混合型基金 | 0.548 | 0.548 | *** | 36 | 重点关注相关性风险 |
+| Ctrl_fund_age | as_偏股混合型基金 | 0.548 | 0.548 | *** | 36 | 重点关注相关性风险 |
+| CtrlRetLTM | dummy_top50_growth_m12_n6_hit_above3_pairwise1 | 0.506 | 0.506 | *** | 70 | 重点关注相关性风险 |
+| CtrlRetLTM | dummy_top50_growth_m12_n6_hit_above4_pairwise1 | 0.521 | 0.521 | *** | 70 | 重点关注相关性风险 |
+| CtrlRetLTM | dummy_top50_growth_m12_n6_hit_above5_pairwise1 | 0.518 | 0.518 | *** | 70 | 重点关注相关性风险 |
+| CtrlRetLTM | dummy_top50_value_m6_n3_hit_above0_pairwise1 | 0.513 | 0.513 | *** | 129 | 重点关注相关性风险 |
+| CtrlRetLTM | dummy_top50_value_m6_n3_hit_above1_pairwise1 | 0.556 | 0.556 | *** | 129 | 重点关注相关性风险 |
+| CtrlRetLTM | dummy_top50_value_m6_n3_hit_above2_pairwise1 | 0.553 | 0.553 | *** | 129 | 重点关注相关性风险 |
+| CtrlRetLTM | dummy_top50_value_m6_n6_hit_above2_pairwise1 | 0.526 | 0.526 | *** | 104 | 重点关注相关性风险 |
+| CtrlRetLTM | dummy_top50_value_m6_n6_hit_above3_pairwise1 | 0.539 | 0.539 | *** | 104 | 重点关注相关性风险 |
+| CtrlRetLTM | dummy_top50_value_m6_n6_hit_above4_pairwise1 | 0.512 | 0.512 | *** | 104 | 重点关注相关性风险 |
+| Ctrl_fund_age | as_偏股混合型基金 | 0.571 | 0.571 | *** | 58 | 重点关注相关性风险 |
+| Ctrl_fund_age | as_偏股混合型基金 | 0.571 | 0.571 | *** | 58 | 重点关注相关性风险 |
+| Ctrl_fund_age | as_偏股混合型基金 | 0.571 | 0.571 | *** | 58 | 重点关注相关性风险 |
+| Ctrl_fund_age | as_偏股混合型基金 | 0.571 | 0.571 | *** | 58 | 重点关注相关性风险 |
+| Ctrl_fund_age | as_偏股混合型基金 | 0.571 | 0.571 | *** | 58 | 重点关注相关性风险 |
+| Ctrl_fund_age | as_偏股混合型基金 | 0.571 | 0.571 | *** | 58 | 重点关注相关性风险 |
+| Ctrl_fund_age | as_偏股混合型基金 | 0.571 | 0.571 | *** | 58 | 重点关注相关性风险 |
+| Ctrl_fund_age | as_偏股混合型基金 | 0.571 | 0.571 | *** | 58 | 重点关注相关性风险 |
+| Ctrl_fund_age | as_偏股混合型基金 | 0.571 | 0.571 | *** | 58 | 重点关注相关性风险 |
+| Ctrl_fund_age | as_偏股混合型基金 | 0.571 | 0.571 | *** | 58 | 重点关注相关性风险 |
+| Ctrl_fund_age | as_偏股混合型基金 | 0.571 | 0.571 | *** | 58 | 重点关注相关性风险 |
+| Ctrl_fund_age | as_偏股混合型基金 | 0.571 | 0.571 | *** | 58 | 重点关注相关性风险 |
+
+## 三、VIF 风险变量
+
+按 `p90_vif > 5.0` 口径，本次未发现稳定偏高的 VIF 风险变量。
+
+## 四、建议解读
+
+- `stars` 只用于提示统计显著性，不代表相关系数大小；真正判断风险时应优先看 `abs_mean_corr`。
+- 如果相关性风险变量对同时具有相近经济含义，建议考虑二选一、合成指标或分模型做稳健性检验。
+- 如果 VIF 风险为空，说明按当前主口径没有发现稳定偏高的多重共线性；仍可查看 `max_vif` 识别个别月份异常。
+- CSV 文件不保存单元格居中等展示样式；如需居中展示，应另行导出 Excel 或 HTML。

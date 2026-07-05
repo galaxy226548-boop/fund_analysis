@@ -1,0 +1,84 @@
+{
+  "model": "fm_baseline_down_y3m",
+  "generated_at": "2026-07-05T00:56:07",
+  "input_dir": "/Users/chloezh/Projects/Fund_Analysis/B_factors/output/fm_baseline_down_y3m/variable_correlation_check",
+  "output_dir": "/Users/chloezh/Projects/Fund_Analysis/B_factors/output/fm_baseline_down_y3m/variable_correlation_check/figures",
+  "n_factors": 5,
+  "figures": [
+    {
+      "factor": "FAC_rank_vol_m3_n6_pairwise1",
+      "type": "corr_heatmap",
+      "file": "corr_heatmap_FAC_rank_vol_m3_n6_pairwise1.png"
+    },
+    {
+      "factor": "FAC_rank_vol_m3_n6_pairwise1",
+      "type": "vif_overall",
+      "file": "vif_overall_FAC_rank_vol_m3_n6_pairwise1.png"
+    },
+    {
+      "factor": "FAC_rank_vol_m3_n6_pairwise1",
+      "type": "vif_monthly",
+      "file": "vif_monthly_FAC_rank_vol_m3_n6_pairwise1.png"
+    },
+    {
+      "factor": "FAC_rank_vol_m6_n3_pairwise1",
+      "type": "corr_heatmap",
+      "file": "corr_heatmap_FAC_rank_vol_m6_n3_pairwise1.png"
+    },
+    {
+      "factor": "FAC_rank_vol_m6_n3_pairwise1",
+      "type": "vif_overall",
+      "file": "vif_overall_FAC_rank_vol_m6_n3_pairwise1.png"
+    },
+    {
+      "factor": "FAC_rank_vol_m6_n3_pairwise1",
+      "type": "vif_monthly",
+      "file": "vif_monthly_FAC_rank_vol_m6_n3_pairwise1.png"
+    },
+    {
+      "factor": "FAC_rank_vol_m6_n6_pairwise1",
+      "type": "corr_heatmap",
+      "file": "corr_heatmap_FAC_rank_vol_m6_n6_pairwise1.png"
+    },
+    {
+      "factor": "FAC_rank_vol_m6_n6_pairwise1",
+      "type": "vif_overall",
+      "file": "vif_overall_FAC_rank_vol_m6_n6_pairwise1.png"
+    },
+    {
+      "factor": "FAC_rank_vol_m6_n6_pairwise1",
+      "type": "vif_monthly",
+      "file": "vif_monthly_FAC_rank_vol_m6_n6_pairwise1.png"
+    },
+    {
+      "factor": "FAC_rank_vol_m6_n12_pairwise1",
+      "type": "corr_heatmap",
+      "file": "corr_heatmap_FAC_rank_vol_m6_n12_pairwise1.png"
+    },
+    {
+      "factor": "FAC_rank_vol_m6_n12_pairwise1",
+      "type": "vif_overall",
+      "file": "vif_overall_FAC_rank_vol_m6_n12_pairwise1.png"
+    },
+    {
+      "factor": "FAC_rank_vol_m6_n12_pairwise1",
+      "type": "vif_monthly",
+      "file": "vif_monthly_FAC_rank_vol_m6_n12_pairwise1.png"
+    },
+    {
+      "factor": "FAC_rank_vol_m12_n6_pairwise1",
+      "type": "corr_heatmap",
+      "file": "corr_heatmap_FAC_rank_vol_m12_n6_pairwise1.png"
+    },
+    {
+      "factor": "FAC_rank_vol_m12_n6_pairwise1",
+      "type": "vif_overall",
+      "file": "vif_overall_FAC_rank_vol_m12_n6_pairwise1.png"
+    },
+    {
+      "factor": "FAC_rank_vol_m12_n6_pairwise1",
+      "type": "vif_monthly",
+      "file": "vif_monthly_FAC_rank_vol_m12_n6_pairwise1.png"
+    }
+  ]
+}

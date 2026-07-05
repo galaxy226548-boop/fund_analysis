@@ -1,0 +1,46 @@
+{
+  "run_time": "2026-07-02T20:37:46",
+  "model_key": "fm_baseline_top33_rank_vol_across_horizons_y12m",
+  "input_path": "/Users/chloezh/Projects/Fund_Analysis/B_factors/output/fm_baseline_top33_rank_vol_across_horizons_y12m/panel_base.parquet",
+  "output_dir": "/Users/chloezh/Projects/Fund_Analysis/D_analysis/output/fund_consistency/fm_baseline_top33_rank_vol_across_horizons_y12m",
+  "date_col": "month_date",
+  "y_col": "future_ret_12m",
+  "consistency_cols": [
+    "rank_vol_across_horizons_1m_3m_6m_12m"
+  ],
+  "consistency_input_cols": [
+    "rank_vol_across_horizons_1m_3m_6m_12m"
+  ],
+  "control_cols": [
+    "CtrlRetSTR",
+    "CtrlRetLTM",
+    "CtrlVol",
+    "as_偏股混合型基金",
+    "Ctrl_log_fund_size",
+    "Ctrl_fund_age"
+  ],
+  "interaction_main_effects": [],
+  "interaction_centering": "none",
+  "interactions": [],
+  "sample_filters": {
+    "is_insample_future_ret_12m": 1,
+    "match_is_sample_future_ret_12m": 1
+  },
+  "factor_sample_filters": {
+    "rank_vol_across_horizons_1m_3m_6m_12m": {
+      "is_tercile_rank_mean_across_horizons_1m_3m_6m_12m": 3
+    }
+  },
+  "filters_by_factor": {
+    "rank_vol_across_horizons_1m_3m_6m_12m": {
+      "is_insample_future_ret_12m": 1,
+      "match_is_sample_future_ret_12m": 1,
+      "is_tercile_rank_mean_across_horizons_1m_3m_6m_12m": 3
+    }
+  },
+  "newey_west_lag": 5,
+  "min_cross_section_n": 50,
+  "input_rows": 36492,
+  "input_months": 209,
+  "note": "输入表已由上游程序完成基础样本筛选、1-rank_vol 构造和月度横截面 1%/99% winsorize；本脚本按 factor 叠加 factor_sample_filters。"
+}

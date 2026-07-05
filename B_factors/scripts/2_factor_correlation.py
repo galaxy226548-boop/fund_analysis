@@ -18,6 +18,7 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import re
 from datetime import datetime
 from pathlib import Path
 from typing import Iterable
@@ -93,6 +94,26 @@ Y_COL = str(REGRESSION_CONFIG["y"])
 
 CURRENT_FACTOR_PLACEHOLDER = "FAC"
 MATCHED_RANK_MEAN_PLACEHOLDER = "RANK_MEAN"
+# 市态模型专用占位符：与回归脚本保持一致，从市态 factor 剥离 regime 片段
+# 推导同期限普通 FAC / rank_mean 列。
+PLAIN_FACTOR_PLACEHOLDER = "FAC_PLAIN"
+PLAIN_RANK_MEAN_PLACEHOLDER = "RANK_MEAN_PLAIN"
+STATE_FACTOR_PATTERN = re.compile(
+    r"^FAC_rank_vol_[a-z0-9]+_(m\d+_n\d+_pairwise\d+)$"
+)
+
+
+def derive_plain_counterpart(factor_col: str, prefix: str) -> str:
+    """从市态 factor 列名推导同期限普通列名（prefix 决定 FAC 还是 rank_mean）。"""
+    match = STATE_FACTOR_PATTERN.fullmatch(factor_col)
+    if match is None:
+        raise ValueError(
+            "FAC_PLAIN/RANK_MEAN_PLAIN 占位符要求当前 factor 是市态因子"
+            f"（FAC_rank_vol_{{regime}}_m*_n*_pairwise*）：{factor_col!r}"
+        )
+    return f"{prefix}{match.group(1)}"
+
+
 STANDARDIZE_NONE = "none"
 STANDARDIZE_CROSS_SECTION = "cross_section"
 CENTER_NONE = "none"
@@ -153,6 +174,10 @@ def resolve_variable_for_factor(variable: object, factor_col: str) -> str:
         if not factor_col.startswith("FAC_rank_vol_"):
             raise ValueError(f"无法从当前 factor 推导 rank_mean 列名：{factor_col!r}")
         return factor_col.replace("FAC_rank_vol_", "rank_mean_", 1)
+    if variable_name == PLAIN_FACTOR_PLACEHOLDER:
+        return derive_plain_counterpart(factor_col, "FAC_rank_vol_")
+    if variable_name == PLAIN_RANK_MEAN_PLACEHOLDER:
+        return derive_plain_counterpart(factor_col, "rank_mean_")
     if not variable_name:
         raise ValueError("交互项或主效应变量名不能为空")
     return variable_name

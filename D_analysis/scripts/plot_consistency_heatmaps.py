@@ -1,12 +1,12 @@
 """汇总热力图回归结果并绘制 FAC 系数 / t 值热力图。
 
-输入是五个热力图模型的 ``fama_macbeth_results.csv``。脚本会从 ``factor`` 或
+输入是 Full sample 主检验与五个分组探索检验的 ``fama_macbeth_results.csv``。脚本会从 ``factor`` 或
 ``variable`` 列中解析 ``FAC_rank_vol_m{m}_n{n}_pairwise1`` 的 m、n 参数，
 并为每个样本组输出：
 
 1. FAC coefficient 热力图 PNG 和矩阵 CSV
-2. FAC t-stat 热力图 PNG 和矩阵 CSV，其中不显著格子用灰色显示
-3. 所有样本组合并的显著性 summary CSV（|t| >= 1.96）
+2. FAC t-stat / BH q-value 热力图和矩阵；q>=0.05 的格子用灰色显示
+3. 所有样本组合并的 raw p-value 与 BH-FDR summary CSV
 4. 用于判断“哪些 m,n 组合有效”的结论汇总 CSV 和 Markdown 草稿
 5. 跨五个样本组的综合显著性热力图
 
@@ -18,10 +18,12 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import re
 import tempfile
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 
 # Codex 沙箱里用户 home 下的 matplotlib 缓存目录可能不可写。先把缓存目录放到
@@ -45,7 +47,10 @@ DEFAULT_OUTPUT_DIR = (
     PROJECT_ROOT / "D_analysis" / "output" / "fund_consistency" / "heatmap_summary"
 )
 SIGNIFICANCE_T_THRESHOLD = 1.96
+FDR_Q_THRESHOLD = 0.05
 FAC_PATTERN = re.compile(r"FAC_rank_vol_m(?P<m>\d+)_n(?P<n>\d+)_pairwise1")
+HEATMAP_M_VALUES = range(1, 13)
+HEATMAP_N_VALUES = range(2, 13)
 
 
 @dataclass(frozen=True)
@@ -58,6 +63,16 @@ class HeatmapModel:
 
 
 HEATMAP_MODELS = (
+    HeatmapModel(
+        key="fm_heatmap_full",
+        label="Full sample",
+        result_path=PROJECT_ROOT
+        / "D_analysis"
+        / "output"
+        / "fund_consistency"
+        / "fm_heatmap_full"
+        / "fama_macbeth_results.csv",
+    ),
     HeatmapModel(
         key="fm_heatmap_up",
         label="Up Top50",
@@ -99,13 +114,13 @@ HEATMAP_MODELS = (
         / "fama_macbeth_results.csv",
     ),
     HeatmapModel(
-        key="fm_heatmap_bm33",
+        key="fm_heatmap_bottom33",
         label="Bottom33",
         result_path=PROJECT_ROOT
         / "D_analysis"
         / "output"
         / "fund_consistency"
-        / "fm_heatmap_bm33"
+        / "fm_heatmap_bottom33"
         / "fama_macbeth_results.csv",
     ),
 )
@@ -130,7 +145,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--annotate",
         action="store_true",
-        help="在热力图格子中标出数值；默认不标注，适合 12x12 图保持清爽。",
+        help="在热力图格子中标出数值；默认不标注，适合 12x11 图保持清爽。",
     )
     return parser.parse_args()
 
@@ -197,7 +212,7 @@ def build_metric_matrices(
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """读取一个模型结果文件，返回 coef/t 矩阵和长表。
 
-    矩阵行是 m=1..12，列是 n=1..12。长表用于生成显著性 summary。
+    矩阵行是 m=1..12，列是 n=2..12。长表用于生成显著性 summary。
     """
     data = pd.read_csv(result_path)
     factor_rows = find_factor_effect_rows(data)
@@ -211,8 +226,8 @@ def build_metric_matrices(
             continue
 
         m, n = parsed
-        if not (1 <= m <= 12 and 1 <= n <= 12):
-            # 本脚本只负责 m,n=1..12 的热力图；其他口径留给别的汇总脚本。
+        if not (1 <= m <= 12 and 2 <= n <= 12):
+            # n=1 的标准差没有定义，正式热力图只保留 n=2..12。
             continue
 
         records.append(
@@ -256,12 +271,58 @@ def build_metric_matrices(
 
 def make_matrix(long_table: pd.DataFrame, value_column: str) -> pd.DataFrame:
     """把长表转换成 m x n 矩阵，保证坐标轴完整覆盖 1..12。"""
-    matrix = pd.DataFrame(index=range(1, 13), columns=range(1, 13), dtype="float64")
+    matrix = pd.DataFrame(
+        index=HEATMAP_M_VALUES,
+        columns=HEATMAP_N_VALUES,
+        dtype="float64",
+    )
     for _, row in long_table.iterrows():
         matrix.loc[int(row["m"]), int(row["n"])] = row[value_column]
     matrix.index.name = "m"
     matrix.columns.name = "n"
     return matrix
+
+
+def benjamini_hochberg(p_values: pd.Series) -> pd.Series:
+    """对一个预先定义的检验族计算 Benjamini-Hochberg q-value。
+
+    缺失 p-value 不进入 family，也保持缺失。反向累积最小值保证排序后的
+    q-value 单调，最后再映射回输入行顺序。
+    """
+    numeric = pd.to_numeric(p_values, errors="coerce")
+    valid = numeric.notna() & numeric.between(0, 1)
+    output = pd.Series(np.nan, index=p_values.index, dtype="float64")
+    if not valid.any():
+        return output
+
+    ordered = numeric.loc[valid].sort_values(kind="mergesort")
+    family_size = len(ordered)
+    ranks = np.arange(1, family_size + 1, dtype="float64")
+    adjusted = ordered.to_numpy(dtype="float64") * family_size / ranks
+    adjusted = np.minimum.accumulate(adjusted[::-1])[::-1]
+    output.loc[ordered.index] = np.clip(adjusted, 0.0, 1.0)
+    return output
+
+
+def add_fdr_columns(model: HeatmapModel, long_table: pd.DataFrame) -> pd.DataFrame:
+    """给单个模型的全部可估 FAC p-value 做一次 BH-FDR。
+
+    Full sample 是唯一主检验族；五个 rank_mean 分组分别是独立探索族。
+    不把六个模型混成一个 family，避免主检验与条件样本问题互相改变门槛。
+    """
+    output = long_table.copy()
+    valid_p = pd.to_numeric(output["p_value"], errors="coerce").between(0, 1)
+    output["q_value"] = benjamini_hochberg(output["p_value"])
+    output["fdr_family"] = model.key
+    output["fdr_family_role"] = (
+        "primary_full_sample" if model.key == "fm_heatmap_full" else "exploratory_subgroup"
+    )
+    output["fdr_family_size"] = int(valid_p.sum())
+    output["is_nominal_significant_5pct"] = pd.to_numeric(
+        output["p_value"], errors="coerce"
+    ).lt(0.05)
+    output["is_fdr_significant_5pct"] = output["q_value"].lt(FDR_Q_THRESHOLD)
+    return output
 
 
 def save_matrix(matrix: pd.DataFrame, output_path: Path) -> None:
@@ -280,7 +341,7 @@ def plot_heatmap(
     center_zero: bool,
     annotate: bool,
 ) -> None:
-    """绘制并保存一张 12x12 热力图。"""
+    """绘制并保存一张 12x11 热力图。"""
     values = matrix.to_numpy(dtype="float64")
 
     if center_zero:
@@ -296,10 +357,12 @@ def plot_heatmap(
     ax.set_title(title, fontsize=14, pad=12)
     ax.set_xlabel("n: ranking periods", fontsize=11)
     ax.set_ylabel("m: return horizon (months)", fontsize=11)
-    ax.set_xticks(range(12), labels=[str(i) for i in range(1, 13)])
-    ax.set_yticks(range(12), labels=[str(i) for i in range(1, 13)])
-    ax.set_xticks(np.arange(-0.5, 12, 1), minor=True)
-    ax.set_yticks(np.arange(-0.5, 12, 1), minor=True)
+    ax.set_xticks(
+        range(len(matrix.columns)), labels=[str(i) for i in matrix.columns]
+    )
+    ax.set_yticks(range(len(matrix.index)), labels=[str(i) for i in matrix.index])
+    ax.set_xticks(np.arange(-0.5, len(matrix.columns), 1), minor=True)
+    ax.set_yticks(np.arange(-0.5, len(matrix.index), 1), minor=True)
     ax.grid(which="minor", color="white", linestyle="-", linewidth=0.8)
     ax.tick_params(which="minor", bottom=False, left=False)
 
@@ -328,6 +391,7 @@ def plot_heatmap(
 
 def plot_t_stat_heatmap(
     matrix: pd.DataFrame,
+    q_matrix: pd.DataFrame,
     output_path: Path,
     title: str,
     *,
@@ -335,14 +399,13 @@ def plot_t_stat_heatmap(
 ) -> None:
     """绘制更适合解读显著性的 t-stat 热力图。
 
-    t-stat 的符号一定和系数符号一致，因为 t-stat = coef / standard_error，
-    而标准误为正。读图时更关键的是 ``abs(t_stat)`` 是否超过阈值：
-    - 不显著格子（abs(t)<1.96）用灰色，越接近 0 越深灰；
-    - 显著格子用红蓝色，颜色方向表示系数方向。
+    t-stat 的符号一定和系数符号一致。显著性以当前模型检验族内的 BH q-value
+    判断：q<0.05 的格子用红蓝色并加黑框，其余可估格子用灰色。
     """
     values = matrix.to_numpy(dtype="float64")
+    q_values = q_matrix.to_numpy(dtype="float64")
     finite = np.isfinite(values)
-    significant = finite & (np.abs(values) >= SIGNIFICANCE_T_THRESHOLD)
+    significant = finite & np.isfinite(q_values) & (q_values < FDR_Q_THRESHOLD)
     nonsignificant = finite & ~significant
 
     # 先手工构造底图颜色。NaN 用浅灰；不显著格子用灰阶，abs(t) 越接近 0 越深。
@@ -352,7 +415,8 @@ def plot_t_stat_heatmap(
 
     gray_strength = np.zeros_like(values, dtype="float64")
     gray_strength[nonsignificant] = np.clip(
-        np.abs(values[nonsignificant]) / SIGNIFICANCE_T_THRESHOLD,
+        np.minimum(np.abs(values[nonsignificant]), SIGNIFICANCE_T_THRESHOLD)
+        / SIGNIFICANCE_T_THRESHOLD,
         0.0,
         1.0,
     )
@@ -374,14 +438,16 @@ def plot_t_stat_heatmap(
     ax.set_title(title, fontsize=14, pad=12)
     ax.set_xlabel("n: ranking periods", fontsize=11)
     ax.set_ylabel("m: return horizon (months)", fontsize=11)
-    ax.set_xticks(range(12), labels=[str(i) for i in range(1, 13)])
-    ax.set_yticks(range(12), labels=[str(i) for i in range(1, 13)])
-    ax.set_xticks(np.arange(-0.5, 12, 1), minor=True)
-    ax.set_yticks(np.arange(-0.5, 12, 1), minor=True)
+    ax.set_xticks(
+        range(len(matrix.columns)), labels=[str(i) for i in matrix.columns]
+    )
+    ax.set_yticks(range(len(matrix.index)), labels=[str(i) for i in matrix.index])
+    ax.set_xticks(np.arange(-0.5, len(matrix.columns), 1), minor=True)
+    ax.set_yticks(np.arange(-0.5, len(matrix.index), 1), minor=True)
     ax.grid(which="minor", color="white", linestyle="-", linewidth=0.8)
     ax.tick_params(which="minor", bottom=False, left=False)
 
-    # 用黑框圈出显著格子，避免浅色显著值和灰色不显著值混在一起。
+    # 用黑框圈出 BH-FDR 显著格子。
     for row_index, col_index in np.argwhere(significant):
         ax.add_patch(
             plt.Rectangle(
@@ -399,10 +465,14 @@ def plot_t_stat_heatmap(
             for col_index in range(values.shape[1]):
                 value = values[row_index, col_index]
                 if np.isfinite(value):
+                    q_text = q_values[row_index, col_index]
+                    label = f"{value:.2f}"
+                    if np.isfinite(q_text):
+                        label += f"\nq={q_text:.2f}"
                     ax.text(
                         col_index,
                         row_index,
-                        f"{value:.2f}",
+                        label,
                         ha="center",
                         va="center",
                         fontsize=6,
@@ -414,7 +484,7 @@ def plot_t_stat_heatmap(
         ax=ax,
         shrink=0.88,
     )
-    colorbar.set_label("significant t-stat color; gray means |t| < 1.96")
+    colorbar.set_label("t-stat color where BH q<0.05; gray means q>=0.05")
     fig.tight_layout()
     output_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output_path, dpi=200)
@@ -424,8 +494,8 @@ def plot_t_stat_heatmap(
 def make_significance_summary(
     model: HeatmapModel, long_table: pd.DataFrame
 ) -> pd.DataFrame:
-    """筛出 |t| >= 1.96 的 m,n 组合，供跨样本组汇总。"""
-    significant = long_table.loc[long_table["t_stat"].abs() >= SIGNIFICANCE_T_THRESHOLD].copy()
+    """筛出当前检验族中 BH q<0.05 的 m,n 组合。"""
+    significant = long_table.loc[long_table["is_fdr_significant_5pct"]].copy()
     significant.insert(0, "sample_group", model.key)
     significant.insert(1, "sample_label", model.label)
     return significant.sort_values(["m", "n"]).reset_index(drop=True)
@@ -434,7 +504,7 @@ def make_significance_summary(
 def make_all_groups_summary(
     model_tables: list[tuple[HeatmapModel, pd.DataFrame]],
 ) -> pd.DataFrame:
-    """把五个样本组的 FAC 结果合成长表。
+    """把 Full sample 与五个探索样本组的 FAC 结果合成长表。
 
     这张表是最细粒度的结论底稿：每一行对应一个样本组下的一个 (m,n)
     组合，并补充显著性、方向、m=3/m=6 标记。后面的有效组合筛选都基于它，
@@ -448,10 +518,11 @@ def make_all_groups_summary(
         parts.append(group_table)
 
     all_groups = pd.concat(parts, ignore_index=True)
-    all_groups["is_significant"] = (
+    all_groups["is_raw_t_significant"] = (
         all_groups["t_stat"].abs() >= SIGNIFICANCE_T_THRESHOLD
     )
-    all_groups["significance_rule"] = f"abs(t_stat)>={SIGNIFICANCE_T_THRESHOLD}"
+    all_groups["is_significant"] = all_groups["is_fdr_significant_5pct"]
+    all_groups["significance_rule"] = f"BH q<{FDR_Q_THRESHOLD} within fdr_family"
     all_groups["coef_direction"] = np.select(
         [
             all_groups["coef"] > 0,
@@ -485,8 +556,15 @@ def make_all_groups_summary(
         "coef",
         "t_stat",
         "p_value",
+        "q_value",
+        "fdr_family",
+        "fdr_family_role",
+        "fdr_family_size",
         "n_months",
         "avg_monthly_n",
+        "is_nominal_significant_5pct",
+        "is_raw_t_significant",
+        "is_fdr_significant_5pct",
         "is_significant",
         "significance_rule",
         "coef_direction",
@@ -515,18 +593,21 @@ def _join_unique(values: pd.Series) -> str:
 
 
 def build_effective_mn_summary(all_groups: pd.DataFrame) -> pd.DataFrame:
-    """按显著性和方向稳定性规则筛选有效的 (m,n) 组合。
+    """按主检验与探索检验的 BH-FDR 结果筛选候选窗口。
 
-    当前规则偏向“研究结论候选”而不是最终因果结论：
-    - 单个样本组中 abs(t_stat) >= 1.96 记为显著；
-    - 显著样本组中的系数方向必须稳定，即都为正或都为负；
-    - 至少 2 个样本组显著，记为 candidate；
-    - 至少 3 个样本组显著，进一步标记为 robust_candidate。
+    - Full sample q<0.05：主检验候选；
+    - 至少两个探索分组 q<0.05 且方向一致：探索候选；
+    - Full sample 显著，且至少两个探索分组同方向显著：稳健候选。
     """
     rows: list[dict[str, object]] = []
     for (m, n), group in all_groups.groupby(["m", "n"], sort=True):
         non_missing = group.loc[group["coef_direction"] != "missing"].copy()
-        significant = group.loc[group["is_significant"]].copy()
+        significant = group.loc[group["is_fdr_significant_5pct"]].copy()
+        full = group.loc[group["sample_group"] == "fm_heatmap_full"].copy()
+        exploratory = group.loc[group["sample_group"] != "fm_heatmap_full"].copy()
+        exploratory_significant = exploratory.loc[
+            exploratory["is_fdr_significant_5pct"]
+        ].copy()
 
         all_direction = _direction_mode(non_missing["coef_direction"])
         significant_direction = _direction_mode(significant["coef_direction"])
@@ -537,10 +618,16 @@ def build_effective_mn_summary(all_groups: pd.DataFrame) -> pd.DataFrame:
             (significant["coef_direction"] == significant_direction).sum()
         )
 
-        significant_direction_stable = (
-            not significant.empty
-            and significant["coef_direction"].nunique(dropna=True) == 1
-            and significant_direction in {"positive", "negative"}
+        exploratory_direction = _direction_mode(
+            exploratory_significant["coef_direction"]
+        )
+        exploratory_direction_stable = (
+            not exploratory_significant.empty
+            and exploratory_significant["coef_direction"].nunique(dropna=True) == 1
+            and exploratory_direction in {"positive", "negative"}
+        )
+        significant_direction_stable = not significant.empty and (
+            significant["coef_direction"].nunique(dropna=True) == 1
         )
         all_direction_stable = (
             not non_missing.empty
@@ -548,8 +635,22 @@ def build_effective_mn_summary(all_groups: pd.DataFrame) -> pd.DataFrame:
             and all_direction in {"positive", "negative"}
         )
         significant_count = int(significant.shape[0])
-        candidate_2plus = significant_count >= 2 and significant_direction_stable
-        candidate_3plus = significant_count >= 3 and significant_direction_stable
+        exploratory_significant_count = int(exploratory_significant.shape[0])
+        primary_significant = bool(
+            not full.empty and full["is_fdr_significant_5pct"].iloc[0]
+        )
+        primary_direction = (
+            str(full["coef_direction"].iloc[0]) if not full.empty else "missing"
+        )
+        exploratory_candidate = (
+            exploratory_significant_count >= 2 and exploratory_direction_stable
+        )
+        robust_candidate = bool(
+            primary_significant
+            and exploratory_candidate
+            and primary_direction == exploratory_direction
+        )
+        is_candidate = bool(primary_significant or exploratory_candidate)
 
         rows.append(
             {
@@ -559,6 +660,17 @@ def build_effective_mn_summary(all_groups: pd.DataFrame) -> pd.DataFrame:
                 "available_coef_count": int(non_missing.shape[0]),
                 "significant_group_count": significant_count,
                 "significant_groups": _join_unique(significant["sample_group"]),
+                "primary_full_sample_significant": primary_significant,
+                "primary_full_sample_direction": primary_direction,
+                "primary_full_sample_q_value": float(full["q_value"].iloc[0])
+                if not full.empty and pd.notna(full["q_value"].iloc[0])
+                else np.nan,
+                "exploratory_significant_count": exploratory_significant_count,
+                "exploratory_significant_groups": _join_unique(
+                    exploratory_significant["sample_group"]
+                ),
+                "exploratory_significant_direction": exploratory_direction,
+                "exploratory_direction_stable": bool(exploratory_direction_stable),
                 "all_direction_mode": all_direction,
                 "all_direction_mode_count": all_direction_count,
                 "all_direction_stable": bool(all_direction_stable),
@@ -569,58 +681,81 @@ def build_effective_mn_summary(all_groups: pd.DataFrame) -> pd.DataFrame:
                 "median_coef": group["coef"].median(skipna=True),
                 "max_abs_t_stat": group["t_stat"].abs().max(skipna=True),
                 "mean_t_stat": group["t_stat"].mean(skipna=True),
-                "candidate_2plus": bool(candidate_2plus),
-                "candidate_3plus": bool(candidate_3plus),
-                "effectiveness_tier": "robust_3plus"
-                if candidate_3plus
-                else "candidate_2plus"
-                if candidate_2plus
+                "exploratory_candidate_2plus": bool(exploratory_candidate),
+                "robust_candidate": bool(robust_candidate),
+                "is_candidate": is_candidate,
+                "effectiveness_tier": "robust_primary_plus_2_exploratory"
+                if robust_candidate
+                else "primary_full_sample"
+                if primary_significant
+                else "exploratory_2plus"
+                if exploratory_candidate
                 else "not_effective",
                 "is_m3": int(m) == 3,
                 "is_m6": int(m) == 6,
                 "m3_negative_significant": bool(
                     int(m) == 3
-                    and significant_count >= 1
-                    and significant_direction == "negative"
-                    and significant_direction_stable
+                    and is_candidate
+                    and (
+                        primary_direction == "negative"
+                        or exploratory_direction == "negative"
+                    )
                 ),
                 "m6_positive_significant": bool(
                     int(m) == 6
-                    and significant_count >= 1
-                    and significant_direction == "positive"
-                    and significant_direction_stable
+                    and is_candidate
+                    and (
+                        primary_direction == "positive"
+                        or exploratory_direction == "positive"
+                    )
                 ),
             }
         )
 
     effective = pd.DataFrame(rows)
-    effective = effective.loc[effective["candidate_2plus"]].copy()
+    effective = effective.loc[effective["is_candidate"]].copy()
     sort_columns = [
-        "candidate_3plus",
+        "robust_candidate",
+        "primary_full_sample_significant",
+        "exploratory_significant_count",
         "significant_group_count",
         "max_abs_t_stat",
         "m",
         "n",
     ]
-    return effective.sort_values(sort_columns, ascending=[False, False, False, True, True])
+    return effective.sort_values(
+        sort_columns,
+        ascending=[False, False, False, False, False, True, True],
+    )
 
 
 def build_combined_heatmap_matrices(
     all_groups: pd.DataFrame,
 ) -> dict[str, pd.DataFrame]:
-    """生成跨五个样本组的综合热力图矩阵。
+    """生成跨五个探索样本组的综合 BH-FDR 热力图矩阵。
 
     单个模型的热力图适合看某个样本组内部的形状；综合图则回答“这个
     (m,n) 在五个样本组里到底有多少支持”：
-    - significant_group_count：五个样本组中有几个达到 abs(t)>=1.96；
+    - significant_group_count：五个探索分组中有几个达到 BH q<0.05；
     - signed_significant_count：显著正向记 +1，显著负向记 -1，再求和。
       例如 -3 表示有 3 个样本组显著负向，+2 表示有 2 个样本组显著正向。
     """
-    count_matrix = pd.DataFrame(index=range(1, 13), columns=range(1, 13), dtype="float64")
-    signed_matrix = pd.DataFrame(index=range(1, 13), columns=range(1, 13), dtype="float64")
+    count_matrix = pd.DataFrame(
+        index=HEATMAP_M_VALUES,
+        columns=HEATMAP_N_VALUES,
+        dtype="float64",
+    )
+    signed_matrix = pd.DataFrame(
+        index=HEATMAP_M_VALUES,
+        columns=HEATMAP_N_VALUES,
+        dtype="float64",
+    )
 
-    for (m, n), group in all_groups.groupby(["m", "n"], sort=True):
-        significant = group.loc[group["is_significant"]].copy()
+    exploratory = all_groups.loc[
+        all_groups["sample_group"] != "fm_heatmap_full"
+    ].copy()
+    for (m, n), group in exploratory.groupby(["m", "n"], sort=True):
+        significant = group.loc[group["is_fdr_significant_5pct"]].copy()
         signed_values = np.select(
             [significant["coef"].gt(0), significant["coef"].lt(0)],
             [1, -1],
@@ -657,8 +792,8 @@ def save_combined_heatmaps(
     plot_heatmap(
         count_matrix,
         count_png,
-        title="Combined: number of significant sample groups",
-        colorbar_label="count of |t| >= 1.96 groups",
+        title="Exploratory groups: number with BH q<0.05",
+        colorbar_label="count of subgroup BH q<0.05",
         cmap="YlGnBu",
         center_zero=False,
         annotate=annotate,
@@ -673,7 +808,7 @@ def save_combined_heatmaps(
     plot_heatmap(
         signed_matrix,
         signed_png,
-        title="Combined: signed significant count",
+        title="Exploratory groups: signed BH-significant count",
         colorbar_label="negative groups (-) / positive groups (+)",
         cmap="RdBu_r",
         center_zero=True,
@@ -711,8 +846,9 @@ def write_conclusion_markdown(
     这份文字故意保留“草稿”语气：它把规则、有效组合、m=3/m=6 的结构性迹象
     摆出来，但不替代后续经济含义解释和稳健性检验。
     """
-    robust = effective.loc[effective["candidate_3plus"]].copy()
-    candidate = effective.loc[effective["candidate_2plus"]].copy()
+    robust = effective.loc[effective["robust_candidate"]].copy()
+    primary = effective.loc[effective["primary_full_sample_significant"]].copy()
+    exploratory = effective.loc[effective["exploratory_candidate_2plus"]].copy()
     m3 = effective.loc[effective["is_m3"]].copy()
     m6 = effective.loc[effective["is_m6"]].copy()
     m3_negative = effective.loc[effective["m3_negative_significant"]].copy()
@@ -724,32 +860,37 @@ def write_conclusion_markdown(
         "## 读图说明",
         "",
         "- t-stat 的符号和系数符号一致，因为 `t_stat = coef / standard_error`，标准误为正。",
-        "- 单个样本组的 t-stat 热力图中，灰色表示不显著；越接近 0 越深灰。",
-        "- 单个样本组的 t-stat 热力图中，带黑框的红蓝格子表示 `abs(t_stat) >= 1.96`，红蓝方向表示系数方向。",
-        "- 综合热力图 `combined_significant_group_count_heatmap.png` 显示五个样本组中有几个显著。",
-        "- 综合热力图 `combined_signed_significant_count_heatmap.png` 把显著正向记为 +1、显著负向记为 -1，用于同时看方向和稳健性。",
+        "- 每个模型内所有可估 `(m,n)` p-value 构成一个 BH-FDR family。",
+        "- Full sample 是主检验族；Up/Down/Top33/Mid33/Bottom33 各自是独立探索族。",
+        "- t-stat 图中 q>=0.05 的格子为灰色；q<0.05 的红蓝格子带黑框。",
+        "- 综合热力图只汇总五个探索分组中达到各自 BH q<0.05 的数量和方向。",
         "",
         "## 判定规则",
         "",
-        f"- 单个样本组中 `abs(t_stat) >= {SIGNIFICANCE_T_THRESHOLD}` 记为显著。",
-        "- 只把显著样本组内系数方向一致的 `(m,n)` 视为方向稳定。",
-        "- 至少 2 个样本组显著且方向稳定，记为候选有效组合。",
-        "- 至少 3 个样本组显著且方向稳定，记为更稳健候选组合。",
+        f"- 每个 family 中 `q < {FDR_Q_THRESHOLD}` 记为 FDR 显著；raw p 与 t-stat 同时保留供诊断。",
+        "- Full sample q<0.05，记为主检验候选。",
+        "- 至少两个探索分组 q<0.05 且方向一致，记为探索候选。",
+        "- Full sample 与至少两个探索分组同方向 q<0.05，记为稳健候选。",
         "- 额外标记 `m=3` 与 `m=6`，用于观察“m3 负向、m6 正向”是否呈结构性。",
         "",
         "## 汇总结果",
         "",
         f"- 全量样本组记录数：{len(all_groups)}。",
-        f"- 候选有效组合数（至少 2 个样本组显著）：{len(candidate)}。",
-        f"- 更稳健候选组合数（至少 3 个样本组显著）：{len(robust)}。",
+        f"- Full sample 主检验候选数：{len(primary)}。",
+        f"- 至少两个探索分组同方向显著的候选数：{len(exploratory)}。",
+        f"- 主检验与至少两个探索分组同方向显著的稳健候选数：{len(robust)}。",
         "",
         "## 更稳健候选组合",
         "",
         _format_mn_list(robust),
         "",
-        "## 候选有效组合",
+        "## Full sample 主检验候选",
         "",
-        _format_mn_list(candidate),
+        _format_mn_list(primary),
+        "",
+        "## 探索分组候选",
+        "",
+        _format_mn_list(exploratory),
         "",
         "## m=3 与 m=6 结构性检查",
         "",
@@ -764,19 +905,22 @@ def write_conclusion_markdown(
 
     if not robust.empty:
         lines.append(
-            "按当前阈值，部分 `(m,n)` 组合在多个样本组中同时显著，并且显著系数方向一致，"
-            "可以作为一致性指标较有效的初步候选。优先关注 `effective_mn_summary.csv` 中"
-            " `effectiveness_tier = robust_3plus` 的组合。"
+            "部分 `(m,n)` 同时通过 Full sample 主 BH-FDR，并获得至少两个探索分组的"
+            "同方向支持。优先关注 `effectiveness_tier = robust_primary_plus_2_exploratory`。"
         )
-    elif not candidate.empty:
+    elif not primary.empty:
         lines.append(
-            "按当前阈值，存在至少 2 个样本组显著且方向一致的组合，但尚未出现至少 3 个样本组"
-            "同时支持的更稳健组合。当前结论应表述为探索性候选。"
+            "存在通过 Full sample 主 BH-FDR 的窗口，但探索分组支持不足；可作为主检验候选，"
+            "尚不宜称为跨样本组稳健。"
+        )
+    elif not exploratory.empty:
+        lines.append(
+            "只有探索分组候选，没有窗口通过 Full sample 主 BH-FDR；这些结果只能作为"
+            "异质性线索，不能升级为总体主结论。"
         )
     else:
         lines.append(
-            "按当前阈值，暂未筛出至少 2 个样本组显著且方向一致的 `(m,n)` 组合。"
-            "这意味着热力图结果暂不支持强结论，后续可检查样本划分、控制变量或阈值口径。"
+            "BH-FDR 后没有主检验或探索候选，热力图暂不支持强结论。"
         )
 
     if len(m3_negative) > 0 and len(m6_positive) > 0:
@@ -809,17 +953,24 @@ def process_model(
     *,
     annotate: bool,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """处理一个样本组，输出两张图和两个矩阵。"""
+    """处理一个检验族，输出系数、t-stat、raw p 与 BH q 矩阵。"""
     coef_matrix, t_matrix, long_table = build_metric_matrices(model.result_path)
+    long_table = add_fdr_columns(model, long_table)
+    p_matrix = make_matrix(long_table, "p_value")
+    q_matrix = make_matrix(long_table, "q_value")
 
     group_dir = output_dir / model.key
     coef_csv = group_dir / f"{model.key}_fac_coef_matrix.csv"
     t_csv = group_dir / f"{model.key}_fac_t_stat_matrix.csv"
+    p_csv = group_dir / f"{model.key}_fac_p_value_matrix.csv"
+    q_csv = group_dir / f"{model.key}_fac_bh_q_value_matrix.csv"
     coef_png = group_dir / f"{model.key}_fac_coef_heatmap.png"
     t_png = group_dir / f"{model.key}_fac_t_stat_heatmap.png"
 
     save_matrix(coef_matrix, coef_csv)
     save_matrix(t_matrix, t_csv)
+    save_matrix(p_matrix, p_csv)
+    save_matrix(q_matrix, q_csv)
     plot_heatmap(
         coef_matrix,
         coef_png,
@@ -831,6 +982,7 @@ def process_model(
     )
     plot_t_stat_heatmap(
         t_matrix,
+        q_matrix,
         t_png,
         title=f"{model.label}: FAC t-stat",
         annotate=annotate,
@@ -839,6 +991,8 @@ def process_model(
     print(f"完成样本组：{model.key}")
     print(f"  系数矩阵：{coef_csv}")
     print(f"  t 值矩阵：{t_csv}")
+    print(f"  raw p 矩阵：{p_csv}")
+    print(f"  BH q 矩阵：{q_csv}")
     print(f"  系数热力图：{coef_png}")
     print(f"  t 值热力图：{t_png}")
 
@@ -888,12 +1042,16 @@ def main() -> None:
             ]
         )
 
-    summary_path = output_dir / "heatmap_significant_fac_summary_abs_t_ge_1_96.csv"
+    summary_path = output_dir / "heatmap_fdr_significant_fac_summary_q_lt_0_05.csv"
     summary.to_csv(summary_path, index=False, encoding="utf-8-sig")
 
     all_groups = make_all_groups_summary(model_tables)
     all_groups_path = output_dir / "all_groups_summary.csv"
     all_groups.to_csv(all_groups_path, index=False, encoding="utf-8-sig")
+    nominal_summary_path = output_dir / "heatmap_nominal_fac_summary_p_lt_0_05.csv"
+    all_groups.loc[all_groups["is_nominal_significant_5pct"]].to_csv(
+        nominal_summary_path, index=False, encoding="utf-8-sig"
+    )
     combined_outputs = save_combined_heatmaps(
         all_groups, output_dir, annotate=bool(args.annotate)
     )
@@ -902,14 +1060,44 @@ def main() -> None:
     effective_path = output_dir / "effective_mn_summary.csv"
     effective.to_csv(effective_path, index=False, encoding="utf-8-sig")
 
+    fdr_metadata_path = output_dir / "fdr_metadata.json"
+    family_rows = (
+        all_groups[
+            ["fdr_family", "fdr_family_role", "fdr_family_size"]
+        ]
+        .drop_duplicates()
+        .sort_values("fdr_family")
+    )
+    fdr_metadata = {
+        "generated_at": datetime.now().isoformat(timespec="seconds"),
+        "method": "Benjamini-Hochberg",
+        "q_threshold": FDR_Q_THRESHOLD,
+        "family_definition": (
+            "Full sample is one primary family; each rank_mean subgroup is one "
+            "separate exploratory family; missing p-values are excluded."
+        ),
+        "candidate_rule": (
+            "primary: full q<0.05; exploratory: at least two subgroup q<0.05 "
+            "with common direction; robust: primary plus at least two same-direction "
+            "exploratory groups"
+        ),
+        "families": family_rows.to_dict(orient="records"),
+    }
+    fdr_metadata_path.write_text(
+        json.dumps(fdr_metadata, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
     conclusion_path = output_dir / "heatmap_conclusion.md"
     write_conclusion_markdown(conclusion_path, all_groups, effective)
 
     print("\n热力图汇总完成。")
     print(f"处理样本组数量：{processed_count}")
     print(f"显著性 summary：{summary_path}")
+    print(f"名义 p<0.05 summary：{nominal_summary_path}")
     print(f"全样本组 summary：{all_groups_path}")
     print(f"有效组合 summary：{effective_path}")
+    print(f"FDR metadata：{fdr_metadata_path}")
     print(f"Markdown 结论草稿：{conclusion_path}")
     print("综合热力图：")
     for output_path in combined_outputs.values():

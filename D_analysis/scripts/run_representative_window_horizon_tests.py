@@ -366,6 +366,26 @@ def apply_filters(data: pd.DataFrame, filters: dict[str, object]) -> pd.DataFram
     return data.loc[mask].copy()
 
 
+def get_future_return_sample_filters(y_col: str) -> dict[str, int]:
+    """返回普通未来收益对应的截止日与持有期连续样本筛选。
+
+    本脚本直接读取 A_data 大面板，没有经过 registry 驱动的 B_factors 清洗，
+    因此要在这里显式采用与正式模型相同的 horizon-specific 筛选口径。
+    """
+
+    match = re.fullmatch(r"future_ret_(\d+)m", y_col)
+    if match is None:
+        raise ValueError(
+            "代表窗口检验只支持 future_ret_{horizon}m 格式的普通未来收益："
+            f"{y_col!r}"
+        )
+    horizon = int(match.group(1))
+    return {
+        f"is_insample_future_ret_{horizon}m": 1,
+        f"match_is_sample_future_ret_{horizon}m": 1,
+    }
+
+
 def winsorize_by_month(
     data: pd.DataFrame,
     columns: list[str],
@@ -489,7 +509,7 @@ def run_one_regression(
     include_rank_mean: bool,
 ) -> tuple[dict[str, object], pd.DataFrame]:
     """运行一个参数窗口、一个样本组、一个 Y 期限的 Fama-MacBeth 回归。"""
-    filters = {f"is_insample_{y_col}": 1}
+    filters = get_future_return_sample_filters(y_col)
     if sample_group != "Full sample":
         flag_column = sample_group_flag_column(spec, sample_group)
         if flag_column is None:

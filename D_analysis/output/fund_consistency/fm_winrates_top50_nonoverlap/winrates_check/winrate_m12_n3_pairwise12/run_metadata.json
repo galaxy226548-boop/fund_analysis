@@ -1,0 +1,26 @@
+{
+  "model": "fm_winrates_top50_nonoverlap",
+  "factor": "winrate_m12_n3_pairwise12",
+  "panel_path": "/Users/chloezh/Projects/Fund_Analysis/B_factors/output/fm_winrates_top50_nonoverlap/panel_base.parquet",
+  "monthly_coefficients_path": "/Users/chloezh/Projects/Fund_Analysis/D_analysis/output/fund_consistency/fm_winrates_top50_nonoverlap/fama_macbeth_monthly_coefficients.csv",
+  "output_dir": "/Users/chloezh/Projects/Fund_Analysis/D_analysis/output/fund_consistency/fm_winrates_top50_nonoverlap/winrates_check/winrate_m12_n3_pairwise12",
+  "factor_columns": [
+    "dummy_top50_m12_n3_hit1_pairwise12",
+    "dummy_top50_m12_n3_hit2_pairwise12",
+    "dummy_top50_m12_n3_hit3_pairwise12"
+  ],
+  "control_columns": [
+    "CtrlRetSTR",
+    "CtrlRetLTM",
+    "CtrlVol",
+    "as_偏股混合型基金",
+    "Ctrl_log_fund_size",
+    "Ctrl_fund_age"
+  ],
+  "sample_filters": {
+    "is_insample_future_ret_6m": 1
+  },
+  "min_cross_section_n": 50,
+  "newey_west_lag": 5,
+  "beta_pair_count": 6
+}

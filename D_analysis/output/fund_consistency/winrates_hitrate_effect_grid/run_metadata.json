@@ -1,0 +1,21 @@
+{
+  "passing_models_path": "/Users/chloezh/Projects/Fund_Analysis/D_analysis/output/fund_consistency/winrates_identification_grid/passing_models.csv",
+  "models_run": 64,
+  "dependent_variable": "future_ret_6m",
+  "primary_factor": "hitrate=hitcount/n",
+  "controls": [
+    "CtrlRetSTR",
+    "CtrlRetLTM",
+    "CtrlVol",
+    "as_偏股混合型基金",
+    "Ctrl_log_fund_size",
+    "Ctrl_fund_age"
+  ],
+  "min_cross_section_n": 50,
+  "newey_west_lag": 5,
+  "multiple_testing": "BH-FDR once across all selected primary-factor p-values",
+  "fdr_family_size": 64,
+  "fdr_significant_5pct": 2,
+  "common_heatmap_abs_beta_pp": 3.1951880174290173,
+  "cumulative_dummy_effect_regressions_run": false
+}

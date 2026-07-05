@@ -11,7 +11,7 @@
     B_factors/input/panel_base.parquet
     B_factors/input/panel_base_preview.xlsx
 
-本脚本只负责基于已有 past_ret_{n}m_rank_{k} 列生成命中特征，不重新计算
+本脚本只负责基于已有 past_ret_{m}m_rank_{k} 列生成命中特征，不重新计算
 past_ret、rank、控制变量或回归因子。
 
 项目统一约定：m 是单期过去收益窗口长度 return_horizon，n 是排名/命中期数
@@ -47,9 +47,21 @@ DEFAULT_RANK_HIT_REGISTRY_PATH = (
 )
 DEFAULT_PREVIEW_ROWS = 1000
 
-# 每个元素为 (return_horizon=m, rank_count=n, pairwise=m)。这里只生成新研究
-# 所需的 1..6 非重叠网格；底层排名列由 heatmap 面板生成流程统一准备。
-RANK_HIT_SPECS = Config.PANEL_WINRATE_NONOVERLAP_PAST_RETURN_SPECS
+# 同时维护五套滚动模型规格和新研究所需的 1..6 非重叠网格。这里不能直接
+# 使用 PANEL_PAST_RETURN_SPECS，因为它还包含 (m3,n12,p3)、(m12,n3,p12)
+# 两套旧非重叠实验规格，而当前 heatmap 面板和活动 registry 都不再使用它们。
+ROLLING_RANK_HIT_SPECS = tuple(
+    (return_horizon, rank_count, Config.PANEL_PAIRWISE)
+    for return_horizon, rank_count in Config.PANEL_PAST_RETURN_COMBOS
+)
+RANK_HIT_SPECS = tuple(
+    dict.fromkeys(
+        (
+            *ROLLING_RANK_HIT_SPECS,
+            *Config.PANEL_WINRATE_NONOVERLAP_PAST_RETURN_SPECS,
+        )
+    )
+)
 
 # 重要方向说明：
 # 3_generate_panel_base.py 的 add_pairwise_past_rank_columns 使用 pct=True，
@@ -169,15 +181,6 @@ def get_hitcount_column(
     return f"hitcount_{metric}_m{return_horizon}_n{rank_count}_pairwise{pairwise}"
 
 
-def get_dummy_column(
-    metric: str, rank_count: int, return_horizon: int, hit_k: int, pairwise: int
-) -> str:
-    """生成命中次数 dummy 变量名。"""
-    return (
-        f"dummy_{metric}_m{return_horizon}_n{rank_count}_hit{hit_k}_pairwise{pairwise}"
-    )
-
-
 def get_cumulative_dummy_column(
     metric: str,
     rank_count: int,
@@ -196,6 +199,21 @@ def get_cumulative_dummy_column(
         f"dummy_{metric}_m{return_horizon}_n{rank_count}_"
         f"hit_above{minimum_hits - 1}_pairwise{pairwise}"
     )
+
+
+def get_legacy_mutually_exclusive_columns() -> list[str]:
+    """列出旧版精确 hit 次数 dummy，重建时从面板中清理掉。
+
+    旧列使用 ``hit0`` 到 ``hitn`` 表示互斥组；当前统一使用累计
+    ``hit_above``。这里只删除明确匹配当前规格和口径的旧列，不碰其他变量。
+    """
+    return [
+        f"dummy_{metric}_m{return_horizon}_n{rank_count}_"
+        f"hit{hit_k}_pairwise{pairwise}"
+        for return_horizon, rank_count, pairwise in RANK_HIT_SPECS
+        for metric in RANK_HIT_THRESHOLDS
+        for hit_k in range(rank_count + 1)
+    ]
 
 
 def make_feature_record(
@@ -560,6 +578,15 @@ def generate_rank_hit_features(
 ) -> dict[str, object]:
     """生成排名命中特征并写出 parquet、preview 和 registry。"""
     original = read_panel(input_path)
+    legacy_columns = [
+        column
+        for column in get_legacy_mutually_exclusive_columns()
+        if column in original.columns
+    ]
+    # 这是一次明确的编码迁移：旧互斥列不再保留，避免同一面板同时出现两代
+    # dummy 后被人工或旧脚本误选。收益、排名和其他因子列都保持原样。
+    if legacy_columns:
+        original = original.drop(columns=legacy_columns)
     existing_output_columns = find_existing_output_columns(
         original,
         specs=RANK_HIT_SPECS,
@@ -635,6 +662,7 @@ def generate_rank_hit_features(
         "row_count": len(result),
         "column_count": len(result.columns),
         "added_columns": [record["variable_name"] for record in feature_records],
+        "removed_legacy_columns": legacy_columns,
         "feature_records": feature_records,
         "skipped_combos": skipped_combos,
     }
@@ -653,6 +681,7 @@ def print_summary(summary: dict[str, object]) -> None:
     print(f"输出行数：{summary['row_count']:,}")
     print(f"输出列数：{summary['column_count']:,}")
     print(f"新增变量数：{len(summary['added_columns']):,}")
+    print(f"移除旧互斥 dummy 数：{len(summary['removed_legacy_columns']):,}")
 
     if summary["skipped_combos"]:
         print("跳过的 (m,n) 组合：")

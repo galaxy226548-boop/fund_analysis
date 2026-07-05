@@ -1,0 +1,58 @@
+{
+  "family_id": "fac_heatmap__fm_heatmap_down",
+  "description": "fm_heatmap_down 全部可估 FAC (m,n) 主效应",
+  "role": "exploratory_subgroup",
+  "status": "active",
+  "method": "benjamini-hochberg",
+  "q_threshold": 0.05,
+  "family_size": 132,
+  "significant_q": 11,
+  "nominal_significant_p": 29,
+  "input_audit": {
+    "input_rows": 132,
+    "valid_p_values": 132,
+    "excluded_missing_p_values": 0,
+    "invalid_non_numeric": 0,
+    "invalid_non_finite": 0,
+    "invalid_out_of_range": 0
+  },
+  "sources": [
+    {
+      "path": "D_analysis/output/fund_consistency/fm_heatmap_down/fama_macbeth_results.csv",
+      "p_column": "p_value",
+      "selectors": [
+        {
+          "op": "column_equals_column",
+          "left": "variable",
+          "right": "factor"
+        }
+      ],
+      "label": "fm_heatmap_down"
+    }
+  ],
+  "notes": "每个 heatmap 模型独立校正；缺失或未定义的 FAC 不进入 family。",
+  "generated_at": "2026-07-05T07:27:31-07:00",
+  "dry_run": false,
+  "heatmap": {
+    "file": "fac_t_stat_fdr_heatmap.png",
+    "metric": "t_stat",
+    "significance_column": "q_value",
+    "q_threshold": 0.05,
+    "annotated": false
+  },
+  "heatmap_nominal_p": {
+    "file": "fac_t_stat_nominal_p_heatmap.png",
+    "metric": "t_stat",
+    "significance_column": "p_value",
+    "p_threshold": 0.05,
+    "note": "未做 BH-FDR 校正，仅供对照，不能替代 q 值作为正式结论。",
+    "annotated": false
+  },
+  "control_variable_panel": {
+    "file": "control_variable_coef_panel.png",
+    "significance_column": "p_value",
+    "p_threshold": 0.05,
+    "note": "展示除 FAC 外全部控制变量跨 132 个窗口的系数与 raw p<0.05 参考显著性。",
+    "annotated": false
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "family_id": "market_state_fac_rank_mean_interaction",
+  "description": "四类市态模型中的 FAC×rank_mean 条件效应",
+  "role": "exploratory_market_state_interaction",
+  "status": "active",
+  "method": "benjamini-hochberg",
+  "q_threshold": 0.05,
+  "family_size": 40,
+  "significant_q": 0,
+  "nominal_significant_p": 1,
+  "input_audit": {
+    "input_rows": 40,
+    "valid_p_values": 40,
+    "excluded_missing_p_values": 0,
+    "invalid_non_numeric": 0,
+    "invalid_non_finite": 0,
+    "invalid_out_of_range": 0
+  },
+  "sources": [
+    {
+      "path": "D_analysis/output/fund_consistency/fm_baseline_interaction_noctrlLTM_hs300/fama_macbeth_results.csv",
+      "p_column": "p_value",
+      "selectors": [
+        {
+          "op": "equals",
+          "column": "variable",
+          "value": "FAC__x__RANK_MEAN__dmcs"
+        }
+      ],
+      "label": "fm_baseline_interaction_noctrlLTM_hs300"
+    },
+    {
+      "path": "D_analysis/output/fund_consistency/fm_baseline_interaction_noctrlLTM_style/fama_macbeth_results.csv",
+      "p_column": "p_value",
+      "selectors": [
+        {
+          "op": "equals",
+          "column": "variable",
+          "value": "FAC__x__RANK_MEAN__dmcs"
+        }
+      ],
+      "label": "fm_baseline_interaction_noctrlLTM_style"
+    },
+    {
+      "path": "D_analysis/output/fund_consistency/fm_baseline_interaction_noctrlLTM_size/fama_macbeth_results.csv",
+      "p_column": "p_value",
+      "selectors": [
+        {
+          "op": "equals",
+          "column": "variable",
+          "value": "FAC__x__RANK_MEAN__dmcs"
+        }
+      ],
+      "label": "fm_baseline_interaction_noctrlLTM_size"
+    },
+    {
+      "path": "D_analysis/output/fund_consistency/fm_baseline_interaction_noctrlLTM_indvol/fama_macbeth_results.csv",
+      "p_column": "p_value",
+      "selectors": [
+        {
+          "op": "equals",
+          "column": "variable",
+          "value": "FAC__x__RANK_MEAN__dmcs"
+        }
+      ],
+      "label": "fm_baseline_interaction_noctrlLTM_indvol"
+    }
+  ],
+  "notes": "只选 FAC__x__RANK_MEAN__dmcs，不把主效应和控制变量放入 family。",
+  "generated_at": "2026-07-05T07:27:42-07:00",
+  "dry_run": false,
+  "heatmap": {
+    "file": "fdr_heatmap.png",
+    "metric": "t_stat",
+    "significance_column": "q_value",
+    "q_threshold": 0.05,
+    "annotated": false
+  },
+  "heatmap_nominal_p": {
+    "file": "nominal_p_heatmap.png",
+    "metric": "t_stat",
+    "significance_column": "p_value",
+    "p_threshold": 0.05,
+    "note": "未做 BH-FDR 校正，仅供对照，不能替代 q 值作为正式结论。",
+    "annotated": false
+  }
+}

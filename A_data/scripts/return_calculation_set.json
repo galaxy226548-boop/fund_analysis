@@ -1,0 +1,44 @@
+{
+  "M_HS300_CSI800_CSI1000.xlsx": {
+    "沪深300指数:月:最后一条": "HS300",
+    "中证800指数:月:最后一条": "CSI800",
+    "中证1000指数:月:最后一条": "CSI1000"
+  },
+  "M_399370_399371.xlsx": {
+    "国证成长指数": "GZ_Growth",
+    "国证价值指数": "GZ_Value"
+  },
+  "M_SW_level1_industry.xlsx": {
+    "申万行业指数:一级行业:农林牧渔:月:最后一条": "SW_AgriForestryAnimalFishery",
+    "申万行业指数:一级行业:基础化工:月:最后一条": "SW_BasicChemicals",
+    "申万行业指数:一级行业:钢铁:月:最后一条": "SW_Steel",
+    "申万行业指数:一级行业:有色金属:月:最后一条": "SW_NonferrousMetals",
+    "申万行业指数:一级行业:电子:月:最后一条": "SW_Electronics",
+    "申万行业指数:一级行业:汽车:月:最后一条": "SW_Automobile",
+    "申万行业指数:一级行业:家用电器:月:最后一条": "SW_HomeAppliances",
+    "申万行业指数:一级行业:食品饮料:月:最后一条": "SW_FoodBeverage",
+    "申万行业指数:一级行业:纺织服饰:月:最后一条": "SW_TextileApparel",
+    "申万行业指数:一级行业:轻工制造:月:最后一条": "SW_LightManufacturing",
+    "申万行业指数:一级行业:医药生物:月:最后一条": "SW_Pharma",
+    "申万行业指数:一级行业:公用事业:月:最后一条": "SW_Utilities",
+    "申万行业指数:一级行业:交通运输:月:最后一条": "SW_Transportation",
+    "申万行业指数:一级行业:房地产:月:最后一条": "SW_RealEstate",
+    "申万行业指数:一级行业:商贸零售:月:最后一条": "SW_TradingRetail",
+    "申万行业指数:一级行业:社会服务:月:最后一条": "SW_SocialServices",
+    "申万行业指数:一级行业:银行:月:最后一条": "SW_Banking",
+    "申万行业指数:一级行业:非银金融:月:最后一条": "SW_NonbankFinance",
+    "申万行业指数:一级行业:综合:月:最后一条": "SW_Conglomerates",
+    "申万行业指数:一级行业:建筑材料:月:最后一条": "SW_BuildingMaterials",
+    "申万行业指数:一级行业:建筑装饰:月:最后一条": "SW_ConstructionDecoration",
+    "申万行业指数:一级行业:电力设备:月:最后一条": "SW_PowerEquipment",
+    "申万行业指数:一级行业:机械设备:月:最后一条": "SW_MachineryEquipment",
+    "申万行业指数:一级行业:国防军工:月:最后一条": "SW_DefenseMilitary",
+    "申万行业指数:一级行业:计算机:月:最后一条": "SW_Computer",
+    "申万行业指数:一级行业:传媒:月:最后一条": "SW_Media",
+    "申万行业指数:一级行业:通信:月:最后一条": "SW_Telecom",
+    "申万行业指数:一级行业:煤炭:月:最后一条": "SW_Coal",
+    "申万行业指数:一级行业:石油石化:月:最后一条": "SW_OilPetrochemicals",
+    "申万行业指数:一级行业:环保:月:最后一条": "SW_Environmental",
+    "申万行业指数:一级行业:美容护理:月:最后一条": "SW_BeautyCare"
+  }
+}

@@ -270,3 +270,32 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
+# 新增/改名 registry 模型后的标准收尾流程（2026-07-05 添加跨期限 base 系列模型时
+# 用过一次，后续每次新增或重命名模型都应重复这一整套步骤，而不是只跑 engine）：
+#
+#   1. 对每个新增/改名的模型分别跑一次完整流水线（engine 会自动依次执行
+#      preprocess → correlation_check → correlation_plots → regression →
+#      portfolio_sorting）：
+#
+#        .venv/bin/python D_analysis/scripts/0_regression_engine.py --model <model_key>
+#
+#      本次实际执行过的例子：
+#        .venv/bin/python D_analysis/scripts/0_regression_engine.py --model fm_baseline_interaction_rank_vol_across_horizons_noctrlLTM
+#        .venv/bin/python D_analysis/scripts/0_regression_engine.py --model fm_baseline_interaction_rank_vol_across_horizons
+#        .venv/bin/python D_analysis/scripts/0_regression_engine.py --model fm_baseline_interaction_base_rank_vol_across_horizons
+#        .venv/bin/python D_analysis/scripts/0_regression_engine.py --model fm_baseline_interaction_base_noctrlmomentum_rank_vol_across_horizons
+#
+#   2. 在 I_Visualization/model_map.html 里补上新模型对应的行（main-row +
+#      detail-row），并检查/更新末尾 JS 公式生成器里 key.includes(...) 的分支，
+#      避免新 key 被更早的通用分支误匹配（例如 "interaction_base_xxx" 系列必须
+#      写在通用 "interaction_base" 分支之前）。
+#
+#   3. 汇总并生成学术表格（该脚本会重新读取 model_map.html 做模型分组，因此必须
+#      在第 2 步更新完 model_map.html 之后再跑，否则新模型会被扔进"未映射模型"）：
+#
+#        .venv/bin/python D_analysis/scripts/result_sorting.py
+#
+#      跑完检查终端输出的"共处理 N 个模型"是否等于 registry 模型总数，且没有打印
+#      "以下模型未出现在 model_map.html" 的提示。

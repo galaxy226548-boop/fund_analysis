@@ -1,0 +1,27 @@
+{
+  "models_run": 64,
+  "dependent_variable": "future_ret_6m",
+  "dummy_encoding": "Dk=1(hitcount>=k)",
+  "controls": [
+    "CtrlRetSTR",
+    "CtrlRetLTM",
+    "CtrlVol",
+    "as_偏股混合型基金",
+    "Ctrl_log_fund_size",
+    "Ctrl_fund_age"
+  ],
+  "min_cross_section_n": 50,
+  "newey_west_lag": 5,
+  "fdr_families": {
+    "adjacent_marginal_effects": 216,
+    "cumulative_hit_vs_hit0_effects": 216,
+    "joint_hac_wald_models": 64,
+    "direction_iut_models": 64
+  },
+  "significant_fdr_5pct": {
+    "adjacent": 6,
+    "cumulative": 4,
+    "joint": 22,
+    "direction": 0
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "generated_at": "2026-07-05T04:34:28",
+  "method": "Benjamini-Hochberg",
+  "q_threshold": 0.05,
+  "family_definition": "Full sample is one primary family; each rank_mean subgroup is one separate exploratory family; missing p-values are excluded.",
+  "candidate_rule": "primary: full q<0.05; exploratory: at least two subgroup q<0.05 with common direction; robust: primary plus at least two same-direction exploratory groups",
+  "families": [
+    {
+      "fdr_family": "fm_heatmap_bottom33",
+      "fdr_family_role": "exploratory_subgroup",
+      "fdr_family_size": 132
+    },
+    {
+      "fdr_family": "fm_heatmap_down",
+      "fdr_family_role": "exploratory_subgroup",
+      "fdr_family_size": 132
+    },
+    {
+      "fdr_family": "fm_heatmap_full",
+      "fdr_family_role": "primary_full_sample",
+      "fdr_family_size": 132
+    },
+    {
+      "fdr_family": "fm_heatmap_mid33",
+      "fdr_family_role": "exploratory_subgroup",
+      "fdr_family_size": 132
+    },
+    {
+      "fdr_family": "fm_heatmap_top33",
+      "fdr_family_role": "exploratory_subgroup",
+      "fdr_family_size": 132
+    },
+    {
+      "fdr_family": "fm_heatmap_up",
+      "fdr_family_role": "exploratory_subgroup",
+      "fdr_family_size": 132
+    }
+  ]
+}

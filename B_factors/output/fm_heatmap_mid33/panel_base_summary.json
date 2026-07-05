@@ -1,0 +1,1380 @@
+{
+  "generated_at": "2026-07-05T04:31:15-07:00",
+  "input_path": "/Users/chloezh/Projects/Fund_Analysis/A_data/output/panel_base_heatmap_m1_12_n1_12.parquet",
+  "output_path": "/Users/chloezh/Projects/Fund_Analysis/B_factors/output/fm_heatmap_mid33/panel_base.parquet",
+  "preview_path": "/Users/chloezh/Projects/Fund_Analysis/B_factors/output/fm_heatmap_mid33/panel_base_preview.xlsx",
+  "original_rows": 406918,
+  "insample_rows": 49479,
+  "output_rows": 49479,
+  "sample_filters": {
+    "is_insample_future_ret_6m": 1,
+    "match_is_sample_future_ret_6m": 1
+  },
+  "factor_sample_filters": {
+    "FAC_rank_vol_m1_n2_pairwise1": {
+      "is_tercile_rank_mean_m1_n2_pairwise1": 2
+    },
+    "FAC_rank_vol_m1_n3_pairwise1": {
+      "is_tercile_rank_mean_m1_n3_pairwise1": 2
+    },
+    "FAC_rank_vol_m1_n4_pairwise1": {
+      "is_tercile_rank_mean_m1_n4_pairwise1": 2
+    },
+    "FAC_rank_vol_m1_n5_pairwise1": {
+      "is_tercile_rank_mean_m1_n5_pairwise1": 2
+    },
+    "FAC_rank_vol_m1_n6_pairwise1": {
+      "is_tercile_rank_mean_m1_n6_pairwise1": 2
+    },
+    "FAC_rank_vol_m1_n7_pairwise1": {
+      "is_tercile_rank_mean_m1_n7_pairwise1": 2
+    },
+    "FAC_rank_vol_m1_n8_pairwise1": {
+      "is_tercile_rank_mean_m1_n8_pairwise1": 2
+    },
+    "FAC_rank_vol_m1_n9_pairwise1": {
+      "is_tercile_rank_mean_m1_n9_pairwise1": 2
+    },
+    "FAC_rank_vol_m1_n10_pairwise1": {
+      "is_tercile_rank_mean_m1_n10_pairwise1": 2
+    },
+    "FAC_rank_vol_m1_n11_pairwise1": {
+      "is_tercile_rank_mean_m1_n11_pairwise1": 2
+    },
+    "FAC_rank_vol_m1_n12_pairwise1": {
+      "is_tercile_rank_mean_m1_n12_pairwise1": 2
+    },
+    "FAC_rank_vol_m2_n2_pairwise1": {
+      "is_tercile_rank_mean_m2_n2_pairwise1": 2
+    },
+    "FAC_rank_vol_m2_n3_pairwise1": {
+      "is_tercile_rank_mean_m2_n3_pairwise1": 2
+    },
+    "FAC_rank_vol_m2_n4_pairwise1": {
+      "is_tercile_rank_mean_m2_n4_pairwise1": 2
+    },
+    "FAC_rank_vol_m2_n5_pairwise1": {
+      "is_tercile_rank_mean_m2_n5_pairwise1": 2
+    },
+    "FAC_rank_vol_m2_n6_pairwise1": {
+      "is_tercile_rank_mean_m2_n6_pairwise1": 2
+    },
+    "FAC_rank_vol_m2_n7_pairwise1": {
+      "is_tercile_rank_mean_m2_n7_pairwise1": 2
+    },
+    "FAC_rank_vol_m2_n8_pairwise1": {
+      "is_tercile_rank_mean_m2_n8_pairwise1": 2
+    },
+    "FAC_rank_vol_m2_n9_pairwise1": {
+      "is_tercile_rank_mean_m2_n9_pairwise1": 2
+    },
+    "FAC_rank_vol_m2_n10_pairwise1": {
+      "is_tercile_rank_mean_m2_n10_pairwise1": 2
+    },
+    "FAC_rank_vol_m2_n11_pairwise1": {
+      "is_tercile_rank_mean_m2_n11_pairwise1": 2
+    },
+    "FAC_rank_vol_m2_n12_pairwise1": {
+      "is_tercile_rank_mean_m2_n12_pairwise1": 2
+    },
+    "FAC_rank_vol_m3_n2_pairwise1": {
+      "is_tercile_rank_mean_m3_n2_pairwise1": 2
+    },
+    "FAC_rank_vol_m3_n3_pairwise1": {
+      "is_tercile_rank_mean_m3_n3_pairwise1": 2
+    },
+    "FAC_rank_vol_m3_n4_pairwise1": {
+      "is_tercile_rank_mean_m3_n4_pairwise1": 2
+    },
+    "FAC_rank_vol_m3_n5_pairwise1": {
+      "is_tercile_rank_mean_m3_n5_pairwise1": 2
+    },
+    "FAC_rank_vol_m3_n6_pairwise1": {
+      "is_tercile_rank_mean_m3_n6_pairwise1": 2
+    },
+    "FAC_rank_vol_m3_n7_pairwise1": {
+      "is_tercile_rank_mean_m3_n7_pairwise1": 2
+    },
+    "FAC_rank_vol_m3_n8_pairwise1": {
+      "is_tercile_rank_mean_m3_n8_pairwise1": 2
+    },
+    "FAC_rank_vol_m3_n9_pairwise1": {
+      "is_tercile_rank_mean_m3_n9_pairwise1": 2
+    },
+    "FAC_rank_vol_m3_n10_pairwise1": {
+      "is_tercile_rank_mean_m3_n10_pairwise1": 2
+    },
+    "FAC_rank_vol_m3_n11_pairwise1": {
+      "is_tercile_rank_mean_m3_n11_pairwise1": 2
+    },
+    "FAC_rank_vol_m3_n12_pairwise1": {
+      "is_tercile_rank_mean_m3_n12_pairwise1": 2
+    },
+    "FAC_rank_vol_m4_n2_pairwise1": {
+      "is_tercile_rank_mean_m4_n2_pairwise1": 2
+    },
+    "FAC_rank_vol_m4_n3_pairwise1": {
+      "is_tercile_rank_mean_m4_n3_pairwise1": 2
+    },
+    "FAC_rank_vol_m4_n4_pairwise1": {
+      "is_tercile_rank_mean_m4_n4_pairwise1": 2
+    },
+    "FAC_rank_vol_m4_n5_pairwise1": {
+      "is_tercile_rank_mean_m4_n5_pairwise1": 2
+    },
+    "FAC_rank_vol_m4_n6_pairwise1": {
+      "is_tercile_rank_mean_m4_n6_pairwise1": 2
+    },
+    "FAC_rank_vol_m4_n7_pairwise1": {
+      "is_tercile_rank_mean_m4_n7_pairwise1": 2
+    },
+    "FAC_rank_vol_m4_n8_pairwise1": {
+      "is_tercile_rank_mean_m4_n8_pairwise1": 2
+    },
+    "FAC_rank_vol_m4_n9_pairwise1": {
+      "is_tercile_rank_mean_m4_n9_pairwise1": 2
+    },
+    "FAC_rank_vol_m4_n10_pairwise1": {
+      "is_tercile_rank_mean_m4_n10_pairwise1": 2
+    },
+    "FAC_rank_vol_m4_n11_pairwise1": {
+      "is_tercile_rank_mean_m4_n11_pairwise1": 2
+    },
+    "FAC_rank_vol_m4_n12_pairwise1": {
+      "is_tercile_rank_mean_m4_n12_pairwise1": 2
+    },
+    "FAC_rank_vol_m5_n2_pairwise1": {
+      "is_tercile_rank_mean_m5_n2_pairwise1": 2
+    },
+    "FAC_rank_vol_m5_n3_pairwise1": {
+      "is_tercile_rank_mean_m5_n3_pairwise1": 2
+    },
+    "FAC_rank_vol_m5_n4_pairwise1": {
+      "is_tercile_rank_mean_m5_n4_pairwise1": 2
+    },
+    "FAC_rank_vol_m5_n5_pairwise1": {
+      "is_tercile_rank_mean_m5_n5_pairwise1": 2
+    },
+    "FAC_rank_vol_m5_n6_pairwise1": {
+      "is_tercile_rank_mean_m5_n6_pairwise1": 2
+    },
+    "FAC_rank_vol_m5_n7_pairwise1": {
+      "is_tercile_rank_mean_m5_n7_pairwise1": 2
+    },
+    "FAC_rank_vol_m5_n8_pairwise1": {
+      "is_tercile_rank_mean_m5_n8_pairwise1": 2
+    },
+    "FAC_rank_vol_m5_n9_pairwise1": {
+      "is_tercile_rank_mean_m5_n9_pairwise1": 2
+    },
+    "FAC_rank_vol_m5_n10_pairwise1": {
+      "is_tercile_rank_mean_m5_n10_pairwise1": 2
+    },
+    "FAC_rank_vol_m5_n11_pairwise1": {
+      "is_tercile_rank_mean_m5_n11_pairwise1": 2
+    },
+    "FAC_rank_vol_m5_n12_pairwise1": {
+      "is_tercile_rank_mean_m5_n12_pairwise1": 2
+    },
+    "FAC_rank_vol_m6_n2_pairwise1": {
+      "is_tercile_rank_mean_m6_n2_pairwise1": 2
+    },
+    "FAC_rank_vol_m6_n3_pairwise1": {
+      "is_tercile_rank_mean_m6_n3_pairwise1": 2
+    },
+    "FAC_rank_vol_m6_n4_pairwise1": {
+      "is_tercile_rank_mean_m6_n4_pairwise1": 2
+    },
+    "FAC_rank_vol_m6_n5_pairwise1": {
+      "is_tercile_rank_mean_m6_n5_pairwise1": 2
+    },
+    "FAC_rank_vol_m6_n6_pairwise1": {
+      "is_tercile_rank_mean_m6_n6_pairwise1": 2
+    },
+    "FAC_rank_vol_m6_n7_pairwise1": {
+      "is_tercile_rank_mean_m6_n7_pairwise1": 2
+    },
+    "FAC_rank_vol_m6_n8_pairwise1": {
+      "is_tercile_rank_mean_m6_n8_pairwise1": 2
+    },
+    "FAC_rank_vol_m6_n9_pairwise1": {
+      "is_tercile_rank_mean_m6_n9_pairwise1": 2
+    },
+    "FAC_rank_vol_m6_n10_pairwise1": {
+      "is_tercile_rank_mean_m6_n10_pairwise1": 2
+    },
+    "FAC_rank_vol_m6_n11_pairwise1": {
+      "is_tercile_rank_mean_m6_n11_pairwise1": 2
+    },
+    "FAC_rank_vol_m6_n12_pairwise1": {
+      "is_tercile_rank_mean_m6_n12_pairwise1": 2
+    },
+    "FAC_rank_vol_m7_n2_pairwise1": {
+      "is_tercile_rank_mean_m7_n2_pairwise1": 2
+    },
+    "FAC_rank_vol_m7_n3_pairwise1": {
+      "is_tercile_rank_mean_m7_n3_pairwise1": 2
+    },
+    "FAC_rank_vol_m7_n4_pairwise1": {
+      "is_tercile_rank_mean_m7_n4_pairwise1": 2
+    },
+    "FAC_rank_vol_m7_n5_pairwise1": {
+      "is_tercile_rank_mean_m7_n5_pairwise1": 2
+    },
+    "FAC_rank_vol_m7_n6_pairwise1": {
+      "is_tercile_rank_mean_m7_n6_pairwise1": 2
+    },
+    "FAC_rank_vol_m7_n7_pairwise1": {
+      "is_tercile_rank_mean_m7_n7_pairwise1": 2
+    },
+    "FAC_rank_vol_m7_n8_pairwise1": {
+      "is_tercile_rank_mean_m7_n8_pairwise1": 2
+    },
+    "FAC_rank_vol_m7_n9_pairwise1": {
+      "is_tercile_rank_mean_m7_n9_pairwise1": 2
+    },
+    "FAC_rank_vol_m7_n10_pairwise1": {
+      "is_tercile_rank_mean_m7_n10_pairwise1": 2
+    },
+    "FAC_rank_vol_m7_n11_pairwise1": {
+      "is_tercile_rank_mean_m7_n11_pairwise1": 2
+    },
+    "FAC_rank_vol_m7_n12_pairwise1": {
+      "is_tercile_rank_mean_m7_n12_pairwise1": 2
+    },
+    "FAC_rank_vol_m8_n2_pairwise1": {
+      "is_tercile_rank_mean_m8_n2_pairwise1": 2
+    },
+    "FAC_rank_vol_m8_n3_pairwise1": {
+      "is_tercile_rank_mean_m8_n3_pairwise1": 2
+    },
+    "FAC_rank_vol_m8_n4_pairwise1": {
+      "is_tercile_rank_mean_m8_n4_pairwise1": 2
+    },
+    "FAC_rank_vol_m8_n5_pairwise1": {
+      "is_tercile_rank_mean_m8_n5_pairwise1": 2
+    },
+    "FAC_rank_vol_m8_n6_pairwise1": {
+      "is_tercile_rank_mean_m8_n6_pairwise1": 2
+    },
+    "FAC_rank_vol_m8_n7_pairwise1": {
+      "is_tercile_rank_mean_m8_n7_pairwise1": 2
+    },
+    "FAC_rank_vol_m8_n8_pairwise1": {
+      "is_tercile_rank_mean_m8_n8_pairwise1": 2
+    },
+    "FAC_rank_vol_m8_n9_pairwise1": {
+      "is_tercile_rank_mean_m8_n9_pairwise1": 2
+    },
+    "FAC_rank_vol_m8_n10_pairwise1": {
+      "is_tercile_rank_mean_m8_n10_pairwise1": 2
+    },
+    "FAC_rank_vol_m8_n11_pairwise1": {
+      "is_tercile_rank_mean_m8_n11_pairwise1": 2
+    },
+    "FAC_rank_vol_m8_n12_pairwise1": {
+      "is_tercile_rank_mean_m8_n12_pairwise1": 2
+    },
+    "FAC_rank_vol_m9_n2_pairwise1": {
+      "is_tercile_rank_mean_m9_n2_pairwise1": 2
+    },
+    "FAC_rank_vol_m9_n3_pairwise1": {
+      "is_tercile_rank_mean_m9_n3_pairwise1": 2
+    },
+    "FAC_rank_vol_m9_n4_pairwise1": {
+      "is_tercile_rank_mean_m9_n4_pairwise1": 2
+    },
+    "FAC_rank_vol_m9_n5_pairwise1": {
+      "is_tercile_rank_mean_m9_n5_pairwise1": 2
+    },
+    "FAC_rank_vol_m9_n6_pairwise1": {
+      "is_tercile_rank_mean_m9_n6_pairwise1": 2
+    },
+    "FAC_rank_vol_m9_n7_pairwise1": {
+      "is_tercile_rank_mean_m9_n7_pairwise1": 2
+    },
+    "FAC_rank_vol_m9_n8_pairwise1": {
+      "is_tercile_rank_mean_m9_n8_pairwise1": 2
+    },
+    "FAC_rank_vol_m9_n9_pairwise1": {
+      "is_tercile_rank_mean_m9_n9_pairwise1": 2
+    },
+    "FAC_rank_vol_m9_n10_pairwise1": {
+      "is_tercile_rank_mean_m9_n10_pairwise1": 2
+    },
+    "FAC_rank_vol_m9_n11_pairwise1": {
+      "is_tercile_rank_mean_m9_n11_pairwise1": 2
+    },
+    "FAC_rank_vol_m9_n12_pairwise1": {
+      "is_tercile_rank_mean_m9_n12_pairwise1": 2
+    },
+    "FAC_rank_vol_m10_n2_pairwise1": {
+      "is_tercile_rank_mean_m10_n2_pairwise1": 2
+    },
+    "FAC_rank_vol_m10_n3_pairwise1": {
+      "is_tercile_rank_mean_m10_n3_pairwise1": 2
+    },
+    "FAC_rank_vol_m10_n4_pairwise1": {
+      "is_tercile_rank_mean_m10_n4_pairwise1": 2
+    },
+    "FAC_rank_vol_m10_n5_pairwise1": {
+      "is_tercile_rank_mean_m10_n5_pairwise1": 2
+    },
+    "FAC_rank_vol_m10_n6_pairwise1": {
+      "is_tercile_rank_mean_m10_n6_pairwise1": 2
+    },
+    "FAC_rank_vol_m10_n7_pairwise1": {
+      "is_tercile_rank_mean_m10_n7_pairwise1": 2
+    },
+    "FAC_rank_vol_m10_n8_pairwise1": {
+      "is_tercile_rank_mean_m10_n8_pairwise1": 2
+    },
+    "FAC_rank_vol_m10_n9_pairwise1": {
+      "is_tercile_rank_mean_m10_n9_pairwise1": 2
+    },
+    "FAC_rank_vol_m10_n10_pairwise1": {
+      "is_tercile_rank_mean_m10_n10_pairwise1": 2
+    },
+    "FAC_rank_vol_m10_n11_pairwise1": {
+      "is_tercile_rank_mean_m10_n11_pairwise1": 2
+    },
+    "FAC_rank_vol_m10_n12_pairwise1": {
+      "is_tercile_rank_mean_m10_n12_pairwise1": 2
+    },
+    "FAC_rank_vol_m11_n2_pairwise1": {
+      "is_tercile_rank_mean_m11_n2_pairwise1": 2
+    },
+    "FAC_rank_vol_m11_n3_pairwise1": {
+      "is_tercile_rank_mean_m11_n3_pairwise1": 2
+    },
+    "FAC_rank_vol_m11_n4_pairwise1": {
+      "is_tercile_rank_mean_m11_n4_pairwise1": 2
+    },
+    "FAC_rank_vol_m11_n5_pairwise1": {
+      "is_tercile_rank_mean_m11_n5_pairwise1": 2
+    },
+    "FAC_rank_vol_m11_n6_pairwise1": {
+      "is_tercile_rank_mean_m11_n6_pairwise1": 2
+    },
+    "FAC_rank_vol_m11_n7_pairwise1": {
+      "is_tercile_rank_mean_m11_n7_pairwise1": 2
+    },
+    "FAC_rank_vol_m11_n8_pairwise1": {
+      "is_tercile_rank_mean_m11_n8_pairwise1": 2
+    },
+    "FAC_rank_vol_m11_n9_pairwise1": {
+      "is_tercile_rank_mean_m11_n9_pairwise1": 2
+    },
+    "FAC_rank_vol_m11_n10_pairwise1": {
+      "is_tercile_rank_mean_m11_n10_pairwise1": 2
+    },
+    "FAC_rank_vol_m11_n11_pairwise1": {
+      "is_tercile_rank_mean_m11_n11_pairwise1": 2
+    },
+    "FAC_rank_vol_m11_n12_pairwise1": {
+      "is_tercile_rank_mean_m11_n12_pairwise1": 2
+    },
+    "FAC_rank_vol_m12_n2_pairwise1": {
+      "is_tercile_rank_mean_m12_n2_pairwise1": 2
+    },
+    "FAC_rank_vol_m12_n3_pairwise1": {
+      "is_tercile_rank_mean_m12_n3_pairwise1": 2
+    },
+    "FAC_rank_vol_m12_n4_pairwise1": {
+      "is_tercile_rank_mean_m12_n4_pairwise1": 2
+    },
+    "FAC_rank_vol_m12_n5_pairwise1": {
+      "is_tercile_rank_mean_m12_n5_pairwise1": 2
+    },
+    "FAC_rank_vol_m12_n6_pairwise1": {
+      "is_tercile_rank_mean_m12_n6_pairwise1": 2
+    },
+    "FAC_rank_vol_m12_n7_pairwise1": {
+      "is_tercile_rank_mean_m12_n7_pairwise1": 2
+    },
+    "FAC_rank_vol_m12_n8_pairwise1": {
+      "is_tercile_rank_mean_m12_n8_pairwise1": 2
+    },
+    "FAC_rank_vol_m12_n9_pairwise1": {
+      "is_tercile_rank_mean_m12_n9_pairwise1": 2
+    },
+    "FAC_rank_vol_m12_n10_pairwise1": {
+      "is_tercile_rank_mean_m12_n10_pairwise1": 2
+    },
+    "FAC_rank_vol_m12_n11_pairwise1": {
+      "is_tercile_rank_mean_m12_n11_pairwise1": 2
+    },
+    "FAC_rank_vol_m12_n12_pairwise1": {
+      "is_tercile_rank_mean_m12_n12_pairwise1": 2
+    }
+  },
+  "factor_specs": [
+    "FAC_rank_vol_m1_n2_pairwise1",
+    "FAC_rank_vol_m1_n3_pairwise1",
+    "FAC_rank_vol_m1_n4_pairwise1",
+    "FAC_rank_vol_m1_n5_pairwise1",
+    "FAC_rank_vol_m1_n6_pairwise1",
+    "FAC_rank_vol_m1_n7_pairwise1",
+    "FAC_rank_vol_m1_n8_pairwise1",
+    "FAC_rank_vol_m1_n9_pairwise1",
+    "FAC_rank_vol_m1_n10_pairwise1",
+    "FAC_rank_vol_m1_n11_pairwise1",
+    "FAC_rank_vol_m1_n12_pairwise1",
+    "FAC_rank_vol_m2_n2_pairwise1",
+    "FAC_rank_vol_m2_n3_pairwise1",
+    "FAC_rank_vol_m2_n4_pairwise1",
+    "FAC_rank_vol_m2_n5_pairwise1",
+    "FAC_rank_vol_m2_n6_pairwise1",
+    "FAC_rank_vol_m2_n7_pairwise1",
+    "FAC_rank_vol_m2_n8_pairwise1",
+    "FAC_rank_vol_m2_n9_pairwise1",
+    "FAC_rank_vol_m2_n10_pairwise1",
+    "FAC_rank_vol_m2_n11_pairwise1",
+    "FAC_rank_vol_m2_n12_pairwise1",
+    "FAC_rank_vol_m3_n2_pairwise1",
+    "FAC_rank_vol_m3_n3_pairwise1",
+    "FAC_rank_vol_m3_n4_pairwise1",
+    "FAC_rank_vol_m3_n5_pairwise1",
+    "FAC_rank_vol_m3_n6_pairwise1",
+    "FAC_rank_vol_m3_n7_pairwise1",
+    "FAC_rank_vol_m3_n8_pairwise1",
+    "FAC_rank_vol_m3_n9_pairwise1",
+    "FAC_rank_vol_m3_n10_pairwise1",
+    "FAC_rank_vol_m3_n11_pairwise1",
+    "FAC_rank_vol_m3_n12_pairwise1",
+    "FAC_rank_vol_m4_n2_pairwise1",
+    "FAC_rank_vol_m4_n3_pairwise1",
+    "FAC_rank_vol_m4_n4_pairwise1",
+    "FAC_rank_vol_m4_n5_pairwise1",
+    "FAC_rank_vol_m4_n6_pairwise1",
+    "FAC_rank_vol_m4_n7_pairwise1",
+    "FAC_rank_vol_m4_n8_pairwise1",
+    "FAC_rank_vol_m4_n9_pairwise1",
+    "FAC_rank_vol_m4_n10_pairwise1",
+    "FAC_rank_vol_m4_n11_pairwise1",
+    "FAC_rank_vol_m4_n12_pairwise1",
+    "FAC_rank_vol_m5_n2_pairwise1",
+    "FAC_rank_vol_m5_n3_pairwise1",
+    "FAC_rank_vol_m5_n4_pairwise1",
+    "FAC_rank_vol_m5_n5_pairwise1",
+    "FAC_rank_vol_m5_n6_pairwise1",
+    "FAC_rank_vol_m5_n7_pairwise1",
+    "FAC_rank_vol_m5_n8_pairwise1",
+    "FAC_rank_vol_m5_n9_pairwise1",
+    "FAC_rank_vol_m5_n10_pairwise1",
+    "FAC_rank_vol_m5_n11_pairwise1",
+    "FAC_rank_vol_m5_n12_pairwise1",
+    "FAC_rank_vol_m6_n2_pairwise1",
+    "FAC_rank_vol_m6_n3_pairwise1",
+    "FAC_rank_vol_m6_n4_pairwise1",
+    "FAC_rank_vol_m6_n5_pairwise1",
+    "FAC_rank_vol_m6_n6_pairwise1",
+    "FAC_rank_vol_m6_n7_pairwise1",
+    "FAC_rank_vol_m6_n8_pairwise1",
+    "FAC_rank_vol_m6_n9_pairwise1",
+    "FAC_rank_vol_m6_n10_pairwise1",
+    "FAC_rank_vol_m6_n11_pairwise1",
+    "FAC_rank_vol_m6_n12_pairwise1",
+    "FAC_rank_vol_m7_n2_pairwise1",
+    "FAC_rank_vol_m7_n3_pairwise1",
+    "FAC_rank_vol_m7_n4_pairwise1",
+    "FAC_rank_vol_m7_n5_pairwise1",
+    "FAC_rank_vol_m7_n6_pairwise1",
+    "FAC_rank_vol_m7_n7_pairwise1",
+    "FAC_rank_vol_m7_n8_pairwise1",
+    "FAC_rank_vol_m7_n9_pairwise1",
+    "FAC_rank_vol_m7_n10_pairwise1",
+    "FAC_rank_vol_m7_n11_pairwise1",
+    "FAC_rank_vol_m7_n12_pairwise1",
+    "FAC_rank_vol_m8_n2_pairwise1",
+    "FAC_rank_vol_m8_n3_pairwise1",
+    "FAC_rank_vol_m8_n4_pairwise1",
+    "FAC_rank_vol_m8_n5_pairwise1",
+    "FAC_rank_vol_m8_n6_pairwise1",
+    "FAC_rank_vol_m8_n7_pairwise1",
+    "FAC_rank_vol_m8_n8_pairwise1",
+    "FAC_rank_vol_m8_n9_pairwise1",
+    "FAC_rank_vol_m8_n10_pairwise1",
+    "FAC_rank_vol_m8_n11_pairwise1",
+    "FAC_rank_vol_m8_n12_pairwise1",
+    "FAC_rank_vol_m9_n2_pairwise1",
+    "FAC_rank_vol_m9_n3_pairwise1",
+    "FAC_rank_vol_m9_n4_pairwise1",
+    "FAC_rank_vol_m9_n5_pairwise1",
+    "FAC_rank_vol_m9_n6_pairwise1",
+    "FAC_rank_vol_m9_n7_pairwise1",
+    "FAC_rank_vol_m9_n8_pairwise1",
+    "FAC_rank_vol_m9_n9_pairwise1",
+    "FAC_rank_vol_m9_n10_pairwise1",
+    "FAC_rank_vol_m9_n11_pairwise1",
+    "FAC_rank_vol_m9_n12_pairwise1",
+    "FAC_rank_vol_m10_n2_pairwise1",
+    "FAC_rank_vol_m10_n3_pairwise1",
+    "FAC_rank_vol_m10_n4_pairwise1",
+    "FAC_rank_vol_m10_n5_pairwise1",
+    "FAC_rank_vol_m10_n6_pairwise1",
+    "FAC_rank_vol_m10_n7_pairwise1",
+    "FAC_rank_vol_m10_n8_pairwise1",
+    "FAC_rank_vol_m10_n9_pairwise1",
+    "FAC_rank_vol_m10_n10_pairwise1",
+    "FAC_rank_vol_m10_n11_pairwise1",
+    "FAC_rank_vol_m10_n12_pairwise1",
+    "FAC_rank_vol_m11_n2_pairwise1",
+    "FAC_rank_vol_m11_n3_pairwise1",
+    "FAC_rank_vol_m11_n4_pairwise1",
+    "FAC_rank_vol_m11_n5_pairwise1",
+    "FAC_rank_vol_m11_n6_pairwise1",
+    "FAC_rank_vol_m11_n7_pairwise1",
+    "FAC_rank_vol_m11_n8_pairwise1",
+    "FAC_rank_vol_m11_n9_pairwise1",
+    "FAC_rank_vol_m11_n10_pairwise1",
+    "FAC_rank_vol_m11_n11_pairwise1",
+    "FAC_rank_vol_m11_n12_pairwise1",
+    "FAC_rank_vol_m12_n2_pairwise1",
+    "FAC_rank_vol_m12_n3_pairwise1",
+    "FAC_rank_vol_m12_n4_pairwise1",
+    "FAC_rank_vol_m12_n5_pairwise1",
+    "FAC_rank_vol_m12_n6_pairwise1",
+    "FAC_rank_vol_m12_n7_pairwise1",
+    "FAC_rank_vol_m12_n8_pairwise1",
+    "FAC_rank_vol_m12_n9_pairwise1",
+    "FAC_rank_vol_m12_n10_pairwise1",
+    "FAC_rank_vol_m12_n11_pairwise1",
+    "FAC_rank_vol_m12_n12_pairwise1"
+  ],
+  "factor_columns": [
+    "FAC_rank_vol_m1_n2_pairwise1",
+    "FAC_rank_vol_m1_n3_pairwise1",
+    "FAC_rank_vol_m1_n4_pairwise1",
+    "FAC_rank_vol_m1_n5_pairwise1",
+    "FAC_rank_vol_m1_n6_pairwise1",
+    "FAC_rank_vol_m1_n7_pairwise1",
+    "FAC_rank_vol_m1_n8_pairwise1",
+    "FAC_rank_vol_m1_n9_pairwise1",
+    "FAC_rank_vol_m1_n10_pairwise1",
+    "FAC_rank_vol_m1_n11_pairwise1",
+    "FAC_rank_vol_m1_n12_pairwise1",
+    "FAC_rank_vol_m2_n2_pairwise1",
+    "FAC_rank_vol_m2_n3_pairwise1",
+    "FAC_rank_vol_m2_n4_pairwise1",
+    "FAC_rank_vol_m2_n5_pairwise1",
+    "FAC_rank_vol_m2_n6_pairwise1",
+    "FAC_rank_vol_m2_n7_pairwise1",
+    "FAC_rank_vol_m2_n8_pairwise1",
+    "FAC_rank_vol_m2_n9_pairwise1",
+    "FAC_rank_vol_m2_n10_pairwise1",
+    "FAC_rank_vol_m2_n11_pairwise1",
+    "FAC_rank_vol_m2_n12_pairwise1",
+    "FAC_rank_vol_m3_n2_pairwise1",
+    "FAC_rank_vol_m3_n3_pairwise1",
+    "FAC_rank_vol_m3_n4_pairwise1",
+    "FAC_rank_vol_m3_n5_pairwise1",
+    "FAC_rank_vol_m3_n6_pairwise1",
+    "FAC_rank_vol_m3_n7_pairwise1",
+    "FAC_rank_vol_m3_n8_pairwise1",
+    "FAC_rank_vol_m3_n9_pairwise1",
+    "FAC_rank_vol_m3_n10_pairwise1",
+    "FAC_rank_vol_m3_n11_pairwise1",
+    "FAC_rank_vol_m3_n12_pairwise1",
+    "FAC_rank_vol_m4_n2_pairwise1",
+    "FAC_rank_vol_m4_n3_pairwise1",
+    "FAC_rank_vol_m4_n4_pairwise1",
+    "FAC_rank_vol_m4_n5_pairwise1",
+    "FAC_rank_vol_m4_n6_pairwise1",
+    "FAC_rank_vol_m4_n7_pairwise1",
+    "FAC_rank_vol_m4_n8_pairwise1",
+    "FAC_rank_vol_m4_n9_pairwise1",
+    "FAC_rank_vol_m4_n10_pairwise1",
+    "FAC_rank_vol_m4_n11_pairwise1",
+    "FAC_rank_vol_m4_n12_pairwise1",
+    "FAC_rank_vol_m5_n2_pairwise1",
+    "FAC_rank_vol_m5_n3_pairwise1",
+    "FAC_rank_vol_m5_n4_pairwise1",
+    "FAC_rank_vol_m5_n5_pairwise1",
+    "FAC_rank_vol_m5_n6_pairwise1",
+    "FAC_rank_vol_m5_n7_pairwise1",
+    "FAC_rank_vol_m5_n8_pairwise1",
+    "FAC_rank_vol_m5_n9_pairwise1",
+    "FAC_rank_vol_m5_n10_pairwise1",
+    "FAC_rank_vol_m5_n11_pairwise1",
+    "FAC_rank_vol_m5_n12_pairwise1",
+    "FAC_rank_vol_m6_n2_pairwise1",
+    "FAC_rank_vol_m6_n3_pairwise1",
+    "FAC_rank_vol_m6_n4_pairwise1",
+    "FAC_rank_vol_m6_n5_pairwise1",
+    "FAC_rank_vol_m6_n6_pairwise1",
+    "FAC_rank_vol_m6_n7_pairwise1",
+    "FAC_rank_vol_m6_n8_pairwise1",
+    "FAC_rank_vol_m6_n9_pairwise1",
+    "FAC_rank_vol_m6_n10_pairwise1",
+    "FAC_rank_vol_m6_n11_pairwise1",
+    "FAC_rank_vol_m6_n12_pairwise1",
+    "FAC_rank_vol_m7_n2_pairwise1",
+    "FAC_rank_vol_m7_n3_pairwise1",
+    "FAC_rank_vol_m7_n4_pairwise1",
+    "FAC_rank_vol_m7_n5_pairwise1",
+    "FAC_rank_vol_m7_n6_pairwise1",
+    "FAC_rank_vol_m7_n7_pairwise1",
+    "FAC_rank_vol_m7_n8_pairwise1",
+    "FAC_rank_vol_m7_n9_pairwise1",
+    "FAC_rank_vol_m7_n10_pairwise1",
+    "FAC_rank_vol_m7_n11_pairwise1",
+    "FAC_rank_vol_m7_n12_pairwise1",
+    "FAC_rank_vol_m8_n2_pairwise1",
+    "FAC_rank_vol_m8_n3_pairwise1",
+    "FAC_rank_vol_m8_n4_pairwise1",
+    "FAC_rank_vol_m8_n5_pairwise1",
+    "FAC_rank_vol_m8_n6_pairwise1",
+    "FAC_rank_vol_m8_n7_pairwise1",
+    "FAC_rank_vol_m8_n8_pairwise1",
+    "FAC_rank_vol_m8_n9_pairwise1",
+    "FAC_rank_vol_m8_n10_pairwise1",
+    "FAC_rank_vol_m8_n11_pairwise1",
+    "FAC_rank_vol_m8_n12_pairwise1",
+    "FAC_rank_vol_m9_n2_pairwise1",
+    "FAC_rank_vol_m9_n3_pairwise1",
+    "FAC_rank_vol_m9_n4_pairwise1",
+    "FAC_rank_vol_m9_n5_pairwise1",
+    "FAC_rank_vol_m9_n6_pairwise1",
+    "FAC_rank_vol_m9_n7_pairwise1",
+    "FAC_rank_vol_m9_n8_pairwise1",
+    "FAC_rank_vol_m9_n9_pairwise1",
+    "FAC_rank_vol_m9_n10_pairwise1",
+    "FAC_rank_vol_m9_n11_pairwise1",
+    "FAC_rank_vol_m9_n12_pairwise1",
+    "FAC_rank_vol_m10_n2_pairwise1",
+    "FAC_rank_vol_m10_n3_pairwise1",
+    "FAC_rank_vol_m10_n4_pairwise1",
+    "FAC_rank_vol_m10_n5_pairwise1",
+    "FAC_rank_vol_m10_n6_pairwise1",
+    "FAC_rank_vol_m10_n7_pairwise1",
+    "FAC_rank_vol_m10_n8_pairwise1",
+    "FAC_rank_vol_m10_n9_pairwise1",
+    "FAC_rank_vol_m10_n10_pairwise1",
+    "FAC_rank_vol_m10_n11_pairwise1",
+    "FAC_rank_vol_m10_n12_pairwise1",
+    "FAC_rank_vol_m11_n2_pairwise1",
+    "FAC_rank_vol_m11_n3_pairwise1",
+    "FAC_rank_vol_m11_n4_pairwise1",
+    "FAC_rank_vol_m11_n5_pairwise1",
+    "FAC_rank_vol_m11_n6_pairwise1",
+    "FAC_rank_vol_m11_n7_pairwise1",
+    "FAC_rank_vol_m11_n8_pairwise1",
+    "FAC_rank_vol_m11_n9_pairwise1",
+    "FAC_rank_vol_m11_n10_pairwise1",
+    "FAC_rank_vol_m11_n11_pairwise1",
+    "FAC_rank_vol_m11_n12_pairwise1",
+    "FAC_rank_vol_m12_n2_pairwise1",
+    "FAC_rank_vol_m12_n3_pairwise1",
+    "FAC_rank_vol_m12_n4_pairwise1",
+    "FAC_rank_vol_m12_n5_pairwise1",
+    "FAC_rank_vol_m12_n6_pairwise1",
+    "FAC_rank_vol_m12_n7_pairwise1",
+    "FAC_rank_vol_m12_n8_pairwise1",
+    "FAC_rank_vol_m12_n9_pairwise1",
+    "FAC_rank_vol_m12_n10_pairwise1",
+    "FAC_rank_vol_m12_n11_pairwise1",
+    "FAC_rank_vol_m12_n12_pairwise1"
+  ],
+  "winsorize": {
+    "group_column": "month_date",
+    "lower_quantile": 0.01,
+    "upper_quantile": 0.99,
+    "columns": [
+      "future_ret_6m",
+      "FAC_rank_vol_m1_n2_pairwise1",
+      "FAC_rank_vol_m1_n3_pairwise1",
+      "FAC_rank_vol_m1_n4_pairwise1",
+      "FAC_rank_vol_m1_n5_pairwise1",
+      "FAC_rank_vol_m1_n6_pairwise1",
+      "FAC_rank_vol_m1_n7_pairwise1",
+      "FAC_rank_vol_m1_n8_pairwise1",
+      "FAC_rank_vol_m1_n9_pairwise1",
+      "FAC_rank_vol_m1_n10_pairwise1",
+      "FAC_rank_vol_m1_n11_pairwise1",
+      "FAC_rank_vol_m1_n12_pairwise1",
+      "FAC_rank_vol_m2_n2_pairwise1",
+      "FAC_rank_vol_m2_n3_pairwise1",
+      "FAC_rank_vol_m2_n4_pairwise1",
+      "FAC_rank_vol_m2_n5_pairwise1",
+      "FAC_rank_vol_m2_n6_pairwise1",
+      "FAC_rank_vol_m2_n7_pairwise1",
+      "FAC_rank_vol_m2_n8_pairwise1",
+      "FAC_rank_vol_m2_n9_pairwise1",
+      "FAC_rank_vol_m2_n10_pairwise1",
+      "FAC_rank_vol_m2_n11_pairwise1",
+      "FAC_rank_vol_m2_n12_pairwise1",
+      "FAC_rank_vol_m3_n2_pairwise1",
+      "FAC_rank_vol_m3_n3_pairwise1",
+      "FAC_rank_vol_m3_n4_pairwise1",
+      "FAC_rank_vol_m3_n5_pairwise1",
+      "FAC_rank_vol_m3_n6_pairwise1",
+      "FAC_rank_vol_m3_n7_pairwise1",
+      "FAC_rank_vol_m3_n8_pairwise1",
+      "FAC_rank_vol_m3_n9_pairwise1",
+      "FAC_rank_vol_m3_n10_pairwise1",
+      "FAC_rank_vol_m3_n11_pairwise1",
+      "FAC_rank_vol_m3_n12_pairwise1",
+      "FAC_rank_vol_m4_n2_pairwise1",
+      "FAC_rank_vol_m4_n3_pairwise1",
+      "FAC_rank_vol_m4_n4_pairwise1",
+      "FAC_rank_vol_m4_n5_pairwise1",
+      "FAC_rank_vol_m4_n6_pairwise1",
+      "FAC_rank_vol_m4_n7_pairwise1",
+      "FAC_rank_vol_m4_n8_pairwise1",
+      "FAC_rank_vol_m4_n9_pairwise1",
+      "FAC_rank_vol_m4_n10_pairwise1",
+      "FAC_rank_vol_m4_n11_pairwise1",
+      "FAC_rank_vol_m4_n12_pairwise1",
+      "FAC_rank_vol_m5_n2_pairwise1",
+      "FAC_rank_vol_m5_n3_pairwise1",
+      "FAC_rank_vol_m5_n4_pairwise1",
+      "FAC_rank_vol_m5_n5_pairwise1",
+      "FAC_rank_vol_m5_n6_pairwise1",
+      "FAC_rank_vol_m5_n7_pairwise1",
+      "FAC_rank_vol_m5_n8_pairwise1",
+      "FAC_rank_vol_m5_n9_pairwise1",
+      "FAC_rank_vol_m5_n10_pairwise1",
+      "FAC_rank_vol_m5_n11_pairwise1",
+      "FAC_rank_vol_m5_n12_pairwise1",
+      "FAC_rank_vol_m6_n2_pairwise1",
+      "FAC_rank_vol_m6_n3_pairwise1",
+      "FAC_rank_vol_m6_n4_pairwise1",
+      "FAC_rank_vol_m6_n5_pairwise1",
+      "FAC_rank_vol_m6_n6_pairwise1",
+      "FAC_rank_vol_m6_n7_pairwise1",
+      "FAC_rank_vol_m6_n8_pairwise1",
+      "FAC_rank_vol_m6_n9_pairwise1",
+      "FAC_rank_vol_m6_n10_pairwise1",
+      "FAC_rank_vol_m6_n11_pairwise1",
+      "FAC_rank_vol_m6_n12_pairwise1",
+      "FAC_rank_vol_m7_n2_pairwise1",
+      "FAC_rank_vol_m7_n3_pairwise1",
+      "FAC_rank_vol_m7_n4_pairwise1",
+      "FAC_rank_vol_m7_n5_pairwise1",
+      "FAC_rank_vol_m7_n6_pairwise1",
+      "FAC_rank_vol_m7_n7_pairwise1",
+      "FAC_rank_vol_m7_n8_pairwise1",
+      "FAC_rank_vol_m7_n9_pairwise1",
+      "FAC_rank_vol_m7_n10_pairwise1",
+      "FAC_rank_vol_m7_n11_pairwise1",
+      "FAC_rank_vol_m7_n12_pairwise1",
+      "FAC_rank_vol_m8_n2_pairwise1",
+      "FAC_rank_vol_m8_n3_pairwise1",
+      "FAC_rank_vol_m8_n4_pairwise1",
+      "FAC_rank_vol_m8_n5_pairwise1",
+      "FAC_rank_vol_m8_n6_pairwise1",
+      "FAC_rank_vol_m8_n7_pairwise1",
+      "FAC_rank_vol_m8_n8_pairwise1",
+      "FAC_rank_vol_m8_n9_pairwise1",
+      "FAC_rank_vol_m8_n10_pairwise1",
+      "FAC_rank_vol_m8_n11_pairwise1",
+      "FAC_rank_vol_m8_n12_pairwise1",
+      "FAC_rank_vol_m9_n2_pairwise1",
+      "FAC_rank_vol_m9_n3_pairwise1",
+      "FAC_rank_vol_m9_n4_pairwise1",
+      "FAC_rank_vol_m9_n5_pairwise1",
+      "FAC_rank_vol_m9_n6_pairwise1",
+      "FAC_rank_vol_m9_n7_pairwise1",
+      "FAC_rank_vol_m9_n8_pairwise1",
+      "FAC_rank_vol_m9_n9_pairwise1",
+      "FAC_rank_vol_m9_n10_pairwise1",
+      "FAC_rank_vol_m9_n11_pairwise1",
+      "FAC_rank_vol_m9_n12_pairwise1",
+      "FAC_rank_vol_m10_n2_pairwise1",
+      "FAC_rank_vol_m10_n3_pairwise1",
+      "FAC_rank_vol_m10_n4_pairwise1",
+      "FAC_rank_vol_m10_n5_pairwise1",
+      "FAC_rank_vol_m10_n6_pairwise1",
+      "FAC_rank_vol_m10_n7_pairwise1",
+      "FAC_rank_vol_m10_n8_pairwise1",
+      "FAC_rank_vol_m10_n9_pairwise1",
+      "FAC_rank_vol_m10_n10_pairwise1",
+      "FAC_rank_vol_m10_n11_pairwise1",
+      "FAC_rank_vol_m10_n12_pairwise1",
+      "FAC_rank_vol_m11_n2_pairwise1",
+      "FAC_rank_vol_m11_n3_pairwise1",
+      "FAC_rank_vol_m11_n4_pairwise1",
+      "FAC_rank_vol_m11_n5_pairwise1",
+      "FAC_rank_vol_m11_n6_pairwise1",
+      "FAC_rank_vol_m11_n7_pairwise1",
+      "FAC_rank_vol_m11_n8_pairwise1",
+      "FAC_rank_vol_m11_n9_pairwise1",
+      "FAC_rank_vol_m11_n10_pairwise1",
+      "FAC_rank_vol_m11_n11_pairwise1",
+      "FAC_rank_vol_m11_n12_pairwise1",
+      "FAC_rank_vol_m12_n2_pairwise1",
+      "FAC_rank_vol_m12_n3_pairwise1",
+      "FAC_rank_vol_m12_n4_pairwise1",
+      "FAC_rank_vol_m12_n5_pairwise1",
+      "FAC_rank_vol_m12_n6_pairwise1",
+      "FAC_rank_vol_m12_n7_pairwise1",
+      "FAC_rank_vol_m12_n8_pairwise1",
+      "FAC_rank_vol_m12_n9_pairwise1",
+      "FAC_rank_vol_m12_n10_pairwise1",
+      "FAC_rank_vol_m12_n11_pairwise1",
+      "FAC_rank_vol_m12_n12_pairwise1",
+      "CtrlRetSTR",
+      "CtrlRetLTM",
+      "CtrlVol",
+      "Ctrl_log_fund_size",
+      "Ctrl_fund_age"
+    ]
+  },
+  "kept_columns_before_group_labels": [
+    "ifind_code",
+    "month_date",
+    "investment_type",
+    "is_insample_future_ret_6m",
+    "match_is_sample_future_ret_6m",
+    "is_tercile_rank_mean_m1_n2_pairwise1",
+    "is_tercile_rank_mean_m1_n3_pairwise1",
+    "is_tercile_rank_mean_m1_n4_pairwise1",
+    "is_tercile_rank_mean_m1_n5_pairwise1",
+    "is_tercile_rank_mean_m1_n6_pairwise1",
+    "is_tercile_rank_mean_m1_n7_pairwise1",
+    "is_tercile_rank_mean_m1_n8_pairwise1",
+    "is_tercile_rank_mean_m1_n9_pairwise1",
+    "is_tercile_rank_mean_m1_n10_pairwise1",
+    "is_tercile_rank_mean_m1_n11_pairwise1",
+    "is_tercile_rank_mean_m1_n12_pairwise1",
+    "is_tercile_rank_mean_m2_n2_pairwise1",
+    "is_tercile_rank_mean_m2_n3_pairwise1",
+    "is_tercile_rank_mean_m2_n4_pairwise1",
+    "is_tercile_rank_mean_m2_n5_pairwise1",
+    "is_tercile_rank_mean_m2_n6_pairwise1",
+    "is_tercile_rank_mean_m2_n7_pairwise1",
+    "is_tercile_rank_mean_m2_n8_pairwise1",
+    "is_tercile_rank_mean_m2_n9_pairwise1",
+    "is_tercile_rank_mean_m2_n10_pairwise1",
+    "is_tercile_rank_mean_m2_n11_pairwise1",
+    "is_tercile_rank_mean_m2_n12_pairwise1",
+    "is_tercile_rank_mean_m3_n2_pairwise1",
+    "is_tercile_rank_mean_m3_n3_pairwise1",
+    "is_tercile_rank_mean_m3_n4_pairwise1",
+    "is_tercile_rank_mean_m3_n5_pairwise1",
+    "is_tercile_rank_mean_m3_n6_pairwise1",
+    "is_tercile_rank_mean_m3_n7_pairwise1",
+    "is_tercile_rank_mean_m3_n8_pairwise1",
+    "is_tercile_rank_mean_m3_n9_pairwise1",
+    "is_tercile_rank_mean_m3_n10_pairwise1",
+    "is_tercile_rank_mean_m3_n11_pairwise1",
+    "is_tercile_rank_mean_m3_n12_pairwise1",
+    "is_tercile_rank_mean_m4_n2_pairwise1",
+    "is_tercile_rank_mean_m4_n3_pairwise1",
+    "is_tercile_rank_mean_m4_n4_pairwise1",
+    "is_tercile_rank_mean_m4_n5_pairwise1",
+    "is_tercile_rank_mean_m4_n6_pairwise1",
+    "is_tercile_rank_mean_m4_n7_pairwise1",
+    "is_tercile_rank_mean_m4_n8_pairwise1",
+    "is_tercile_rank_mean_m4_n9_pairwise1",
+    "is_tercile_rank_mean_m4_n10_pairwise1",
+    "is_tercile_rank_mean_m4_n11_pairwise1",
+    "is_tercile_rank_mean_m4_n12_pairwise1",
+    "is_tercile_rank_mean_m5_n2_pairwise1",
+    "is_tercile_rank_mean_m5_n3_pairwise1",
+    "is_tercile_rank_mean_m5_n4_pairwise1",
+    "is_tercile_rank_mean_m5_n5_pairwise1",
+    "is_tercile_rank_mean_m5_n6_pairwise1",
+    "is_tercile_rank_mean_m5_n7_pairwise1",
+    "is_tercile_rank_mean_m5_n8_pairwise1",
+    "is_tercile_rank_mean_m5_n9_pairwise1",
+    "is_tercile_rank_mean_m5_n10_pairwise1",
+    "is_tercile_rank_mean_m5_n11_pairwise1",
+    "is_tercile_rank_mean_m5_n12_pairwise1",
+    "is_tercile_rank_mean_m6_n2_pairwise1",
+    "is_tercile_rank_mean_m6_n3_pairwise1",
+    "is_tercile_rank_mean_m6_n4_pairwise1",
+    "is_tercile_rank_mean_m6_n5_pairwise1",
+    "is_tercile_rank_mean_m6_n6_pairwise1",
+    "is_tercile_rank_mean_m6_n7_pairwise1",
+    "is_tercile_rank_mean_m6_n8_pairwise1",
+    "is_tercile_rank_mean_m6_n9_pairwise1",
+    "is_tercile_rank_mean_m6_n10_pairwise1",
+    "is_tercile_rank_mean_m6_n11_pairwise1",
+    "is_tercile_rank_mean_m6_n12_pairwise1",
+    "is_tercile_rank_mean_m7_n2_pairwise1",
+    "is_tercile_rank_mean_m7_n3_pairwise1",
+    "is_tercile_rank_mean_m7_n4_pairwise1",
+    "is_tercile_rank_mean_m7_n5_pairwise1",
+    "is_tercile_rank_mean_m7_n6_pairwise1",
+    "is_tercile_rank_mean_m7_n7_pairwise1",
+    "is_tercile_rank_mean_m7_n8_pairwise1",
+    "is_tercile_rank_mean_m7_n9_pairwise1",
+    "is_tercile_rank_mean_m7_n10_pairwise1",
+    "is_tercile_rank_mean_m7_n11_pairwise1",
+    "is_tercile_rank_mean_m7_n12_pairwise1",
+    "is_tercile_rank_mean_m8_n2_pairwise1",
+    "is_tercile_rank_mean_m8_n3_pairwise1",
+    "is_tercile_rank_mean_m8_n4_pairwise1",
+    "is_tercile_rank_mean_m8_n5_pairwise1",
+    "is_tercile_rank_mean_m8_n6_pairwise1",
+    "is_tercile_rank_mean_m8_n7_pairwise1",
+    "is_tercile_rank_mean_m8_n8_pairwise1",
+    "is_tercile_rank_mean_m8_n9_pairwise1",
+    "is_tercile_rank_mean_m8_n10_pairwise1",
+    "is_tercile_rank_mean_m8_n11_pairwise1",
+    "is_tercile_rank_mean_m8_n12_pairwise1",
+    "is_tercile_rank_mean_m9_n2_pairwise1",
+    "is_tercile_rank_mean_m9_n3_pairwise1",
+    "is_tercile_rank_mean_m9_n4_pairwise1",
+    "is_tercile_rank_mean_m9_n5_pairwise1",
+    "is_tercile_rank_mean_m9_n6_pairwise1",
+    "is_tercile_rank_mean_m9_n7_pairwise1",
+    "is_tercile_rank_mean_m9_n8_pairwise1",
+    "is_tercile_rank_mean_m9_n9_pairwise1",
+    "is_tercile_rank_mean_m9_n10_pairwise1",
+    "is_tercile_rank_mean_m9_n11_pairwise1",
+    "is_tercile_rank_mean_m9_n12_pairwise1",
+    "is_tercile_rank_mean_m10_n2_pairwise1",
+    "is_tercile_rank_mean_m10_n3_pairwise1",
+    "is_tercile_rank_mean_m10_n4_pairwise1",
+    "is_tercile_rank_mean_m10_n5_pairwise1",
+    "is_tercile_rank_mean_m10_n6_pairwise1",
+    "is_tercile_rank_mean_m10_n7_pairwise1",
+    "is_tercile_rank_mean_m10_n8_pairwise1",
+    "is_tercile_rank_mean_m10_n9_pairwise1",
+    "is_tercile_rank_mean_m10_n10_pairwise1",
+    "is_tercile_rank_mean_m10_n11_pairwise1",
+    "is_tercile_rank_mean_m10_n12_pairwise1",
+    "is_tercile_rank_mean_m11_n2_pairwise1",
+    "is_tercile_rank_mean_m11_n3_pairwise1",
+    "is_tercile_rank_mean_m11_n4_pairwise1",
+    "is_tercile_rank_mean_m11_n5_pairwise1",
+    "is_tercile_rank_mean_m11_n6_pairwise1",
+    "is_tercile_rank_mean_m11_n7_pairwise1",
+    "is_tercile_rank_mean_m11_n8_pairwise1",
+    "is_tercile_rank_mean_m11_n9_pairwise1",
+    "is_tercile_rank_mean_m11_n10_pairwise1",
+    "is_tercile_rank_mean_m11_n11_pairwise1",
+    "is_tercile_rank_mean_m11_n12_pairwise1",
+    "is_tercile_rank_mean_m12_n2_pairwise1",
+    "is_tercile_rank_mean_m12_n3_pairwise1",
+    "is_tercile_rank_mean_m12_n4_pairwise1",
+    "is_tercile_rank_mean_m12_n5_pairwise1",
+    "is_tercile_rank_mean_m12_n6_pairwise1",
+    "is_tercile_rank_mean_m12_n7_pairwise1",
+    "is_tercile_rank_mean_m12_n8_pairwise1",
+    "is_tercile_rank_mean_m12_n9_pairwise1",
+    "is_tercile_rank_mean_m12_n10_pairwise1",
+    "is_tercile_rank_mean_m12_n11_pairwise1",
+    "is_tercile_rank_mean_m12_n12_pairwise1",
+    "future_ret_6m",
+    "FAC_rank_vol_m1_n2_pairwise1",
+    "FAC_rank_vol_m1_n3_pairwise1",
+    "FAC_rank_vol_m1_n4_pairwise1",
+    "FAC_rank_vol_m1_n5_pairwise1",
+    "FAC_rank_vol_m1_n6_pairwise1",
+    "FAC_rank_vol_m1_n7_pairwise1",
+    "FAC_rank_vol_m1_n8_pairwise1",
+    "FAC_rank_vol_m1_n9_pairwise1",
+    "FAC_rank_vol_m1_n10_pairwise1",
+    "FAC_rank_vol_m1_n11_pairwise1",
+    "FAC_rank_vol_m1_n12_pairwise1",
+    "FAC_rank_vol_m2_n2_pairwise1",
+    "FAC_rank_vol_m2_n3_pairwise1",
+    "FAC_rank_vol_m2_n4_pairwise1",
+    "FAC_rank_vol_m2_n5_pairwise1",
+    "FAC_rank_vol_m2_n6_pairwise1",
+    "FAC_rank_vol_m2_n7_pairwise1",
+    "FAC_rank_vol_m2_n8_pairwise1",
+    "FAC_rank_vol_m2_n9_pairwise1",
+    "FAC_rank_vol_m2_n10_pairwise1",
+    "FAC_rank_vol_m2_n11_pairwise1",
+    "FAC_rank_vol_m2_n12_pairwise1",
+    "FAC_rank_vol_m3_n2_pairwise1",
+    "FAC_rank_vol_m3_n3_pairwise1",
+    "FAC_rank_vol_m3_n4_pairwise1",
+    "FAC_rank_vol_m3_n5_pairwise1",
+    "FAC_rank_vol_m3_n6_pairwise1",
+    "FAC_rank_vol_m3_n7_pairwise1",
+    "FAC_rank_vol_m3_n8_pairwise1",
+    "FAC_rank_vol_m3_n9_pairwise1",
+    "FAC_rank_vol_m3_n10_pairwise1",
+    "FAC_rank_vol_m3_n11_pairwise1",
+    "FAC_rank_vol_m3_n12_pairwise1",
+    "FAC_rank_vol_m4_n2_pairwise1",
+    "FAC_rank_vol_m4_n3_pairwise1",
+    "FAC_rank_vol_m4_n4_pairwise1",
+    "FAC_rank_vol_m4_n5_pairwise1",
+    "FAC_rank_vol_m4_n6_pairwise1",
+    "FAC_rank_vol_m4_n7_pairwise1",
+    "FAC_rank_vol_m4_n8_pairwise1",
+    "FAC_rank_vol_m4_n9_pairwise1",
+    "FAC_rank_vol_m4_n10_pairwise1",
+    "FAC_rank_vol_m4_n11_pairwise1",
+    "FAC_rank_vol_m4_n12_pairwise1",
+    "FAC_rank_vol_m5_n2_pairwise1",
+    "FAC_rank_vol_m5_n3_pairwise1",
+    "FAC_rank_vol_m5_n4_pairwise1",
+    "FAC_rank_vol_m5_n5_pairwise1",
+    "FAC_rank_vol_m5_n6_pairwise1",
+    "FAC_rank_vol_m5_n7_pairwise1",
+    "FAC_rank_vol_m5_n8_pairwise1",
+    "FAC_rank_vol_m5_n9_pairwise1",
+    "FAC_rank_vol_m5_n10_pairwise1",
+    "FAC_rank_vol_m5_n11_pairwise1",
+    "FAC_rank_vol_m5_n12_pairwise1",
+    "FAC_rank_vol_m6_n2_pairwise1",
+    "FAC_rank_vol_m6_n3_pairwise1",
+    "FAC_rank_vol_m6_n4_pairwise1",
+    "FAC_rank_vol_m6_n5_pairwise1",
+    "FAC_rank_vol_m6_n6_pairwise1",
+    "FAC_rank_vol_m6_n7_pairwise1",
+    "FAC_rank_vol_m6_n8_pairwise1",
+    "FAC_rank_vol_m6_n9_pairwise1",
+    "FAC_rank_vol_m6_n10_pairwise1",
+    "FAC_rank_vol_m6_n11_pairwise1",
+    "FAC_rank_vol_m6_n12_pairwise1",
+    "FAC_rank_vol_m7_n2_pairwise1",
+    "FAC_rank_vol_m7_n3_pairwise1",
+    "FAC_rank_vol_m7_n4_pairwise1",
+    "FAC_rank_vol_m7_n5_pairwise1",
+    "FAC_rank_vol_m7_n6_pairwise1",
+    "FAC_rank_vol_m7_n7_pairwise1",
+    "FAC_rank_vol_m7_n8_pairwise1",
+    "FAC_rank_vol_m7_n9_pairwise1",
+    "FAC_rank_vol_m7_n10_pairwise1",
+    "FAC_rank_vol_m7_n11_pairwise1",
+    "FAC_rank_vol_m7_n12_pairwise1",
+    "FAC_rank_vol_m8_n2_pairwise1",
+    "FAC_rank_vol_m8_n3_pairwise1",
+    "FAC_rank_vol_m8_n4_pairwise1",
+    "FAC_rank_vol_m8_n5_pairwise1",
+    "FAC_rank_vol_m8_n6_pairwise1",
+    "FAC_rank_vol_m8_n7_pairwise1",
+    "FAC_rank_vol_m8_n8_pairwise1",
+    "FAC_rank_vol_m8_n9_pairwise1",
+    "FAC_rank_vol_m8_n10_pairwise1",
+    "FAC_rank_vol_m8_n11_pairwise1",
+    "FAC_rank_vol_m8_n12_pairwise1",
+    "FAC_rank_vol_m9_n2_pairwise1",
+    "FAC_rank_vol_m9_n3_pairwise1",
+    "FAC_rank_vol_m9_n4_pairwise1",
+    "FAC_rank_vol_m9_n5_pairwise1",
+    "FAC_rank_vol_m9_n6_pairwise1",
+    "FAC_rank_vol_m9_n7_pairwise1",
+    "FAC_rank_vol_m9_n8_pairwise1",
+    "FAC_rank_vol_m9_n9_pairwise1",
+    "FAC_rank_vol_m9_n10_pairwise1",
+    "FAC_rank_vol_m9_n11_pairwise1",
+    "FAC_rank_vol_m9_n12_pairwise1",
+    "FAC_rank_vol_m10_n2_pairwise1",
+    "FAC_rank_vol_m10_n3_pairwise1",
+    "FAC_rank_vol_m10_n4_pairwise1",
+    "FAC_rank_vol_m10_n5_pairwise1",
+    "FAC_rank_vol_m10_n6_pairwise1",
+    "FAC_rank_vol_m10_n7_pairwise1",
+    "FAC_rank_vol_m10_n8_pairwise1",
+    "FAC_rank_vol_m10_n9_pairwise1",
+    "FAC_rank_vol_m10_n10_pairwise1",
+    "FAC_rank_vol_m10_n11_pairwise1",
+    "FAC_rank_vol_m10_n12_pairwise1",
+    "FAC_rank_vol_m11_n2_pairwise1",
+    "FAC_rank_vol_m11_n3_pairwise1",
+    "FAC_rank_vol_m11_n4_pairwise1",
+    "FAC_rank_vol_m11_n5_pairwise1",
+    "FAC_rank_vol_m11_n6_pairwise1",
+    "FAC_rank_vol_m11_n7_pairwise1",
+    "FAC_rank_vol_m11_n8_pairwise1",
+    "FAC_rank_vol_m11_n9_pairwise1",
+    "FAC_rank_vol_m11_n10_pairwise1",
+    "FAC_rank_vol_m11_n11_pairwise1",
+    "FAC_rank_vol_m11_n12_pairwise1",
+    "FAC_rank_vol_m12_n2_pairwise1",
+    "FAC_rank_vol_m12_n3_pairwise1",
+    "FAC_rank_vol_m12_n4_pairwise1",
+    "FAC_rank_vol_m12_n5_pairwise1",
+    "FAC_rank_vol_m12_n6_pairwise1",
+    "FAC_rank_vol_m12_n7_pairwise1",
+    "FAC_rank_vol_m12_n8_pairwise1",
+    "FAC_rank_vol_m12_n9_pairwise1",
+    "FAC_rank_vol_m12_n10_pairwise1",
+    "FAC_rank_vol_m12_n11_pairwise1",
+    "FAC_rank_vol_m12_n12_pairwise1",
+    "CtrlRetSTR",
+    "CtrlRetLTM",
+    "CtrlVol",
+    "as_偏股混合型基金",
+    "Ctrl_log_fund_size",
+    "Ctrl_fund_age"
+  ],
+  "output_columns": [
+    "ifind_code",
+    "month_date",
+    "investment_type",
+    "is_insample_future_ret_6m",
+    "match_is_sample_future_ret_6m",
+    "is_tercile_rank_mean_m1_n2_pairwise1",
+    "is_tercile_rank_mean_m1_n3_pairwise1",
+    "is_tercile_rank_mean_m1_n4_pairwise1",
+    "is_tercile_rank_mean_m1_n5_pairwise1",
+    "is_tercile_rank_mean_m1_n6_pairwise1",
+    "is_tercile_rank_mean_m1_n7_pairwise1",
+    "is_tercile_rank_mean_m1_n8_pairwise1",
+    "is_tercile_rank_mean_m1_n9_pairwise1",
+    "is_tercile_rank_mean_m1_n10_pairwise1",
+    "is_tercile_rank_mean_m1_n11_pairwise1",
+    "is_tercile_rank_mean_m1_n12_pairwise1",
+    "is_tercile_rank_mean_m2_n2_pairwise1",
+    "is_tercile_rank_mean_m2_n3_pairwise1",
+    "is_tercile_rank_mean_m2_n4_pairwise1",
+    "is_tercile_rank_mean_m2_n5_pairwise1",
+    "is_tercile_rank_mean_m2_n6_pairwise1",
+    "is_tercile_rank_mean_m2_n7_pairwise1",
+    "is_tercile_rank_mean_m2_n8_pairwise1",
+    "is_tercile_rank_mean_m2_n9_pairwise1",
+    "is_tercile_rank_mean_m2_n10_pairwise1",
+    "is_tercile_rank_mean_m2_n11_pairwise1",
+    "is_tercile_rank_mean_m2_n12_pairwise1",
+    "is_tercile_rank_mean_m3_n2_pairwise1",
+    "is_tercile_rank_mean_m3_n3_pairwise1",
+    "is_tercile_rank_mean_m3_n4_pairwise1",
+    "is_tercile_rank_mean_m3_n5_pairwise1",
+    "is_tercile_rank_mean_m3_n6_pairwise1",
+    "is_tercile_rank_mean_m3_n7_pairwise1",
+    "is_tercile_rank_mean_m3_n8_pairwise1",
+    "is_tercile_rank_mean_m3_n9_pairwise1",
+    "is_tercile_rank_mean_m3_n10_pairwise1",
+    "is_tercile_rank_mean_m3_n11_pairwise1",
+    "is_tercile_rank_mean_m3_n12_pairwise1",
+    "is_tercile_rank_mean_m4_n2_pairwise1",
+    "is_tercile_rank_mean_m4_n3_pairwise1",
+    "is_tercile_rank_mean_m4_n4_pairwise1",
+    "is_tercile_rank_mean_m4_n5_pairwise1",
+    "is_tercile_rank_mean_m4_n6_pairwise1",
+    "is_tercile_rank_mean_m4_n7_pairwise1",
+    "is_tercile_rank_mean_m4_n8_pairwise1",
+    "is_tercile_rank_mean_m4_n9_pairwise1",
+    "is_tercile_rank_mean_m4_n10_pairwise1",
+    "is_tercile_rank_mean_m4_n11_pairwise1",
+    "is_tercile_rank_mean_m4_n12_pairwise1",
+    "is_tercile_rank_mean_m5_n2_pairwise1",
+    "is_tercile_rank_mean_m5_n3_pairwise1",
+    "is_tercile_rank_mean_m5_n4_pairwise1",
+    "is_tercile_rank_mean_m5_n5_pairwise1",
+    "is_tercile_rank_mean_m5_n6_pairwise1",
+    "is_tercile_rank_mean_m5_n7_pairwise1",
+    "is_tercile_rank_mean_m5_n8_pairwise1",
+    "is_tercile_rank_mean_m5_n9_pairwise1",
+    "is_tercile_rank_mean_m5_n10_pairwise1",
+    "is_tercile_rank_mean_m5_n11_pairwise1",
+    "is_tercile_rank_mean_m5_n12_pairwise1",
+    "is_tercile_rank_mean_m6_n2_pairwise1",
+    "is_tercile_rank_mean_m6_n3_pairwise1",
+    "is_tercile_rank_mean_m6_n4_pairwise1",
+    "is_tercile_rank_mean_m6_n5_pairwise1",
+    "is_tercile_rank_mean_m6_n6_pairwise1",
+    "is_tercile_rank_mean_m6_n7_pairwise1",
+    "is_tercile_rank_mean_m6_n8_pairwise1",
+    "is_tercile_rank_mean_m6_n9_pairwise1",
+    "is_tercile_rank_mean_m6_n10_pairwise1",
+    "is_tercile_rank_mean_m6_n11_pairwise1",
+    "is_tercile_rank_mean_m6_n12_pairwise1",
+    "is_tercile_rank_mean_m7_n2_pairwise1",
+    "is_tercile_rank_mean_m7_n3_pairwise1",
+    "is_tercile_rank_mean_m7_n4_pairwise1",
+    "is_tercile_rank_mean_m7_n5_pairwise1",
+    "is_tercile_rank_mean_m7_n6_pairwise1",
+    "is_tercile_rank_mean_m7_n7_pairwise1",
+    "is_tercile_rank_mean_m7_n8_pairwise1",
+    "is_tercile_rank_mean_m7_n9_pairwise1",
+    "is_tercile_rank_mean_m7_n10_pairwise1",
+    "is_tercile_rank_mean_m7_n11_pairwise1",
+    "is_tercile_rank_mean_m7_n12_pairwise1",
+    "is_tercile_rank_mean_m8_n2_pairwise1",
+    "is_tercile_rank_mean_m8_n3_pairwise1",
+    "is_tercile_rank_mean_m8_n4_pairwise1",
+    "is_tercile_rank_mean_m8_n5_pairwise1",
+    "is_tercile_rank_mean_m8_n6_pairwise1",
+    "is_tercile_rank_mean_m8_n7_pairwise1",
+    "is_tercile_rank_mean_m8_n8_pairwise1",
+    "is_tercile_rank_mean_m8_n9_pairwise1",
+    "is_tercile_rank_mean_m8_n10_pairwise1",
+    "is_tercile_rank_mean_m8_n11_pairwise1",
+    "is_tercile_rank_mean_m8_n12_pairwise1",
+    "is_tercile_rank_mean_m9_n2_pairwise1",
+    "is_tercile_rank_mean_m9_n3_pairwise1",
+    "is_tercile_rank_mean_m9_n4_pairwise1",
+    "is_tercile_rank_mean_m9_n5_pairwise1",
+    "is_tercile_rank_mean_m9_n6_pairwise1",
+    "is_tercile_rank_mean_m9_n7_pairwise1",
+    "is_tercile_rank_mean_m9_n8_pairwise1",
+    "is_tercile_rank_mean_m9_n9_pairwise1",
+    "is_tercile_rank_mean_m9_n10_pairwise1",
+    "is_tercile_rank_mean_m9_n11_pairwise1",
+    "is_tercile_rank_mean_m9_n12_pairwise1",
+    "is_tercile_rank_mean_m10_n2_pairwise1",
+    "is_tercile_rank_mean_m10_n3_pairwise1",
+    "is_tercile_rank_mean_m10_n4_pairwise1",
+    "is_tercile_rank_mean_m10_n5_pairwise1",
+    "is_tercile_rank_mean_m10_n6_pairwise1",
+    "is_tercile_rank_mean_m10_n7_pairwise1",
+    "is_tercile_rank_mean_m10_n8_pairwise1",
+    "is_tercile_rank_mean_m10_n9_pairwise1",
+    "is_tercile_rank_mean_m10_n10_pairwise1",
+    "is_tercile_rank_mean_m10_n11_pairwise1",
+    "is_tercile_rank_mean_m10_n12_pairwise1",
+    "is_tercile_rank_mean_m11_n2_pairwise1",
+    "is_tercile_rank_mean_m11_n3_pairwise1",
+    "is_tercile_rank_mean_m11_n4_pairwise1",
+    "is_tercile_rank_mean_m11_n5_pairwise1",
+    "is_tercile_rank_mean_m11_n6_pairwise1",
+    "is_tercile_rank_mean_m11_n7_pairwise1",
+    "is_tercile_rank_mean_m11_n8_pairwise1",
+    "is_tercile_rank_mean_m11_n9_pairwise1",
+    "is_tercile_rank_mean_m11_n10_pairwise1",
+    "is_tercile_rank_mean_m11_n11_pairwise1",
+    "is_tercile_rank_mean_m11_n12_pairwise1",
+    "is_tercile_rank_mean_m12_n2_pairwise1",
+    "is_tercile_rank_mean_m12_n3_pairwise1",
+    "is_tercile_rank_mean_m12_n4_pairwise1",
+    "is_tercile_rank_mean_m12_n5_pairwise1",
+    "is_tercile_rank_mean_m12_n6_pairwise1",
+    "is_tercile_rank_mean_m12_n7_pairwise1",
+    "is_tercile_rank_mean_m12_n8_pairwise1",
+    "is_tercile_rank_mean_m12_n9_pairwise1",
+    "is_tercile_rank_mean_m12_n10_pairwise1",
+    "is_tercile_rank_mean_m12_n11_pairwise1",
+    "is_tercile_rank_mean_m12_n12_pairwise1",
+    "future_ret_6m",
+    "FAC_rank_vol_m1_n2_pairwise1",
+    "FAC_rank_vol_m1_n3_pairwise1",
+    "FAC_rank_vol_m1_n4_pairwise1",
+    "FAC_rank_vol_m1_n5_pairwise1",
+    "FAC_rank_vol_m1_n6_pairwise1",
+    "FAC_rank_vol_m1_n7_pairwise1",
+    "FAC_rank_vol_m1_n8_pairwise1",
+    "FAC_rank_vol_m1_n9_pairwise1",
+    "FAC_rank_vol_m1_n10_pairwise1",
+    "FAC_rank_vol_m1_n11_pairwise1",
+    "FAC_rank_vol_m1_n12_pairwise1",
+    "FAC_rank_vol_m2_n2_pairwise1",
+    "FAC_rank_vol_m2_n3_pairwise1",
+    "FAC_rank_vol_m2_n4_pairwise1",
+    "FAC_rank_vol_m2_n5_pairwise1",
+    "FAC_rank_vol_m2_n6_pairwise1",
+    "FAC_rank_vol_m2_n7_pairwise1",
+    "FAC_rank_vol_m2_n8_pairwise1",
+    "FAC_rank_vol_m2_n9_pairwise1",
+    "FAC_rank_vol_m2_n10_pairwise1",
+    "FAC_rank_vol_m2_n11_pairwise1",
+    "FAC_rank_vol_m2_n12_pairwise1",
+    "FAC_rank_vol_m3_n2_pairwise1",
+    "FAC_rank_vol_m3_n3_pairwise1",
+    "FAC_rank_vol_m3_n4_pairwise1",
+    "FAC_rank_vol_m3_n5_pairwise1",
+    "FAC_rank_vol_m3_n6_pairwise1",
+    "FAC_rank_vol_m3_n7_pairwise1",
+    "FAC_rank_vol_m3_n8_pairwise1",
+    "FAC_rank_vol_m3_n9_pairwise1",
+    "FAC_rank_vol_m3_n10_pairwise1",
+    "FAC_rank_vol_m3_n11_pairwise1",
+    "FAC_rank_vol_m3_n12_pairwise1",
+    "FAC_rank_vol_m4_n2_pairwise1",
+    "FAC_rank_vol_m4_n3_pairwise1",
+    "FAC_rank_vol_m4_n4_pairwise1",
+    "FAC_rank_vol_m4_n5_pairwise1",
+    "FAC_rank_vol_m4_n6_pairwise1",
+    "FAC_rank_vol_m4_n7_pairwise1",
+    "FAC_rank_vol_m4_n8_pairwise1",
+    "FAC_rank_vol_m4_n9_pairwise1",
+    "FAC_rank_vol_m4_n10_pairwise1",
+    "FAC_rank_vol_m4_n11_pairwise1",
+    "FAC_rank_vol_m4_n12_pairwise1",
+    "FAC_rank_vol_m5_n2_pairwise1",
+    "FAC_rank_vol_m5_n3_pairwise1",
+    "FAC_rank_vol_m5_n4_pairwise1",
+    "FAC_rank_vol_m5_n5_pairwise1",
+    "FAC_rank_vol_m5_n6_pairwise1",
+    "FAC_rank_vol_m5_n7_pairwise1",
+    "FAC_rank_vol_m5_n8_pairwise1",
+    "FAC_rank_vol_m5_n9_pairwise1",
+    "FAC_rank_vol_m5_n10_pairwise1",
+    "FAC_rank_vol_m5_n11_pairwise1",
+    "FAC_rank_vol_m5_n12_pairwise1",
+    "FAC_rank_vol_m6_n2_pairwise1",
+    "FAC_rank_vol_m6_n3_pairwise1",
+    "FAC_rank_vol_m6_n4_pairwise1",
+    "FAC_rank_vol_m6_n5_pairwise1",
+    "FAC_rank_vol_m6_n6_pairwise1",
+    "FAC_rank_vol_m6_n7_pairwise1",
+    "FAC_rank_vol_m6_n8_pairwise1",
+    "FAC_rank_vol_m6_n9_pairwise1",
+    "FAC_rank_vol_m6_n10_pairwise1",
+    "FAC_rank_vol_m6_n11_pairwise1",
+    "FAC_rank_vol_m6_n12_pairwise1",
+    "FAC_rank_vol_m7_n2_pairwise1",
+    "FAC_rank_vol_m7_n3_pairwise1",
+    "FAC_rank_vol_m7_n4_pairwise1",
+    "FAC_rank_vol_m7_n5_pairwise1",
+    "FAC_rank_vol_m7_n6_pairwise1",
+    "FAC_rank_vol_m7_n7_pairwise1",
+    "FAC_rank_vol_m7_n8_pairwise1",
+    "FAC_rank_vol_m7_n9_pairwise1",
+    "FAC_rank_vol_m7_n10_pairwise1",
+    "FAC_rank_vol_m7_n11_pairwise1",
+    "FAC_rank_vol_m7_n12_pairwise1",
+    "FAC_rank_vol_m8_n2_pairwise1",
+    "FAC_rank_vol_m8_n3_pairwise1",
+    "FAC_rank_vol_m8_n4_pairwise1",
+    "FAC_rank_vol_m8_n5_pairwise1",
+    "FAC_rank_vol_m8_n6_pairwise1",
+    "FAC_rank_vol_m8_n7_pairwise1",
+    "FAC_rank_vol_m8_n8_pairwise1",
+    "FAC_rank_vol_m8_n9_pairwise1",
+    "FAC_rank_vol_m8_n10_pairwise1",
+    "FAC_rank_vol_m8_n11_pairwise1",
+    "FAC_rank_vol_m8_n12_pairwise1",
+    "FAC_rank_vol_m9_n2_pairwise1",
+    "FAC_rank_vol_m9_n3_pairwise1",
+    "FAC_rank_vol_m9_n4_pairwise1",
+    "FAC_rank_vol_m9_n5_pairwise1",
+    "FAC_rank_vol_m9_n6_pairwise1",
+    "FAC_rank_vol_m9_n7_pairwise1",
+    "FAC_rank_vol_m9_n8_pairwise1",
+    "FAC_rank_vol_m9_n9_pairwise1",
+    "FAC_rank_vol_m9_n10_pairwise1",
+    "FAC_rank_vol_m9_n11_pairwise1",
+    "FAC_rank_vol_m9_n12_pairwise1",
+    "FAC_rank_vol_m10_n2_pairwise1",
+    "FAC_rank_vol_m10_n3_pairwise1",
+    "FAC_rank_vol_m10_n4_pairwise1",
+    "FAC_rank_vol_m10_n5_pairwise1",
+    "FAC_rank_vol_m10_n6_pairwise1",
+    "FAC_rank_vol_m10_n7_pairwise1",
+    "FAC_rank_vol_m10_n8_pairwise1",
+    "FAC_rank_vol_m10_n9_pairwise1",
+    "FAC_rank_vol_m10_n10_pairwise1",
+    "FAC_rank_vol_m10_n11_pairwise1",
+    "FAC_rank_vol_m10_n12_pairwise1",
+    "FAC_rank_vol_m11_n2_pairwise1",
+    "FAC_rank_vol_m11_n3_pairwise1",
+    "FAC_rank_vol_m11_n4_pairwise1",
+    "FAC_rank_vol_m11_n5_pairwise1",
+    "FAC_rank_vol_m11_n6_pairwise1",
+    "FAC_rank_vol_m11_n7_pairwise1",
+    "FAC_rank_vol_m11_n8_pairwise1",
+    "FAC_rank_vol_m11_n9_pairwise1",
+    "FAC_rank_vol_m11_n10_pairwise1",
+    "FAC_rank_vol_m11_n11_pairwise1",
+    "FAC_rank_vol_m11_n12_pairwise1",
+    "FAC_rank_vol_m12_n2_pairwise1",
+    "FAC_rank_vol_m12_n3_pairwise1",
+    "FAC_rank_vol_m12_n4_pairwise1",
+    "FAC_rank_vol_m12_n5_pairwise1",
+    "FAC_rank_vol_m12_n6_pairwise1",
+    "FAC_rank_vol_m12_n7_pairwise1",
+    "FAC_rank_vol_m12_n8_pairwise1",
+    "FAC_rank_vol_m12_n9_pairwise1",
+    "FAC_rank_vol_m12_n10_pairwise1",
+    "FAC_rank_vol_m12_n11_pairwise1",
+    "FAC_rank_vol_m12_n12_pairwise1",
+    "CtrlRetSTR",
+    "CtrlRetLTM",
+    "CtrlVol",
+    "as_偏股混合型基金",
+    "Ctrl_log_fund_size",
+    "Ctrl_fund_age"
+  ]
+}

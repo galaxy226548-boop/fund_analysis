@@ -30,6 +30,20 @@ def load_registry_module():
 registry_module = load_registry_module()
 
 
+def load_state_factor_module():
+    """加载市态因子生成器，核对其列名与 registry 完全一致。"""
+    path = SCRIPT_DIR / "3_panel_base_mkt_condition_factors.py"
+    spec = importlib.util.spec_from_file_location("state_factor_test", path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"无法加载市态因子脚本：{path}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+state_factor_module = load_state_factor_module()
+
+
 class WinrateRegistryTests(unittest.TestCase):
     """验证 m/n、步长、dummy 数量和模型输出目录不会串线。"""
 
@@ -47,12 +61,53 @@ class WinrateRegistryTests(unittest.TestCase):
             self.assertEqual(len(factor_group), n)
             self.assertEqual(
                 factor_group[0],
-                f"dummy_top50_m{m}_n{n}_hit1_pairwise1",
+                f"dummy_top50_m{m}_n{n}_hit_above0_pairwise1",
             )
             self.assertEqual(
                 factor_group[-1],
-                f"dummy_top50_m{m}_n{n}_hit{n}_pairwise1",
+                f"dummy_top50_m{m}_n{n}_hit_above{n - 1}_pairwise1",
             )
+        self.assertEqual(
+            config["preprocess_input_path"],
+            registry_module.HEATMAP_PANEL_INPUT_PATH,
+        )
+
+    def test_bottom33_is_canonical_and_bm33_is_only_a_compatibility_alias(self) -> None:
+        """新结果路径统一使用 bottom33，旧 key 仍能安全解析。"""
+        canonical_keys = registry_module.list_regression_keys()
+        self.assertTrue(any("bottom33" in key for key in canonical_keys))
+        self.assertFalse(any("bm33" in key for key in canonical_keys))
+
+        canonical = registry_module.get_regression_config("fm_heatmap_bottom33")
+        legacy = registry_module.get_regression_config("fm_heatmap_bm33")
+        self.assertEqual(canonical, legacy)
+        self.assertIn("fm_heatmap_bottom33", canonical["output_dir"])
+
+    def test_all_active_winrate_models_use_cumulative_dummy_names(self) -> None:
+        """普通滚动、非重叠和市态模型都不能再引用互斥 hitN 列。"""
+        for key in registry_module.list_regression_keys():
+            if not key.startswith("fm_winrates_"):
+                continue
+            config = registry_module.get_regression_config(key)
+            groups = [factor for factor in config["factors"] if isinstance(factor, tuple)]
+            for group in groups:
+                self.assertTrue(group)
+                self.assertTrue(all("_hit_above" in column for column in group))
+
+    def test_state_generator_and_registry_share_cumulative_names(self) -> None:
+        config = registry_module.get_regression_config("fm_winrates_top50_hs300")
+        groups = [factor for factor in config["factors"] if isinstance(factor, tuple)]
+        expected_first_group = tuple(
+            state_factor_module.get_state_dummy_column(
+                "hs300up", return_horizon=3, rank_count=6, minimum_hits=k
+            )
+            for k in range(1, 7)
+        )
+        self.assertEqual(groups[0], expected_first_group)
+        self.assertIn(
+            "dummy_top50_hs300up_m3_n6_hit0_pairwise1",
+            state_factor_module.get_legacy_mutually_exclusive_columns(),
+        )
 
     def test_nonoverlap_specs_match_data_generation_config(self) -> None:
         config = registry_module.get_regression_config(

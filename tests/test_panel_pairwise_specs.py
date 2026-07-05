@@ -95,6 +95,26 @@ class PanelPairwiseSpecTests(unittest.TestCase):
         self.assertEqual(len(specs), 36)
         self.assertTrue(specs.issubset(set(Config.PANEL_HEATMAP_PAST_RETURN_SPECS)))
 
+    def test_winrate_generator_only_requests_active_registry_specs(self) -> None:
+        """生成器不能误请求 heatmap 面板没有维护的旧非重叠规格。"""
+        expected_rolling = {
+            (m, n, Config.PANEL_PAIRWISE)
+            for m, n in Config.PANEL_PAST_RETURN_COMBOS
+        }
+        expected_nonoverlap = set(Config.PANEL_WINRATE_NONOVERLAP_PAST_RETURN_SPECS)
+        actual = set(winrate_module.RANK_HIT_SPECS)
+        self.assertEqual(actual, expected_rolling | expected_nonoverlap)
+        self.assertNotIn((3, 12, 3), actual)
+        self.assertNotIn((12, 3, 12), actual)
+        self.assertTrue(actual.issubset(set(Config.PANEL_HEATMAP_PAST_RETURN_SPECS)))
+
+    def test_winrate_rebuild_identifies_legacy_mutually_exclusive_columns(self) -> None:
+        """重建累计编码时，应定向清理旧 hit0..hitn 列。"""
+        legacy_columns = set(winrate_module.get_legacy_mutually_exclusive_columns())
+        self.assertIn("dummy_top50_m3_n6_hit0_pairwise1", legacy_columns)
+        self.assertIn("dummy_top50_m3_n6_hit6_pairwise1", legacy_columns)
+        self.assertNotIn("dummy_top50_m3_n6_hit_above0_pairwise1", legacy_columns)
+
     def test_pairwise1_keeps_legacy_name_and_numerical_window(self) -> None:
         """旧滚动列不改名，第二个3个月窗口仍是 t-4 到 t-1。"""
         fund = self.panel.loc[self.panel[Config.COLUMN_IFIND_CODE] == "F2"].reset_index(drop=True)

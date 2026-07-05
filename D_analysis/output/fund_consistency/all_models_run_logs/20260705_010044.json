@@ -1,0 +1,41 @@
+{
+  "run_id": "20260705_010044",
+  "started_at": "2026-07-05T01:00:44",
+  "finished_at": "2026-07-05T01:00:49",
+  "dry_run": false,
+  "requested_steps": [
+    "preprocess",
+    "regression"
+  ],
+  "selected_model_count": 1,
+  "attempted_model_count": 1,
+  "success_count": 1,
+  "failed_count": 0,
+  "skipped_count": 0,
+  "succeeded_models": [
+    "fm_baseline_interaction_rank_vol_across_horizons"
+  ],
+  "failed_models": [],
+  "skipped_models": [],
+  "models": [
+    {
+      "model": "fm_baseline_interaction_rank_vol_across_horizons",
+      "status": "success",
+      "returncode": 0,
+      "steps": [
+        "preprocess",
+        "regression"
+      ],
+      "elapsed_seconds": 5.026,
+      "command": [
+        "/Users/chloezh/Projects/Fund_Analysis/.venv/bin/python",
+        "/Users/chloezh/Projects/Fund_Analysis/D_analysis/scripts/0_regression_engine.py",
+        "--model",
+        "fm_baseline_interaction_rank_vol_across_horizons",
+        "--steps",
+        "preprocess",
+        "regression"
+      ]
+    }
+  ]
+}

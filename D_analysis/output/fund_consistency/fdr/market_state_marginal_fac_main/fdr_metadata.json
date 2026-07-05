@@ -1,0 +1,87 @@
+{
+  "family_id": "market_state_marginal_fac_main",
+  "description": "普通 FAC 同场回归后，四类市态 FAC 的边际主效应",
+  "role": "exploratory_market_state_incremental_main",
+  "status": "active",
+  "method": "benjamini-hochberg",
+  "q_threshold": 0.05,
+  "family_size": 40,
+  "significant_q": 0,
+  "nominal_significant_p": 3,
+  "input_audit": {
+    "input_rows": 40,
+    "valid_p_values": 40,
+    "excluded_missing_p_values": 0,
+    "invalid_non_numeric": 0,
+    "invalid_non_finite": 0,
+    "invalid_out_of_range": 0
+  },
+  "sources": [
+    {
+      "path": "D_analysis/output/fund_consistency/fm_marginal_interaction_noctrlLTM_hs300/fama_macbeth_results.csv",
+      "p_column": "p_value",
+      "selectors": [
+        {
+          "op": "regex",
+          "column": "variable",
+          "pattern": "^FAC_rank_vol_hs300(?:up|down)_.+__dmcs$"
+        }
+      ],
+      "label": "fm_marginal_interaction_noctrlLTM_hs300"
+    },
+    {
+      "path": "D_analysis/output/fund_consistency/fm_marginal_interaction_noctrlLTM_style/fama_macbeth_results.csv",
+      "p_column": "p_value",
+      "selectors": [
+        {
+          "op": "regex",
+          "column": "variable",
+          "pattern": "^FAC_rank_vol_(?:growth|value)_.+__dmcs$"
+        }
+      ],
+      "label": "fm_marginal_interaction_noctrlLTM_style"
+    },
+    {
+      "path": "D_analysis/output/fund_consistency/fm_marginal_interaction_noctrlLTM_size/fama_macbeth_results.csv",
+      "p_column": "p_value",
+      "selectors": [
+        {
+          "op": "regex",
+          "column": "variable",
+          "pattern": "^FAC_rank_vol_(?:large|small)_.+__dmcs$"
+        }
+      ],
+      "label": "fm_marginal_interaction_noctrlLTM_size"
+    },
+    {
+      "path": "D_analysis/output/fund_consistency/fm_marginal_interaction_noctrlLTM_indvol/fama_macbeth_results.csv",
+      "p_column": "p_value",
+      "selectors": [
+        {
+          "op": "regex",
+          "column": "variable",
+          "pattern": "^FAC_rank_vol_(?:highvol|lowvol)_.+__dmcs$"
+        }
+      ],
+      "label": "fm_marginal_interaction_noctrlLTM_indvol"
+    }
+  ],
+  "notes": "正则表达式只保留市态 FAC__dmcs，排除同场的普通 FAC。",
+  "generated_at": "2026-07-05T07:27:43-07:00",
+  "dry_run": false,
+  "heatmap": {
+    "file": "fdr_heatmap.png",
+    "metric": "t_stat",
+    "significance_column": "q_value",
+    "q_threshold": 0.05,
+    "annotated": false
+  },
+  "heatmap_nominal_p": {
+    "file": "nominal_p_heatmap.png",
+    "metric": "t_stat",
+    "significance_column": "p_value",
+    "p_threshold": 0.05,
+    "note": "未做 BH-FDR 校正，仅供对照，不能替代 q 值作为正式结论。",
+    "annotated": false
+  }
+}

@@ -5,12 +5,13 @@
     A_data/output/panel_base.parquet
     A_data/output/panel_base_preview.xlsx
 
-本脚本新增四类变量：
+本脚本新增五类变量：
 
 1. 基金过去 1 个月累计收益在同月、同投资类型基金中的百分位排名；
 2. 过去 1/3/6/12 个月累计收益排名之间的标准差；
 3. 过去 1/3/6/12 个月累计收益排名之间的均值；
-4. 分别回溯最近 3/6/12 个沪深300上涨月和下跌月，计算基金当月
+4. 基于上述四期限排名均值，在同月、同投资类型截面内划分中位数和三分位组；
+5. 分别回溯最近 3/6/12 个沪深300上涨月和下跌月，计算基金当月
    1 个月收益排名的标准差。
 
 运行方式：
@@ -51,6 +52,12 @@ CROSS_HORIZON_VOLATILITY_COLUMN = (
 CROSS_HORIZON_RANK_MEAN_COLUMN = (
     "rank_mean_across_horizons_1m_3m_6m_12m"
 )
+CROSS_HORIZON_MEDIAN_COLUMN = (
+    "is_median_rank_mean_across_horizons_1m_3m_6m_12m"
+)
+CROSS_HORIZON_TERCILE_COLUMN = (
+    "is_tercile_rank_mean_across_horizons_1m_3m_6m_12m"
+)
 CROSS_HORIZON_RANK_COLUMNS = (
     ONE_MONTH_RANK_COLUMN,
     "past_ret_3m_rank_1",
@@ -60,6 +67,8 @@ CROSS_HORIZON_RANK_COLUMNS = (
 
 MARKET_STATE_WINDOWS = (3, 6, 12)
 MARKET_STATES = {"up": 1, "down": -1}
+BOTTOM_TERCILE_CUTOFF = 1 / 3
+TOP_TERCILE_CUTOFF = 2 / 3
 
 
 def get_market_state_volatility_column(state_name: str, rank_count: int) -> str:
@@ -73,6 +82,8 @@ def get_owned_output_columns() -> list[str]:
         ONE_MONTH_RANK_COLUMN,
         CROSS_HORIZON_VOLATILITY_COLUMN,
         CROSS_HORIZON_RANK_MEAN_COLUMN,
+        CROSS_HORIZON_MEDIAN_COLUMN,
+        CROSS_HORIZON_TERCILE_COLUMN,
         MARKET_DIRECTION_COLUMN,
     ]
     for state_name in MARKET_STATES:
@@ -308,6 +319,53 @@ def calculate_cross_horizon_rank_mean(data: pd.DataFrame) -> pd.Series:
     return rank_mean
 
 
+def calculate_cross_horizon_median_split(data: pd.DataFrame) -> pd.Series:
+    """按四期限排名均值的截面百分位划分上下半组，缺失均值不打标。"""
+    rank_mean = pd.to_numeric(
+        data[CROSS_HORIZON_RANK_MEAN_COLUMN], errors="coerce"
+    )
+    group_columns = [Config.COLUMN_MONTH_DATE, Config.COLUMN_INVESTMENT_TYPE]
+    # 分组口径与 3_panel_base_grouping_factors.py 保持一致：
+    # 在每个 "月份 × 投资类型" 截面内，用 average 排名处理并列值，再转成百分位。
+    cross_section_rank_pct = rank_mean.groupby(
+        [data[column] for column in group_columns], sort=False
+    ).rank(method="average", pct=True)
+
+    non_missing_rank_mean = rank_mean.notna()
+    median_values = pd.Series(np.nan, index=data.index, dtype="float64")
+    median_values.loc[
+        non_missing_rank_mean & (cross_section_rank_pct <= 0.5)
+    ] = -2
+    median_values.loc[
+        non_missing_rank_mean & (cross_section_rank_pct > 0.5)
+    ] = 2
+    return median_values
+
+
+def calculate_cross_horizon_tercile_split(data: pd.DataFrame) -> pd.Series:
+    """按四期限排名均值的截面百分位划分三分组，缺失均值不打标。"""
+    rank_mean = pd.to_numeric(
+        data[CROSS_HORIZON_RANK_MEAN_COLUMN], errors="coerce"
+    )
+    group_columns = [Config.COLUMN_MONTH_DATE, Config.COLUMN_INVESTMENT_TYPE]
+    # 这里的边界规则是显式口径：小于等于 1/3 进底部组；
+    # 大于 1/3 且小于等于 2/3 进中间组；大于 2/3 进顶部组。
+    cross_section_rank_pct = rank_mean.groupby(
+        [data[column] for column in group_columns], sort=False
+    ).rank(method="average", pct=True)
+
+    non_missing_rank_mean = rank_mean.notna()
+    tercile_values = pd.Series(np.nan, index=data.index, dtype="float64")
+    tercile_values.loc[non_missing_rank_mean] = 2
+    tercile_values.loc[
+        non_missing_rank_mean & (cross_section_rank_pct <= BOTTOM_TERCILE_CUTOFF)
+    ] = 1
+    tercile_values.loc[
+        non_missing_rank_mean & (cross_section_rank_pct > TOP_TERCILE_CUTOFF)
+    ] = 3
+    return tercile_values
+
+
 def attach_market_direction(
     data: pd.DataFrame, market_directions: pd.Series
 ) -> pd.Series:
@@ -416,7 +474,7 @@ def add_market_state_volatilities(
 def build_alternative_volatility_features(
     original: pd.DataFrame, market_directions: pd.Series
 ) -> pd.DataFrame:
-    """按固定顺序生成本脚本全部10个输出字段。"""
+    """按固定顺序生成本脚本全部12个输出字段。"""
     # 重复运行时只移除本脚本拥有的旧字段，其他上游或下游变量原样保留。
     owned_columns = get_owned_output_columns()
     base_columns = [column for column in original.columns if column not in owned_columns]
@@ -428,6 +486,12 @@ def build_alternative_volatility_features(
     )
     result[CROSS_HORIZON_RANK_MEAN_COLUMN] = (
         calculate_cross_horizon_rank_mean(result)
+    )
+    result[CROSS_HORIZON_MEDIAN_COLUMN] = (
+        calculate_cross_horizon_median_split(result)
+    )
+    result[CROSS_HORIZON_TERCILE_COLUMN] = (
+        calculate_cross_horizon_tercile_split(result)
     )
     result[MARKET_DIRECTION_COLUMN] = attach_market_direction(
         result, market_directions
@@ -472,6 +536,25 @@ def validate_result(original: pd.DataFrame, result: pd.DataFrame) -> None:
     expected_rank_mean = calculate_cross_horizon_rank_mean(result)
     if not result[CROSS_HORIZON_RANK_MEAN_COLUMN].equals(expected_rank_mean):
         raise AssertionError("四期限排名均值与四个排名列的行内均值不一致。")
+
+    if not result[CROSS_HORIZON_MEDIAN_COLUMN].dropna().isin([-2, 2]).all():
+        raise AssertionError(f"{CROSS_HORIZON_MEDIAN_COLUMN} 出现-2/2之外的值。")
+    if not result[CROSS_HORIZON_TERCILE_COLUMN].dropna().isin([1, 2, 3]).all():
+        raise AssertionError(f"{CROSS_HORIZON_TERCILE_COLUMN} 出现1/2/3之外的值。")
+
+    missing_rank_mean = result[CROSS_HORIZON_RANK_MEAN_COLUMN].isna()
+    if not result.loc[missing_rank_mean, CROSS_HORIZON_MEDIAN_COLUMN].isna().all():
+        raise AssertionError("四期限排名均值缺失时，中位数组标记也必须缺失。")
+    if not result.loc[missing_rank_mean, CROSS_HORIZON_TERCILE_COLUMN].isna().all():
+        raise AssertionError("四期限排名均值缺失时，三分组标记也必须缺失。")
+
+    expected_median = calculate_cross_horizon_median_split(result)
+    if not result[CROSS_HORIZON_MEDIAN_COLUMN].equals(expected_median):
+        raise AssertionError("四期限排名均值中位数组标记与截面百分位重算结果不一致。")
+
+    expected_tercile = calculate_cross_horizon_tercile_split(result)
+    if not result[CROSS_HORIZON_TERCILE_COLUMN].equals(expected_tercile):
+        raise AssertionError("四期限排名均值三分组标记与截面百分位重算结果不一致。")
 
     volatility_columns = [
         CROSS_HORIZON_VOLATILITY_COLUMN,

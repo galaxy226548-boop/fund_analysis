@@ -1,6 +1,0 @@
-﻿factor,valid_rows,valid_months,eligible_months,min_cross_section_n,monthly_n_min,monthly_n_mean,monthly_n_median,monthly_n_max,sample_filters,filtered_rows_before_dropna,regression_months,regression_rows,skipped_months_after_eligibility,avg_r_squared,avg_adj_r_squared
-FAC_rank_vol_m3_n6_pairwise1,17131,202,107,50,1,84.8069306930693,54.5,386,"{""is_insample_future_ret_6m"": 1, ""is_median_rank_mean_m3_n6_pairwise1"": 2}",17138,107,15007,0,0.25872987176550605,0.2026517102513244
-FAC_rank_vol_m6_n3_pairwise1,17133,202,107,50,1,84.81683168316832,54.5,386,"{""is_insample_future_ret_6m"": 1, ""is_median_rank_mean_m6_n3_pairwise1"": 2}",17140,107,15006,0,0.26575701537878876,0.2099750035042156
-FAC_rank_vol_m6_n6_pairwise1,14679,202,92,50,1,72.66831683168317,45.0,325,"{""is_insample_future_ret_6m"": 1, ""is_median_rank_mean_m6_n6_pairwise1"": 2}",14681,92,12277,0,0.25316114737750967,0.19565209538164066
-FAC_rank_vol_m6_n12_pairwise1,11019,198,60,50,1,55.65151515151515,32.5,240,"{""is_insample_future_ret_6m"": 1, ""is_median_rank_mean_m6_n12_pairwise1"": 2}",11019,60,8019,0,0.2736526729505727,0.22824689602867268
-FAC_rank_vol_m12_n6_pairwise1,11019,198,60,50,1,55.65151515151515,32.5,240,"{""is_insample_future_ret_6m"": 1, ""is_median_rank_mean_m12_n6_pairwise1"": 2}",11019,60,8019,0,0.27975923822759824,0.23473548677192763

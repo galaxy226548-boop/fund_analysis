@@ -1,0 +1,149 @@
+{
+  "version": 1,
+  "records": [
+    {
+      "output_id": "ps_001",
+      "created_at": "2026-06-29T06:20:54",
+      "updated_at": "2026-06-29T06:20:54",
+      "core_config": {
+        "date_col": "month_date",
+        "factor_sample_filters": {},
+        "factors": [
+          "FAC_rank_vol_m3_n6_pairwise1__x__CtrlRetLTM",
+          "FAC_rank_vol_m6_n3_pairwise1__x__CtrlRetLTM",
+          "FAC_rank_vol_m6_n6_pairwise1__x__CtrlRetLTM",
+          "FAC_rank_vol_m6_n12_pairwise1__x__CtrlRetLTM",
+          "FAC_rank_vol_m12_n6_pairwise1__x__CtrlRetLTM"
+        ],
+        "frequency": "quarter",
+        "higher_sort_long": true,
+        "id_col": "ifind_code",
+        "input_path": "/Users/chloezh/Projects/Fund_Analysis/B_factors/output/fm_baseline_interaction_alternative/panel_base.parquet",
+        "min_group_size": 5,
+        "model_key": "fm_baseline_interaction_alternative",
+        "n_groups": 5,
+        "newey_west_lag": 5,
+        "require_ret_before_sort": true,
+        "sample_filters": {
+          "is_insample_future_ret_6m": 1
+        },
+        "tstat_method": "newey_west",
+        "weight_col": null,
+        "weight_method": "equal"
+      },
+      "y_cols": [
+        "future_ret_6m"
+      ],
+      "output_paths": {
+        "summary": "/Users/chloezh/Projects/Fund_Analysis/D_analysis/output/fund_consistency/fm_baseline_interaction_alternative/portfolio_sorting/ps_001_summary.csv",
+        "period_returns": "/Users/chloezh/Projects/Fund_Analysis/D_analysis/output/fund_consistency/fm_baseline_interaction_alternative/portfolio_sorting/ps_001_period_returns.csv",
+        "diagnostics": "/Users/chloezh/Projects/Fund_Analysis/D_analysis/output/fund_consistency/fm_baseline_interaction_alternative/portfolio_sorting/ps_001_diagnostics.csv",
+        "sample_periods": "/Users/chloezh/Projects/Fund_Analysis/D_analysis/output/fund_consistency/fm_baseline_interaction_alternative/portfolio_sorting/ps_001_sample_periods.csv",
+        "registry": "/Users/chloezh/Projects/Fund_Analysis/D_analysis/output/fund_consistency/fm_baseline_interaction_alternative/portfolio_sorting/portfolio_sorting_registry.json"
+      },
+      "newey_west_lag_by_y": {
+        "future_ret_6m": 5
+      },
+      "last_run": {
+        "y_col": "future_ret_6m",
+        "factors": [
+          "FAC_rank_vol_m3_n6_pairwise1__x__CtrlRetLTM",
+          "FAC_rank_vol_m6_n3_pairwise1__x__CtrlRetLTM",
+          "FAC_rank_vol_m6_n6_pairwise1__x__CtrlRetLTM",
+          "FAC_rank_vol_m6_n12_pairwise1__x__CtrlRetLTM",
+          "FAC_rank_vol_m12_n6_pairwise1__x__CtrlRetLTM"
+        ],
+        "sort_specs": [
+          {
+            "filter_factor": "FAC_rank_vol_m3_n6_pairwise1",
+            "kind": "interaction",
+            "raw_config": "{FAC,CtrlRetLTM}",
+            "sort_col": "FAC_rank_vol_m3_n6_pairwise1__x__CtrlRetLTM",
+            "source_columns": [
+              "FAC_rank_vol_m3_n6_pairwise1",
+              "CtrlRetLTM"
+            ],
+            "standardize": "none",
+            "var1": "FAC_rank_vol_m3_n6_pairwise1",
+            "var2": "CtrlRetLTM"
+          },
+          {
+            "filter_factor": "FAC_rank_vol_m6_n3_pairwise1",
+            "kind": "interaction",
+            "raw_config": "{FAC,CtrlRetLTM}",
+            "sort_col": "FAC_rank_vol_m6_n3_pairwise1__x__CtrlRetLTM",
+            "source_columns": [
+              "FAC_rank_vol_m6_n3_pairwise1",
+              "CtrlRetLTM"
+            ],
+            "standardize": "none",
+            "var1": "FAC_rank_vol_m6_n3_pairwise1",
+            "var2": "CtrlRetLTM"
+          },
+          {
+            "filter_factor": "FAC_rank_vol_m6_n6_pairwise1",
+            "kind": "interaction",
+            "raw_config": "{FAC,CtrlRetLTM}",
+            "sort_col": "FAC_rank_vol_m6_n6_pairwise1__x__CtrlRetLTM",
+            "source_columns": [
+              "FAC_rank_vol_m6_n6_pairwise1",
+              "CtrlRetLTM"
+            ],
+            "standardize": "none",
+            "var1": "FAC_rank_vol_m6_n6_pairwise1",
+            "var2": "CtrlRetLTM"
+          },
+          {
+            "filter_factor": "FAC_rank_vol_m6_n12_pairwise1",
+            "kind": "interaction",
+            "raw_config": "{FAC,CtrlRetLTM}",
+            "sort_col": "FAC_rank_vol_m6_n12_pairwise1__x__CtrlRetLTM",
+            "source_columns": [
+              "FAC_rank_vol_m6_n12_pairwise1",
+              "CtrlRetLTM"
+            ],
+            "standardize": "none",
+            "var1": "FAC_rank_vol_m6_n12_pairwise1",
+            "var2": "CtrlRetLTM"
+          },
+          {
+            "filter_factor": "FAC_rank_vol_m12_n6_pairwise1",
+            "kind": "interaction",
+            "raw_config": "{FAC,CtrlRetLTM}",
+            "sort_col": "FAC_rank_vol_m12_n6_pairwise1__x__CtrlRetLTM",
+            "source_columns": [
+              "FAC_rank_vol_m12_n6_pairwise1",
+              "CtrlRetLTM"
+            ],
+            "standardize": "none",
+            "var1": "FAC_rank_vol_m12_n6_pairwise1",
+            "var2": "CtrlRetLTM"
+          }
+        ],
+        "sample_filters": {
+          "is_insample_future_ret_6m": 1
+        },
+        "factor_sample_filters": {},
+        "filters_by_factor": {
+          "FAC_rank_vol_m3_n6_pairwise1__x__CtrlRetLTM": {
+            "is_insample_future_ret_6m": 1
+          },
+          "FAC_rank_vol_m6_n3_pairwise1__x__CtrlRetLTM": {
+            "is_insample_future_ret_6m": 1
+          },
+          "FAC_rank_vol_m6_n6_pairwise1__x__CtrlRetLTM": {
+            "is_insample_future_ret_6m": 1
+          },
+          "FAC_rank_vol_m6_n12_pairwise1__x__CtrlRetLTM": {
+            "is_insample_future_ret_6m": 1
+          },
+          "FAC_rank_vol_m12_n6_pairwise1__x__CtrlRetLTM": {
+            "is_insample_future_ret_6m": 1
+          }
+        },
+        "figure_grid": "/Users/chloezh/Projects/Fund_Analysis/D_analysis/output/fund_consistency/fm_baseline_interaction_alternative/portfolio_sorting/ps_001_future_ret_6m_bar_grid.png",
+        "updated_at": "2026-06-29T06:20:56"
+      }
+    }
+  ]
+}

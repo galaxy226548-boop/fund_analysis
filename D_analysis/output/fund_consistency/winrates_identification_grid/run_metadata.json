@@ -1,0 +1,33 @@
+{
+  "panel_path": "/Users/chloezh/Projects/Fund_Analysis/A_data/output/panel_base_heatmap_m1_12_n1_12.parquet",
+  "models_checked": [
+    "top50",
+    "top33",
+    "bottom33"
+  ],
+  "specifications_per_model": 30,
+  "total_specifications": 90,
+  "m_values": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "n_values": [
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "pairwise_rule": "pairwise=m",
+  "min_cross_section_n": 50,
+  "effect_regressions_run": false,
+  "initial_gate": {
+    "full_model_rank_months_at_least": 60,
+    "ready_rate_at_least": 0.7
+  },
+  "passing_model_count": 64
+}

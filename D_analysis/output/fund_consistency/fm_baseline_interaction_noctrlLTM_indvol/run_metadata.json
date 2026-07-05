@@ -1,0 +1,103 @@
+{
+  "run_time": "2026-07-02T20:35:50",
+  "model_key": "fm_baseline_interaction_noctrlLTM_indvol",
+  "input_path": "/Users/chloezh/Projects/Fund_Analysis/B_factors/output/fm_baseline_interaction_noctrlLTM_indvol/panel_base.parquet",
+  "output_dir": "/Users/chloezh/Projects/Fund_Analysis/D_analysis/output/fund_consistency/fm_baseline_interaction_noctrlLTM_indvol",
+  "date_col": "month_date",
+  "y_col": "future_ret_6m",
+  "consistency_cols": [
+    "FAC_rank_vol_highvol_m3_n6_pairwise1",
+    "FAC_rank_vol_highvol_m6_n3_pairwise1",
+    "FAC_rank_vol_highvol_m6_n6_pairwise1",
+    "FAC_rank_vol_highvol_m6_n12_pairwise1",
+    "FAC_rank_vol_highvol_m12_n6_pairwise1",
+    "FAC_rank_vol_lowvol_m3_n6_pairwise1",
+    "FAC_rank_vol_lowvol_m6_n3_pairwise1",
+    "FAC_rank_vol_lowvol_m6_n6_pairwise1",
+    "FAC_rank_vol_lowvol_m6_n12_pairwise1",
+    "FAC_rank_vol_lowvol_m12_n6_pairwise1"
+  ],
+  "consistency_input_cols": [
+    "FAC_rank_vol_highvol_m3_n6_pairwise1",
+    "FAC_rank_vol_highvol_m6_n3_pairwise1",
+    "FAC_rank_vol_highvol_m6_n6_pairwise1",
+    "FAC_rank_vol_highvol_m6_n12_pairwise1",
+    "FAC_rank_vol_highvol_m12_n6_pairwise1",
+    "FAC_rank_vol_lowvol_m3_n6_pairwise1",
+    "FAC_rank_vol_lowvol_m6_n3_pairwise1",
+    "FAC_rank_vol_lowvol_m6_n6_pairwise1",
+    "FAC_rank_vol_lowvol_m6_n12_pairwise1",
+    "FAC_rank_vol_lowvol_m12_n6_pairwise1"
+  ],
+  "control_cols": [
+    "CtrlRetSTR",
+    "CtrlVol",
+    "as_偏股混合型基金",
+    "Ctrl_log_fund_size",
+    "Ctrl_fund_age"
+  ],
+  "interaction_main_effects": [
+    "RANK_MEAN"
+  ],
+  "interaction_centering": "cross_section_mean",
+  "interactions": [
+    {
+      "var1": "FAC",
+      "var2": "RANK_MEAN",
+      "standardize": "none",
+      "name": "FAC__x__RANK_MEAN__dmcs"
+    }
+  ],
+  "sample_filters": {
+    "is_insample_future_ret_6m": 1,
+    "match_is_sample_future_ret_6m": 1
+  },
+  "factor_sample_filters": {},
+  "filters_by_factor": {
+    "FAC_rank_vol_highvol_m3_n6_pairwise1": {
+      "is_insample_future_ret_6m": 1,
+      "match_is_sample_future_ret_6m": 1
+    },
+    "FAC_rank_vol_highvol_m6_n3_pairwise1": {
+      "is_insample_future_ret_6m": 1,
+      "match_is_sample_future_ret_6m": 1
+    },
+    "FAC_rank_vol_highvol_m6_n6_pairwise1": {
+      "is_insample_future_ret_6m": 1,
+      "match_is_sample_future_ret_6m": 1
+    },
+    "FAC_rank_vol_highvol_m6_n12_pairwise1": {
+      "is_insample_future_ret_6m": 1,
+      "match_is_sample_future_ret_6m": 1
+    },
+    "FAC_rank_vol_highvol_m12_n6_pairwise1": {
+      "is_insample_future_ret_6m": 1,
+      "match_is_sample_future_ret_6m": 1
+    },
+    "FAC_rank_vol_lowvol_m3_n6_pairwise1": {
+      "is_insample_future_ret_6m": 1,
+      "match_is_sample_future_ret_6m": 1
+    },
+    "FAC_rank_vol_lowvol_m6_n3_pairwise1": {
+      "is_insample_future_ret_6m": 1,
+      "match_is_sample_future_ret_6m": 1
+    },
+    "FAC_rank_vol_lowvol_m6_n6_pairwise1": {
+      "is_insample_future_ret_6m": 1,
+      "match_is_sample_future_ret_6m": 1
+    },
+    "FAC_rank_vol_lowvol_m6_n12_pairwise1": {
+      "is_insample_future_ret_6m": 1,
+      "match_is_sample_future_ret_6m": 1
+    },
+    "FAC_rank_vol_lowvol_m12_n6_pairwise1": {
+      "is_insample_future_ret_6m": 1,
+      "match_is_sample_future_ret_6m": 1
+    }
+  },
+  "newey_west_lag": 5,
+  "min_cross_section_n": 50,
+  "input_rows": 49479,
+  "input_months": 215,
+  "note": "输入表已由上游程序完成基础样本筛选、1-rank_vol 构造和月度横截面 1%/99% winsorize；本脚本按 factor 叠加 factor_sample_filters。"
+}

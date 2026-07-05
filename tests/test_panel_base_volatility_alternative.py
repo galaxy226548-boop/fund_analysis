@@ -83,6 +83,58 @@ class AlternativeVolatilityTests(unittest.TestCase):
         self.assertAlmostEqual(result.iloc[0], np.std([0.1, 0.2, 0.3, 0.4], ddof=1))
         self.assertTrue(np.isnan(result.iloc[1]))
 
+    def test_cross_horizon_group_splits_keep_missing_rank_mean_missing(self) -> None:
+        """排名均值缺失时，中位数和三分位分组都应保持缺失。"""
+        data = pd.DataFrame(
+            {
+                Config.COLUMN_MONTH_DATE: pd.to_datetime(
+                    ["2020-01-31", "2020-01-31", "2020-01-31"]
+                ),
+                Config.COLUMN_INVESTMENT_TYPE: ["类型A", "类型A", "类型A"],
+                module.CROSS_HORIZON_RANK_MEAN_COLUMN: [0.2, np.nan, 0.8],
+            }
+        )
+
+        median = module.calculate_cross_horizon_median_split(data)
+        tercile = module.calculate_cross_horizon_tercile_split(data)
+
+        self.assertTrue(np.isnan(median.iloc[1]))
+        self.assertTrue(np.isnan(tercile.iloc[1]))
+        self.assertEqual(median.dropna().tolist(), [-2.0, 2.0])
+        self.assertEqual(tercile.dropna().tolist(), [2.0, 3.0])
+
+    def test_cross_horizon_group_splits_respect_percentile_boundaries(self) -> None:
+        """验证 1/3、0.5、2/3 边界：等于边界时落入较低一侧。"""
+        data = pd.DataFrame(
+            {
+                Config.COLUMN_MONTH_DATE: pd.to_datetime(["2020-01-31"] * 7),
+                Config.COLUMN_INVESTMENT_TYPE: ["类型A"] * 7,
+                module.CROSS_HORIZON_RANK_MEAN_COLUMN: [
+                    0.1,
+                    0.2,
+                    0.3,
+                    0.4,
+                    0.5,
+                    0.6,
+                    np.nan,
+                ],
+            }
+        )
+
+        median = module.calculate_cross_horizon_median_split(data)
+        tercile = module.calculate_cross_horizon_tercile_split(data)
+
+        expected_median = pd.Series(
+            [-2.0, -2.0, -2.0, 2.0, 2.0, 2.0, np.nan],
+            dtype="float64",
+        )
+        expected_tercile = pd.Series(
+            [1.0, 1.0, 2.0, 2.0, 3.0, 3.0, np.nan],
+            dtype="float64",
+        )
+        self.assertTrue(median.equals(expected_median))
+        self.assertTrue(tercile.equals(expected_tercile))
+
     def test_market_direction_aligns_by_month_not_exact_day(self) -> None:
         """交易日月末和自然月末不同也应映射到同一个月。"""
         data = pd.DataFrame(
@@ -144,12 +196,31 @@ class AlternativeVolatilityTests(unittest.TestCase):
         result = module.add_market_state_volatilities(data, directions)
         self.assertTrue(np.isnan(result.iloc[-1]["rank_vol_up_n3_pairwise1"]))
 
-    def test_owned_columns_are_exactly_the_nine_requested_fields(self) -> None:
-        """脚本不应重新引入按m区分或非重叠的市场状态指标。"""
+    def test_owned_columns_are_exactly_the_requested_fields(self) -> None:
+        """脚本只管理本任务需要的字段，避免误删其他上游或下游变量。"""
         columns = module.get_owned_output_columns()
-        self.assertEqual(len(columns), 9)
-        self.assertFalse(any("_m" in column for column in columns if "rank_vol_up" in column or "rank_vol_down" in column))
-        self.assertTrue(all("pairwise1" in column for column in columns[3:]))
+        expected_columns = [
+            module.ONE_MONTH_RANK_COLUMN,
+            module.CROSS_HORIZON_VOLATILITY_COLUMN,
+            module.CROSS_HORIZON_RANK_MEAN_COLUMN,
+            module.CROSS_HORIZON_MEDIAN_COLUMN,
+            module.CROSS_HORIZON_TERCILE_COLUMN,
+            module.MARKET_DIRECTION_COLUMN,
+            "rank_vol_up_n3_pairwise1",
+            "rank_vol_up_n6_pairwise1",
+            "rank_vol_up_n12_pairwise1",
+            "rank_vol_down_n3_pairwise1",
+            "rank_vol_down_n6_pairwise1",
+            "rank_vol_down_n12_pairwise1",
+        ]
+        self.assertEqual(columns, expected_columns)
+        self.assertFalse(
+            any(
+                "_m" in column
+                for column in columns
+                if "rank_vol_up" in column or "rank_vol_down" in column
+            )
+        )
 
 
 if __name__ == "__main__":

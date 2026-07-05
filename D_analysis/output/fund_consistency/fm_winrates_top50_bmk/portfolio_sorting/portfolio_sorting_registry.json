@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "records": [],
+  "skipped": true,
+  "last_skip": {
+    "model_key": "fm_winrates_top50_bmk",
+    "input_path": "/Users/chloezh/Projects/Fund_Analysis/B_factors/output/fm_winrates_top50_bmk/panel_base.parquet",
+    "reason": "registry factors 包含 tuple/list dummy 变量组，默认 portfolio sorting 没有单一排序列口径；如需运行，请在 registry 中显式配置 portfolio_sorting_factors。",
+    "factors": [
+      "('dummy_top50_bmk_m3_n6_hit_above0_pairwise1', 'dummy_top50_bmk_m3_n6_hit_above1_pairwise1', 'dummy_top50_bmk_m3_n6_hit_above2_pairwise1', 'dummy_top50_bmk_m3_n6_hit_above3_pairwise1', 'dummy_top50_bmk_m3_n6_hit_above4_pairwise1', 'dummy_top50_bmk_m3_n6_hit_above5_pairwise1')",
+      "('dummy_top50_bmk_m6_n3_hit_above0_pairwise1', 'dummy_top50_bmk_m6_n3_hit_above1_pairwise1', 'dummy_top50_bmk_m6_n3_hit_above2_pairwise1')",
+      "('dummy_top50_bmk_m6_n6_hit_above0_pairwise1', 'dummy_top50_bmk_m6_n6_hit_above1_pairwise1', 'dummy_top50_bmk_m6_n6_hit_above2_pairwise1', 'dummy_top50_bmk_m6_n6_hit_above3_pairwise1', 'dummy_top50_bmk_m6_n6_hit_above4_pairwise1', 'dummy_top50_bmk_m6_n6_hit_above5_pairwise1')",
+      "('dummy_top50_bmk_m6_n12_hit_above0_pairwise1', 'dummy_top50_bmk_m6_n12_hit_above1_pairwise1', 'dummy_top50_bmk_m6_n12_hit_above2_pairwise1', 'dummy_top50_bmk_m6_n12_hit_above3_pairwise1', 'dummy_top50_bmk_m6_n12_hit_above4_pairwise1', 'dummy_top50_bmk_m6_n12_hit_above5_pairwise1', 'dummy_top50_bmk_m6_n12_hit_above6_pairwise1', 'dummy_top50_bmk_m6_n12_hit_above7_pairwise1', 'dummy_top50_bmk_m6_n12_hit_above8_pairwise1', 'dummy_top50_bmk_m6_n12_hit_above9_pairwise1', 'dummy_top50_bmk_m6_n12_hit_above10_pairwise1', 'dummy_top50_bmk_m6_n12_hit_above11_pairwise1')",
+      "('dummy_top50_bmk_m12_n6_hit_above0_pairwise1', 'dummy_top50_bmk_m12_n6_hit_above1_pairwise1', 'dummy_top50_bmk_m12_n6_hit_above2_pairwise1', 'dummy_top50_bmk_m12_n6_hit_above3_pairwise1', 'dummy_top50_bmk_m12_n6_hit_above4_pairwise1', 'dummy_top50_bmk_m12_n6_hit_above5_pairwise1')"
+    ],
+    "updated_at": "2026-07-03T00:39:39"
+  }
+}

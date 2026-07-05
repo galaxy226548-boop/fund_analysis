@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "records": [],
+  "skipped": true,
+  "last_skip": {
+    "model_key": "fm_winrates_top50_style",
+    "input_path": "/Users/chloezh/Projects/Fund_Analysis/B_factors/output/fm_winrates_top50_style/panel_base.parquet",
+    "reason": "registry factors 包含 tuple/list dummy 变量组，默认 portfolio sorting 没有单一排序列口径；如需运行，请在 registry 中显式配置 portfolio_sorting_factors。",
+    "factors": [
+      "('dummy_top50_growth_m3_n6_hit1_pairwise1', 'dummy_top50_growth_m3_n6_hit2_pairwise1', 'dummy_top50_growth_m3_n6_hit3_pairwise1', 'dummy_top50_growth_m3_n6_hit4_pairwise1', 'dummy_top50_growth_m3_n6_hit5_pairwise1', 'dummy_top50_growth_m3_n6_hit6_pairwise1')",
+      "('dummy_top50_growth_m6_n3_hit1_pairwise1', 'dummy_top50_growth_m6_n3_hit2_pairwise1', 'dummy_top50_growth_m6_n3_hit3_pairwise1')",
+      "('dummy_top50_growth_m6_n6_hit1_pairwise1', 'dummy_top50_growth_m6_n6_hit2_pairwise1', 'dummy_top50_growth_m6_n6_hit3_pairwise1', 'dummy_top50_growth_m6_n6_hit4_pairwise1', 'dummy_top50_growth_m6_n6_hit5_pairwise1', 'dummy_top50_growth_m6_n6_hit6_pairwise1')",
+      "('dummy_top50_growth_m6_n12_hit1_pairwise1', 'dummy_top50_growth_m6_n12_hit2_pairwise1', 'dummy_top50_growth_m6_n12_hit3_pairwise1', 'dummy_top50_growth_m6_n12_hit4_pairwise1', 'dummy_top50_growth_m6_n12_hit5_pairwise1', 'dummy_top50_growth_m6_n12_hit6_pairwise1', 'dummy_top50_growth_m6_n12_hit7_pairwise1', 'dummy_top50_growth_m6_n12_hit8_pairwise1', 'dummy_top50_growth_m6_n12_hit9_pairwise1', 'dummy_top50_growth_m6_n12_hit10_pairwise1', 'dummy_top50_growth_m6_n12_hit11_pairwise1', 'dummy_top50_growth_m6_n12_hit12_pairwise1')",
+      "('dummy_top50_growth_m12_n6_hit1_pairwise1', 'dummy_top50_growth_m12_n6_hit2_pairwise1', 'dummy_top50_growth_m12_n6_hit3_pairwise1', 'dummy_top50_growth_m12_n6_hit4_pairwise1', 'dummy_top50_growth_m12_n6_hit5_pairwise1', 'dummy_top50_growth_m12_n6_hit6_pairwise1')",
+      "('dummy_top50_value_m3_n6_hit1_pairwise1', 'dummy_top50_value_m3_n6_hit2_pairwise1', 'dummy_top50_value_m3_n6_hit3_pairwise1', 'dummy_top50_value_m3_n6_hit4_pairwise1', 'dummy_top50_value_m3_n6_hit5_pairwise1', 'dummy_top50_value_m3_n6_hit6_pairwise1')",
+      "('dummy_top50_value_m6_n3_hit1_pairwise1', 'dummy_top50_value_m6_n3_hit2_pairwise1', 'dummy_top50_value_m6_n3_hit3_pairwise1')",
+      "('dummy_top50_value_m6_n6_hit1_pairwise1', 'dummy_top50_value_m6_n6_hit2_pairwise1', 'dummy_top50_value_m6_n6_hit3_pairwise1', 'dummy_top50_value_m6_n6_hit4_pairwise1', 'dummy_top50_value_m6_n6_hit5_pairwise1', 'dummy_top50_value_m6_n6_hit6_pairwise1')",
+      "('dummy_top50_value_m6_n12_hit1_pairwise1', 'dummy_top50_value_m6_n12_hit2_pairwise1', 'dummy_top50_value_m6_n12_hit3_pairwise1', 'dummy_top50_value_m6_n12_hit4_pairwise1', 'dummy_top50_value_m6_n12_hit5_pairwise1', 'dummy_top50_value_m6_n12_hit6_pairwise1', 'dummy_top50_value_m6_n12_hit7_pairwise1', 'dummy_top50_value_m6_n12_hit8_pairwise1', 'dummy_top50_value_m6_n12_hit9_pairwise1', 'dummy_top50_value_m6_n12_hit10_pairwise1', 'dummy_top50_value_m6_n12_hit11_pairwise1', 'dummy_top50_value_m6_n12_hit12_pairwise1')",
+      "('dummy_top50_value_m12_n6_hit1_pairwise1', 'dummy_top50_value_m12_n6_hit2_pairwise1', 'dummy_top50_value_m12_n6_hit3_pairwise1', 'dummy_top50_value_m12_n6_hit4_pairwise1', 'dummy_top50_value_m12_n6_hit5_pairwise1', 'dummy_top50_value_m12_n6_hit6_pairwise1')"
+    ],
+    "updated_at": "2026-07-02T08:57:55"
+  }
+}

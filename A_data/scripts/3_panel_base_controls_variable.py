@@ -6,9 +6,9 @@
 
 新增列会放在原有字段的最右侧：
 
-- CtrlRetLTM：基金过去 2~12 个月累计收益率（剔除最近 1 个月），由 past_ret_12m_1 和 CtrlRetSTR 推算；
+- CtrlRetLTM：过去 12 个月中剔除最近 1 个月，即 `R_{t-11}...R_{t-1}` 的 11 个月复合收益，由 past_ret_12m_1 和 CtrlRetSTR 推算；
 - CtrlRetSTR：基金过去 1 个月收益率，要求上一条记录是同一基金的上一个月；
-- CtrlVol：当前月份之前 12 个月 CtrlRetSTR 的样本标准差，要求收益率窗口完整且连续；
+- CtrlVol：截至当前月份的最近 12 个 CtrlRetSTR 的样本标准差，要求收益率窗口完整且连续；
 - fund_size：iFind 宽表中的原始基金规模；
 - Ctrl_log_fund_size：fund_size 的自然对数；
 - as_<investment_type>：按 investment_type 生成 one-hot 变量，最后一个类型作为基准组不建列。
@@ -264,7 +264,8 @@ def add_return_control_columns(data: pd.DataFrame) -> pd.DataFrame:
     result["CtrlRetSTR"] = result[Config.COLUMN_NAV] / previous_nav - 1
     result.loc[~has_previous_month, "CtrlRetSTR"] = np.nan
 
-    # 过去 2~12 个月收益率 = 从 12 个月总收益中剔除最近 1 个月的部分。
+    # 从截至 t 的 12 个月总收益中剔除最近 1 个月 R_t，得到
+    # R_{t-11}...R_{t-1} 的 11 个月复合收益；NAV 端点是 t-12 和 t-1。
     # 公式：(1 + R_12m) / (1 + R_1m) - 1，当 CtrlRetSTR 缺失时结果自然为 NaN。
     result["CtrlRetLTM"] = (1 + result["past_ret_12m_1"]) / (1 + result["CtrlRetSTR"]) - 1
 
@@ -272,29 +273,30 @@ def add_return_control_columns(data: pd.DataFrame) -> pd.DataFrame:
     ctrl_ret_str = result.pop("CtrlRetSTR")
     result["CtrlRetSTR"] = ctrl_ret_str
 
-    # CtrlVol 使用当前行之前 12 个月的 CtrlRetSTR，不包含当前月自己的 CtrlRetSTR。
-    # 每个 CtrlRetSTR 已经要求相邻两个月净值连续；这里还要确保这 12 个收益率月份本身连续。
-    previous_return_columns = []
+    # CtrlVol 使用截至当前月的最近 12 个单月收益，即 R_{t-11} 到 R_t。
+    # 这样 month_date=t 的波动率包含当月刚实现的收益，与 CtrlRetSTR 的信息时点一致。
+    # 每个 CtrlRetSTR 已经要求相邻两个月净值连续；这里还要确保 12 个收益月份连续。
+    trailing_return_columns = []
     # 初始都设为 True，再逐个月用 &= 收紧条件；只要一个月份不匹配，整行就会变成 False。
-    has_full_previous_12_months = pd.Series(True, index=result.index)
-    for offset in range(1, 13):
-        # offset=1 表示上个月的 CtrlRetSTR，offset=12 表示往前第 12 个月的 CtrlRetSTR。
+    has_full_trailing_12_months = pd.Series(True, index=result.index)
+    for offset in range(0, 12):
+        # offset=0 表示当前月 CtrlRetSTR，offset=11 表示往前第 11 个月的 CtrlRetSTR。
         shifted_return = grouped["CtrlRetSTR"].shift(offset)
         shifted_date = grouped[Config.COLUMN_MONTH_DATE].shift(offset)
         shifted_period = shifted_date.dt.to_period("M")
         # 把 12 个 shifted CtrlRetSTR 暂存在列表里，后面横向拼成 12 列窗口。
-        previous_return_columns.append(shifted_return)
-        has_full_previous_12_months &= shifted_period == current_period - offset
+        trailing_return_columns.append(shifted_return)
+        has_full_trailing_12_months &= shifted_period == current_period - offset
 
-    # 每一行现在都有"前 1 月 CtrlRetSTR、前 2 月 CtrlRetSTR、...、前 12 月 CtrlRetSTR"共 12 个值。
-    previous_return_window = pd.concat(previous_return_columns, axis=1)
+    # 每一行现在都有“当前月、前 1 月、...、前 11 月”共 12 个 CtrlRetSTR。
+    trailing_return_window = pd.concat(trailing_return_columns, axis=1)
     # 除了月份连续，还要求 12 个 CtrlRetSTR 都能成功计算；有任一缺失就不算波动率。
-    has_full_previous_12_returns = (
-        has_full_previous_12_months & previous_return_window.notna().all(axis=1)
+    has_full_trailing_12_returns = (
+        has_full_trailing_12_months & trailing_return_window.notna().all(axis=1)
     )
     # pandas 的 std 默认会跳过 NaN，所以必须在下一行把不完整窗口清成 NaN。
-    result["CtrlVol"] = previous_return_window.std(axis=1, ddof=1)
-    result.loc[~has_full_previous_12_returns, "CtrlVol"] = np.nan
+    result["CtrlVol"] = trailing_return_window.std(axis=1, ddof=1)
+    result.loc[~has_full_trailing_12_returns, "CtrlVol"] = np.nan
 
     return result
 

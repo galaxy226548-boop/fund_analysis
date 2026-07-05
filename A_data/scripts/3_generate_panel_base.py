@@ -635,18 +635,18 @@ def add_pairwise_past_rank_columns(result: pd.DataFrame) -> pd.DataFrame:
 
 
 def add_rank_volatility_columns(result: pd.DataFrame) -> pd.DataFrame:
-    """对每个 (m, n) 组合，计算过去 m 个子期间排名的标准差（排名波动率）。
+    """对每个 (m, n) 组合，计算过去 n 个子期间排名的标准差（排名波动率）。
 
     这是本面板最核心的变量之一。
 
     计算逻辑：
-    1. 取出 past_ret_{n}m_rank_1 到 past_ret_{n}m_rank_{m} 这 m 列排名
-    2. 对每行（基金-月份），计算这 m 个排名的样本标准差（ddof 由 Config 配置）
-    3. 如果 RANK_VOL_REQUIRE_FULL_WINDOW=True，则必须 m 个排名全部非空才计算；
+    1. 取出 past_ret_{m}m_rank_1 到 past_ret_{m}m_rank_{n} 这 n 列排名
+    2. 对每行（基金-月份），计算这 n 个排名的样本标准差（ddof 由 Config 配置）
+    3. 如果 RANK_VOL_REQUIRE_FULL_WINDOW=True，则必须 n 个排名全部非空才计算；
        否则只要超过 ddof 个非空排名即可
 
     含义：
-    - rank_vol 越小 → 该基金在过去 m 个子期间的排名越稳定（一致性好）
+    - rank_vol 越小 → 该基金在过去 n 个子期间的排名越稳定（一致性好）
     - rank_vol 越大 → 排名波动大，可能时好时坏
 
     注意：这里的"标准差"和散点图脚本中直接对 rank 列取 std 的效果完全相同，

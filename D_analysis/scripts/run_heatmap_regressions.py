@@ -2,11 +2,13 @@
 
 本脚本只负责调度以下热力图专用模型：
 
+    fm_heatmap_full
     fm_heatmap_up
     fm_heatmap_down
     fm_heatmap_top33
     fm_heatmap_mid33
-    fm_heatmap_bm33
+    fm_heatmap_bottom33
+    fm_heatmap_top33_y12m
 
 它复用 D_analysis/scripts/0_regression_engine.py，并固定只运行
 ``preprocess`` 和 ``regression`` 两个步骤，避免误触发 portfolio_sorting
@@ -26,11 +28,13 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 REGISTRY_PATH = PROJECT_ROOT / "D_analysis" / "config" / "regression_registry.py"
 ENGINE_PATH = PROJECT_ROOT / "D_analysis" / "scripts" / "0_regression_engine.py"
 DEFAULT_MODELS = (
+    "fm_heatmap_full",
     "fm_heatmap_up",
     "fm_heatmap_down",
     "fm_heatmap_top33",
     "fm_heatmap_mid33",
-    "fm_heatmap_bm33",
+    "fm_heatmap_bottom33",
+    "fm_heatmap_top33_y12m",
 )
 RUN_STEPS = ("preprocess", "regression")
 
@@ -46,7 +50,7 @@ def parse_args() -> argparse.Namespace:
         default=list(DEFAULT_MODELS),
         help=(
             "要运行的模型 key，可空格分隔，也可用逗号分隔；"
-            "默认依次运行全部 5 个热力图模型。"
+            "默认运行 6 个未来 6 个月模型和 Top33 未来 12 个月模型，共 7 个。"
         ),
     )
     parser.add_argument(
@@ -116,7 +120,7 @@ def validate_models(models: list[str]) -> None:
 def check_heatmap_panel_exists(registry_module, models: list[str]) -> None:
     """运行前检查每个模型登记的热力图 panel 输入是否存在。
 
-    五个模型目前共享同一个输入文件，但这里仍按模型配置读取路径。这样将来如果
+    六个模型目前共享同一个输入文件，但这里仍按模型配置读取路径。这样将来如果
     某个模型改用不同输入，检查逻辑也不会静默漏掉。
     """
     missing: list[tuple[str, Path]] = []
