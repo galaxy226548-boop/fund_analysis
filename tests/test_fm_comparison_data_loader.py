@@ -70,5 +70,65 @@ class TestBasicParsers(unittest.TestCase):
         self.assertEqual(sorted(kept["model"].tolist()), ["m_a", "m_b", "m_c"])
 
 
+class TestSheetLoaders(unittest.TestCase):
+    """sheet 级加载：合成 DataFrame 走块解析路径 + 真实总表集成测试。"""
+
+    def test_parse_corr_cell(self):
+        # 诊断单元格里内嵌 markdown 表格，同一对可重复出现（多个 m,n 组合各标记一次）
+        text = (
+            "按 `abs(mean_corr) >= 0.50` 口径，本次发现 3 组相关性风险变量对：\n"
+            "| variable_1 | variable_2 | mean_corr | abs_mean_corr | stars | n_months | risk_level |\n"
+            "| --- | --- | --- | --- | --- | --- | --- |\n"
+            "| Ctrl_fund_age | as_基金A | 0.501 | 0.501 | *** | 63 | 重点关注 |\n"
+            "| Ctrl_fund_age | as_基金A | 0.558 | 0.558 | *** | 56 | 重点关注 |\n"
+            "| FAC_rank_vol | Ctrl_size | 0.60 | 0.60 | *** | 56 | 重点关注 |"
+        )
+        pairs = data_loader.parse_corr_cell(text)
+        # 返回原始行（含重复），由上层聚合成唯一对 + 标记次数
+        self.assertEqual(len(pairs), 3)
+        self.assertEqual(pairs[0], ("Ctrl_fund_age", "as_基金A"))
+        self.assertEqual(pairs[2], ("FAC_rank_vol", "Ctrl_size"))
+        # "未发现"文本返回空列表
+        self.assertEqual(data_loader.parse_corr_cell("按口径，本次未发现相关性风险变量对。"), [])
+        self.assertEqual(data_loader.parse_corr_cell(float("nan")), [])
+
+    def test_corr_diag_aggregation(self):
+        # 用合成 raw sheet 验证：去重 + 标记次数 + 核心变量识别
+        raw = pd.DataFrame([
+            ["来源批次", "模型目录", "报告路径", "相关性风险变量对", "VIF风险变量", "风险解读"],
+            [
+                "b_001", "m_a", "/tmp/r.md",
+                "发现 2 组：\n| variable_1 | variable_2 | x |\n| --- | --- | --- |\n"
+                "| Ctrl_a | as_b | 0.5 |\n| Ctrl_a | as_b | 0.6 |",
+                "按口径，本次未发现稳定偏高的 VIF 风险变量。",
+                "解读",
+            ],
+        ])
+        diag = data_loader._corr_diag_from_blocks(data_loader.split_header_blocks(raw))
+        self.assertEqual(len(diag), 1)
+        row = diag.iloc[0]
+        self.assertEqual(row["kind"], "corr")
+        self.assertEqual((row["var_1"], row["var_2"]), ("Ctrl_a", "as_b"))
+        self.assertEqual(row["n_flagged"], 2)   # 同一对标记两次 -> 去重后 n_flagged=2
+        self.assertFalse(row["involves_core"])  # 不含 FAC 前缀变量
+
+    def test_load_all_real_file(self):
+        # 真实总表存在时做集成校验（不存在则跳过，保证 CI 环境可运行）
+        if not data_loader.config.SUMMARY_XLSX.exists():
+            self.skipTest("真实总表不存在，跳过集成测试")
+        tables = data_loader.load_all(data_loader.config.SUMMARY_XLSX)
+        self.assertEqual(set(tables.keys()), {"coverage", "fm", "ps", "diag"})
+        cov, fm = tables["coverage"], tables["fm"]
+        # 基准模型与现役参数组合必须在表里
+        self.assertIn("fm_baseline_bottom33", set(cov["model"]))
+        self.assertIn("m3_n6", set(cov[cov["model"] == "fm_baseline_bottom33"]["param_key"]))
+        self.assertIn("fm_baseline_up", set(cov["model"]))
+        # FM 系数已解析为数值
+        self.assertTrue(fm["t_stat"].notna().all())
+        self.assertTrue(fm["coef"].dtype.kind == "f")
+        # 覆盖表数值列可用
+        self.assertTrue((cov["n_months"] > 0).all())
+
+
 if __name__ == "__main__":
     unittest.main()
