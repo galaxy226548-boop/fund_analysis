@@ -77,7 +77,7 @@ def _band_score(value: float, bands: list[tuple[float, float]], full: float, hig
     return 0.0
 
 
-def fm_significance_score(t_stat, cfg: dict) -> tuple[float, dict]:
+def fm_significance_score(t_stat: float | None, cfg: dict) -> tuple[float, dict]:
     """FM 显著性：按 |t| 分档乘满分；t 缺失得 0。"""
     # 从配置中获取满分与分档规则
     full, bands = cfg["fm_full"], cfg["fm_t_bands"]
@@ -103,7 +103,7 @@ def _tier_penalty(value: float, tiers: list[tuple[float, float]]) -> float:
     return 0.0
 
 
-def sample_penalty(n_months, n_obs, cfg: dict) -> tuple[float, dict]:
+def sample_penalty(n_months: float, n_obs: float, cfg: dict) -> tuple[float, dict]:
     """样本量扣分：月份数与（月份数×月均基金数）分别按阶梯取最严档后相加。"""
     # 月份数的阶梯扣分：未缺失则计算，缺失则为 0
     months_pen = 0.0 if _is_missing(n_months) else _tier_penalty(float(n_months), cfg["months_penalties"])
