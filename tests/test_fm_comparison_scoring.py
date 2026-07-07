@@ -188,5 +188,70 @@ class TestScoringAdvanced(unittest.TestCase):
         self.assertEqual(scoring.collinearity_penalty(empty, 5, self.cfg)[0], 0.0)
 
 
+def _toy_tables():
+    """构造两个族（挑战者/守擂者）各两个参数组合的完整四表，用于汇总测试。"""
+    coverage = pd.DataFrame({
+        "batch": ["b_001"] * 4,
+        "model": ["fm_baseline_bottom33", "fm_baseline_bottom33",
+                  "fm_baseline_indvol_bottom33", "fm_baseline_indvol_bottom33"],
+        "param": ["m3_n6_pairwise1", "m6_n6_pairwise1"] * 2,
+        "state": [""] * 4,
+        "param_key": ["m3_n6", "m6_n6"] * 2,
+        "m": [3, 6] * 2, "n": [6, 6] * 2,
+        "n_months": [65, 63, 62, 61],
+        "avg_funds": [108.0, 101.0, 90.0, 88.0],
+        "n_obs": [7038.0, 6390.0, 5580.0, 5368.0],
+        "avg_r2": [0.27, 0.24, 0.30, 0.29],
+        "avg_adj_r2": [0.21, 0.18, 0.24, 0.23],
+    })
+    fm = coverage[["batch", "model", "param", "state", "param_key", "m", "n"]].copy()
+    fm["variable"] = "FAC_rank_vol"
+    fm["coef"] = [-0.09, -0.01, -0.12, -0.10]
+    fm["t_stat"] = [-3.60, -0.16, -3.80, -2.20]
+    fm["stars"] = [3, 0, 3, 2]
+    ps = fm[["batch", "model", "variable", "param", "state", "param_key", "m", "n"]].copy()
+    ps["long_short"] = [-0.016, -0.005, -0.020, -0.015]
+    ps["t_stat"] = [-2.03, -0.68, -2.60, -1.90]
+    ps["p_value"] = [0.050, 0.504, 0.012, 0.065]
+    diag = pd.DataFrame(columns=["batch", "model", "kind", "var_1", "var_2", "n_flagged", "involves_core"])
+    return {"coverage": coverage, "fm": fm, "ps": ps, "diag": diag}
+
+
+class TestScoreAll(unittest.TestCase):
+    """汇总打分与擂台徽章。"""
+
+    def setUp(self):
+        self.cfg = dict(config.DEFAULT_CONFIG)
+        self.tables = _toy_tables()
+
+    def test_score_all_shape_and_total(self):
+        scores = scoring.score_all(self.tables, self.cfg)
+        # 4 个候选各一行，总分 = 四维得分 + 两类扣分之和
+        self.assertEqual(len(scores), 4)
+        row = scores[(scores["model"] == "fm_baseline_bottom33") & (scores["param_key"] == "m3_n6")].iloc[0]
+        expected = (
+            row["fm_score"] + row["neighbor_score"] + row["ps_sig_score"]
+            + row["r2_score"] + row["sample_pen"] + row["collin_pen"]
+        )
+        self.assertAlmostEqual(row["total"], expected)
+        # 明细列表覆盖全部六个组成部分
+        self.assertEqual(len(row["明细"]), 6)
+        # 样本层识别正确
+        self.assertTrue((scores["layer"] == "bottom33").all())
+
+    def test_attach_badges(self):
+        scores = scoring.score_all(self.tables, self.cfg)
+        badged = scoring.attach_badges(scores, config.BASELINES, self.cfg)
+        # 基准行被标出且自己不参与打徽章
+        base_row = badged[(badged["model"] == "fm_baseline_bottom33") & (badged["param_key"] == "m3_n6")].iloc[0]
+        self.assertTrue(base_row["is_baseline"])
+        self.assertEqual(base_row["badge"], "")
+        # 挑战者 m3_n6：FM 更显著、PS 更显著、R² 更高 -> 总分应高于基准，拿到徽章
+        ch = badged[(badged["model"] == "fm_baseline_indvol_bottom33") & (badged["param_key"] == "m3_n6")].iloc[0]
+        self.assertGreater(ch["total"], base_row["total"])
+        self.assertIn(ch["badge"], ("可能可替代基准", "优先关注"))
+        self.assertAlmostEqual(ch["vs_baseline"], ch["total"] - base_row["total"])
+
+
 if __name__ == "__main__":
     unittest.main()

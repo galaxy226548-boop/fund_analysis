@@ -259,3 +259,85 @@ def collinearity_penalty(diag_family: pd.DataFrame, n_params: int, cfg: dict) ->
         "得分": total,
     }
     return total, detail
+
+
+def score_all(tables: dict[str, pd.DataFrame], cfg: dict) -> pd.DataFrame:
+    """给全部候选 (模型目录 × m,n) 打分，返回带六项明细的汇总表。"""
+    coverage, fm, ps, diag = tables["coverage"], tables["fm"], tables["ps"], tables["diag"]
+    # 候选 = FM 系数表与覆盖表能对上的 (model, param)；用完整参数串做键，
+    # 避免不同市态状态（growth/value 等前缀）被压成同一格造成笛卡尔积
+    base = fm.merge(
+        coverage[["model", "param", "n_months", "avg_funds", "n_obs", "avg_r2"]],
+        on=["model", "param"], how="inner",
+    ).merge(
+        ps[["model", "param", "long_short", "p_value"]],
+        on=["model", "param"], how="left",
+    )
+    # R² 分位的两个池：全体候选池 + 各族平均池
+    pool_r2 = base["avg_r2"]
+    family_avg = base.groupby("model")["avg_r2"].mean()
+    family_pool = pd.Series(family_avg.values)
+
+    records: list[dict] = []
+    for row in base.itertuples():
+        # 族内 FM 子表（邻格用）：同模型+同变量+同市态状态，跨市态不算邻格
+        family_fm = fm[
+            (fm["model"] == row.model)
+            & (fm["variable"] == row.variable)
+            & (fm["state"] == row.state)
+        ]
+        # 族参数组合数（持续性分母）：用完整参数串计数，含全部市态状态
+        n_params = coverage[coverage["model"] == row.model]["param"].nunique()
+        diag_family = diag[diag["model"] == row.model]
+        # 六个组成部分逐项计算，明细全部保留
+        fm_s, d1 = fm_significance_score(row.t_stat, cfg)
+        nb_s, d2 = neighbor_robustness_score(row.m, row.n, row.coef, family_fm, cfg)
+        ps_s, d3 = ps_score(row.p_value, row.long_short, row.coef, cfg)
+        r2_s, d4 = r2_quality_score(row.avg_r2, pool_r2, family_avg[row.model], family_pool, cfg)
+        sp, d5 = sample_penalty(row.n_months, row.n_obs, cfg)
+        cp, d6 = collinearity_penalty(diag_family, n_params, cfg)
+        records.append({
+            "batch": row.batch, "model": row.model, "layer": sample_layer(row.model),
+            "variable": row.variable, "state": row.state,
+            "param_key": row.param_key, "m": row.m, "n": row.n,
+            "coef": row.coef, "t_stat": row.t_stat, "stars": row.stars,
+            "long_short": row.long_short, "p_value": row.p_value,
+            "n_months": row.n_months, "avg_funds": row.avg_funds,
+            "n_obs": row.n_obs, "avg_r2": row.avg_r2,
+            "fm_score": fm_s, "neighbor_score": nb_s, "ps_sig_score": ps_s,
+            "r2_score": r2_s, "sample_pen": sp, "collin_pen": cp,
+            "total": fm_s + nb_s + ps_s + r2_s + sp + cp,
+            "明细": [d1, d2, d3, d4, d5, d6],
+        })
+    return pd.DataFrame(records)
+
+
+def attach_badges(scores: pd.DataFrame, baselines: dict, cfg: dict) -> pd.DataFrame:
+    """按样本层配对基准，给胜过基准的候选打徽章。
+
+    规则（spec 第 4 节）：总分 > 基准 -> "可能可替代基准"；
+    领先 >= replace_margin -> "优先关注"；other 层无基准，不打徽章。
+    """
+    scores = scores.copy()
+    # 每层基准的总分：基准候选缺失时该层不打徽章
+    layer_base_total: dict[str, float] = {}
+    is_baseline = pd.Series(False, index=scores.index)
+    for layer, spec in baselines.items():
+        mask = (scores["model"] == spec["model"]) & (scores["param_key"] == spec["param_key"])
+        is_baseline |= mask
+        if mask.any():
+            layer_base_total[layer] = float(scores.loc[mask, "total"].iloc[0])
+    scores["is_baseline"] = is_baseline
+    scores["baseline_total"] = scores["layer"].map(layer_base_total)
+    scores["vs_baseline"] = scores["total"] - scores["baseline_total"]
+
+    def _badge(row) -> str:
+        # 基准自己、无基准层、分数未超过基准 -> 无徽章
+        if row["is_baseline"] or pd.isna(row["baseline_total"]) or row["total"] <= row["baseline_total"]:
+            return ""
+        if row["vs_baseline"] >= cfg["replace_margin"]:
+            return "优先关注"
+        return "可能可替代基准"
+
+    scores["badge"] = scores.apply(_badge, axis=1)
+    return scores
