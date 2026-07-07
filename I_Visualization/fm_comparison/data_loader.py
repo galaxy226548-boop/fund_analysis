@@ -65,22 +65,29 @@ def parse_param(text: str) -> tuple[str, int, int, str] | None:
     例："m3_n6_pairwise1" -> ("", 3, 6, "m3_n6")；
         "growth_m3_n3_pairwise1" -> ("growth", 3, 3, "growth_m3_n3")。
     """
+    # 非字符串入参返回 None
     if not isinstance(text, str):
         return None
+    # 按正则表达式匹配参数格式
     match = _PARAM_RE.match(text)
     if match is None:
         return None
+    # 提取市态状态、m 值和 n 值
     state = match.group(1) or ""
     m_val, n_val = int(match.group(2)), int(match.group(3))
+    # 构建参数标识 key
     key = f"{state}_m{m_val}_n{n_val}" if state else f"m{m_val}_n{n_val}"
     return state, m_val, n_val, key
 
 
 def batch_run_no(batch: str) -> int:
     """取批次名的尾号（如 ..._004 -> 4），无法解析返回 -1。"""
+    # 非字符串入参返回 -1
     if not isinstance(batch, str):
         return -1
+    # 按最后一个下划线分割，取尾部
     tail = batch.rsplit("_", 1)[-1]
+    # 如果尾部是数字则返回整数，否则返回 -1
     return int(tail) if tail.isdigit() else -1
 
 
