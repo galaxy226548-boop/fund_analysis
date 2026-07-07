@@ -105,5 +105,88 @@ class TestScoringBasics(unittest.TestCase):
         self.assertEqual(scoring.sample_penalty(56, 4832, self.cfg)[0], -8.0)   # 两类扣分叠加 -5 + -3
 
 
+import pandas as pd  # noqa: E402
+
+
+class TestScoringAdvanced(unittest.TestCase):
+    """邻格稳健性、PS 折扣叠乘、R² 分位、共线性扣分。"""
+
+    def setUp(self):
+        self.cfg = dict(config.DEFAULT_CONFIG)
+
+    def _family(self):
+        # 构造一个族的 FM 表：m6_n6 为本格（coef 为负），四个邻格中两个"同号且 |t|>=1.645"
+        return pd.DataFrame({
+            "m":      [6,     3,     6,     6,     12],
+            "n":      [6,     6,     3,     12,    6],
+            "coef":   [-0.05, -0.07, -0.04, 0.03,  -0.06],
+            "t_stat": [-2.0,  -1.73, -0.9,  2.1,   -1.8],
+        })
+
+    def test_neighbor_robustness(self):
+        # 4 个邻格里：m3_n6(-1.73 同号显著) 和 m12_n6(-1.8 同号显著) 命中，m6_n3 不显著，m6_n12 异号
+        score, detail = scoring.neighbor_robustness_score(6, 6, -0.05, self._family(), self.cfg)
+        self.assertAlmostEqual(score, 10.0 * 2 / 4)
+        self.assertIn("2/4", detail["代入"])
+
+    def test_neighbor_no_data(self):
+        # 族里只有本格自己 -> 无邻格数据，得 0 并在明细里说明
+        alone = pd.DataFrame({"m": [6], "n": [6], "coef": [-0.05], "t_stat": [-2.0]})
+        score, detail = scoring.neighbor_robustness_score(6, 6, -0.05, alone, self.cfg)
+        self.assertEqual(score, 0.0)
+        self.assertIn("无邻格", detail["代入"])
+
+    def test_ps_score_bands_and_discounts(self):
+        # p=0.006, 收益 -2.5%/月, FM 系数同为负 -> 满分 30 无折扣
+        self.assertAlmostEqual(scoring.ps_score(0.0065, -0.025, -0.06, self.cfg)[0], 30.0)
+        # 方向冲突：FM 系数为正、多空收益为负 -> ×0.5
+        self.assertAlmostEqual(scoring.ps_score(0.0065, -0.025, 0.08, self.cfg)[0], 15.0)
+        # 经济显著性：|收益| 0.2%/月 < 0.3% -> ×0.8
+        self.assertAlmostEqual(scoring.ps_score(0.0065, -0.002, -0.06, self.cfg)[0], 24.0)
+        # 两个折扣叠乘 ×0.4
+        self.assertAlmostEqual(scoring.ps_score(0.0065, -0.002, 0.08, self.cfg)[0], 12.0)
+        # 分档边界：恰好 p=0.05 落入 <0.10 档（24 -> 18）
+        self.assertAlmostEqual(scoring.ps_score(0.05, -0.025, -0.06, self.cfg)[0], 18.0)
+        # 无 PS 记录得 0
+        score, detail = scoring.ps_score(None, None, -0.06, self.cfg)
+        self.assertEqual(score, 0.0)
+        self.assertIn("无PS记录", detail["代入"])
+
+    def test_r2_quality(self):
+        pool = pd.Series([0.20, 0.24, 0.28, 0.32])
+        fam_pool = pd.Series([0.22, 0.26, 0.30])
+        # r2=0.28 在 pool 中分位 (2 + 0.5)/4 = 0.625；族 0.26 在 fam_pool 中分位 0.5
+        score, detail = scoring.r2_quality_score(0.28, pool, 0.26, fam_pool, self.cfg)
+        self.assertAlmostEqual(score, 0.625 * 12 + 0.5 * 8)
+        self.assertEqual(detail["得分"], score)
+
+    def test_collinearity_penalty(self):
+        # 1 组非核心风险对、5 个参数组合中标记 3 次 -> -2 × 0.6 = -1.2
+        diag = pd.DataFrame([
+            {"kind": "corr", "var_1": "Ctrl_a", "var_2": "as_b", "n_flagged": 3, "involves_core": False},
+        ])
+        score, _ = scoring.collinearity_penalty(diag, 5, self.cfg)
+        self.assertAlmostEqual(score, -1.2)
+        # 含核心变量的对 -5；持续性超过 1 封顶；corr 合计不低于 -8
+        diag2 = pd.DataFrame([
+            {"kind": "corr", "var_1": "FAC_rank_vol", "var_2": "Ctrl_a", "n_flagged": 9, "involves_core": True},
+            {"kind": "corr", "var_1": "Ctrl_a", "var_2": "as_b", "n_flagged": 5, "involves_core": False},
+            {"kind": "corr", "var_1": "Ctrl_c", "var_2": "as_d", "n_flagged": 5, "involves_core": False},
+        ])
+        score2, _ = scoring.collinearity_penalty(diag2, 5, self.cfg)
+        self.assertAlmostEqual(score2, -8.0)  # -5 + -2 + -2 = -9 -> 封顶 -8
+        # VIF：核心变量自身超标 -8，非核心 -4，合计封顶 -12
+        diag3 = pd.DataFrame([
+            {"kind": "vif", "var_1": "FAC_rank_vol", "var_2": None, "n_flagged": 5, "involves_core": True},
+            {"kind": "vif", "var_1": "Ctrl_a", "var_2": None, "n_flagged": 5, "involves_core": False},
+            {"kind": "vif", "var_1": "Ctrl_b", "var_2": None, "n_flagged": 5, "involves_core": False},
+        ])
+        score3, _ = scoring.collinearity_penalty(diag3, 5, self.cfg)
+        self.assertAlmostEqual(score3, -12.0)  # -8 + -4 + -4 = -16 -> 封顶 -12
+        # 无风险 -> 0
+        empty = pd.DataFrame(columns=["kind", "var_1", "var_2", "n_flagged", "involves_core"])
+        self.assertEqual(scoring.collinearity_penalty(empty, 5, self.cfg)[0], 0.0)
+
+
 if __name__ == "__main__":
     unittest.main()
