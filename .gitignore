@@ -13,3 +13,7 @@ A_data/scripts/__pycache__/
 *.png
 *.ppt
 *.pptx
+
+# fm_comparison 导出结果不提交
+I_Visualization/fm_comparison/output/*
+!I_Visualization/fm_comparison/output/.gitkeep
