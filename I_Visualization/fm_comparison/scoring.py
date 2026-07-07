@@ -164,7 +164,7 @@ def neighbor_robustness_score(m: int, n: int, coef: float, family_fm: pd.DataFra
     return score, detail
 
 
-def ps_score(p_value, long_short, fm_coef, cfg: dict) -> tuple[float, dict]:
+def ps_score(p_value: float | None, long_short: float | None, fm_coef: float | None, cfg: dict) -> tuple[float, dict]:
     """多空显著性：p 分档基础分 × 方向冲突折扣 × 经济显著性折扣（可叠乘）。"""
     # 从配置中取出满分与分档规则
     full, bands = cfg["ps_full"], cfg["ps_p_bands"]
@@ -203,7 +203,7 @@ def percentile_of(value: float, pool: pd.Series) -> float:
     return float(((pool < value).sum() + 0.5 * (pool == value).sum()) / len(pool))
 
 
-def r2_quality_score(r2, pool: pd.Series, family_r2, family_pool: pd.Series, cfg: dict) -> tuple[float, dict]:
+def r2_quality_score(r2: float | None, pool: pd.Series, family_r2: float | None, family_pool: pd.Series, cfg: dict) -> tuple[float, dict]:
     """回归质量：个体 R² 全体分位 × 12 + 族平均 R² 跨族分位 × 8（梯度化，无跳分）。"""
     # 从配置中取出个体与族两部分的满分
     ind_full, fam_full = cfg["r2_individual_full"], cfg["r2_family_full"]
