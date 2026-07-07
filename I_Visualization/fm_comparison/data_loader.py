@@ -116,7 +116,6 @@ _COVERAGE_RENAME = {
     "月均基金数": "avg_funds",
     "月份数×月均基金数": "n_obs",
     "平均 R²": "avg_r2",
-    "平均调整 R²": "avg_adj_r2",
 }
 
 _PS_RENAME = {
@@ -159,7 +158,7 @@ def load_coverage(xlsx: Path) -> pd.DataFrame:
     # 从 param 列解析出 state/m/n/param_key
     df = _add_param_cols(df)
     # 数值列统一转型，脏值转 NaN
-    for col in ["n_months", "avg_funds", "n_obs", "avg_r2", "avg_adj_r2"]:
+    for col in ["n_months", "avg_funds", "n_obs", "avg_r2"]:
         df[col] = pd.to_numeric(df[col], errors="coerce")
     # 0 个月覆盖不是有效覆盖记录，且这类行在 FM 系数表里本就没有对应结果，过滤后不影响下游打分
     df = df[df["n_months"].notna() & (df["n_months"] > 0)]

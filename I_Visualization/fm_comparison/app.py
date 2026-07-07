@@ -77,10 +77,14 @@ def render_fm_grid(side_scores: pd.DataFrame, champion_key: str | None, defender
     st.dataframe(table, use_container_width=True)
 
 
-def render_side(title: str, side_scores: pd.DataFrame, tables: dict, champion_key: str | None, defender_total: float | None, cfg: dict):
+def render_side(title: str, side_scores: pd.DataFrame, all_scores: pd.DataFrame, tables: dict, champion_key: str | None, defender_total: float | None, cfg: dict):
     """渲染擂台一侧的四个块：FM 网格 / 覆盖与 R² / 多空 / 共线性诊断。"""
     model = side_scores["model"].iloc[0]
-    fam_r2 = side_scores["avg_r2"].mean()
+    # 族平均 R² 必须按模型的全部市态状态池化（不能只用当前选中的单一市态），
+    # 因为 scoring.score_all 里驱动 r2_score 的 family_avg 就是这样算的
+    # （family_avg = base.groupby("model")["avg_r2"].mean()，跨 growth/value 等状态合并）；
+    # 若在这里改回只用 side_scores（已按市态过滤），会与实际打分口径脱节。
+    fam_r2 = all_scores[all_scores["model"] == model]["avg_r2"].mean()
     st.subheader(title)
     st.markdown("**① FM 系数网格**")
     render_fm_grid(side_scores, champion_key, defender_total, cfg)
@@ -181,10 +185,10 @@ def main():
         col_l, col_r = st.columns(2)
         with col_l:
             state_suffix = f"（{challenger_state}）" if challenger_state else ""
-            render_side(f"挑战者：{challenger}{state_suffix}", ch_scores, tables, None, defender_total, cfg)
+            render_side(f"挑战者：{challenger}{state_suffix}", ch_scores, scores, tables, None, defender_total, cfg)
         with col_r:
             state_suffix = f"（{defender_state}）" if defender_state else ""
-            render_side(f"守擂者：{defender_model}{state_suffix}", df_scores, tables, champion_key, None, cfg)
+            render_side(f"守擂者：{defender_model}{state_suffix}", df_scores, scores, tables, champion_key, None, cfg)
         with st.expander("分数计算明细（点开逐项复算）"):
             render_breakdown(scores, [challenger, defender_model])
 
